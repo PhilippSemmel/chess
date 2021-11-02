@@ -1,16 +1,17 @@
 import unittest
-from board import Knight, POS, Piece
+from board import Knight, Piece
+
+
+knight1 = Knight(35, True)
+knight2 = Knight(21, False)
 
 
 class GeneralKnightConstructionTestCase(unittest.TestCase):
-    queen1 = Knight(POS(35), True)
-    queen2 = Knight(POS(21), False)
-
     def test_piece_pos_is_given_value(self):
-        self.assertEqual(self.queen1._pos, 35)
+        self.assertEqual(knight1._pos, 35)
 
     def test_piece_pos_is_any_given_value(self):
-        self.assertEqual(self.queen2._pos, 21)
+        self.assertEqual(knight2._pos, 21)
 
     def test_raises_value_error_if_pos_value_is_too_high(self):
         self.assertRaises(ValueError, Knight, 64, True)
@@ -19,10 +20,10 @@ class GeneralKnightConstructionTestCase(unittest.TestCase):
         self.assertRaises(ValueError, Knight, -1, True)
 
     def test_piece_color_is_given_value(self):
-        self.assertEqual(self.queen1._white_piece, True)
+        self.assertEqual(knight1._white_piece, True)
 
     def test_piece_color_is_any_given_value(self):
-        self.assertEqual(self.queen2._white_piece, False)
+        self.assertEqual(knight2._white_piece, False)
 
     def test_raises_type_error_if_pos_is_not_int(self):
         self.assertRaises(TypeError, Knight, True, True, 0)
@@ -39,7 +40,21 @@ class SpecificKnightConstructionTestCase(unittest.TestCase):
         self.assertTrue(issubclass(Knight, Piece))
 
     def test_piece_type_is_queen_code(self):
-        self.assertEqual(Knight(POS(1), True)._type, 1)
+        self.assertEqual(knight1._type, 1)
+
+
+class GeneralKnightGetterTestCase(unittest.TestCase):
+    def test_can_get_queen_pos(self):
+        self.assertEqual(knight1.pos, 35)
+
+    def test_can_get_any_queen_pos(self):
+        self.assertEqual(knight2.pos, 21)
+
+    def test_can_get_queen_color(self):
+        self.assertTrue(knight1.color)
+
+    def test_can_get_any_queen_color(self):
+        self.assertFalse(knight2.color)
 
 
 if __name__ == '__main__':
