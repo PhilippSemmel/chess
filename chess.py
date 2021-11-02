@@ -1,2 +1,2 @@
-class Board:
+class Game:
     pass
