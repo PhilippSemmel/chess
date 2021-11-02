@@ -6,11 +6,13 @@ MOVE = Tuple[int, int]
 
 
 class Piece(ABC):
-    def __init__(self, pos: int, white_piece: bool, _type: int) -> None:
+    def __init__(self, pos: int, white_piece: bool, _type: int, board: Board) -> None:
+        # self._verify_params(pos, white_piece, _type, board)
         self._verify_params(pos, white_piece, _type)
         self._pos: int = pos
         self._white_piece: bool = white_piece
         self._type: int = _type
+        self._board: Board = board
         """
         0 -> Pawn
         1 -> Knight
@@ -25,12 +27,14 @@ class Piece(ABC):
         pass
 
     @staticmethod
+    # def _verify_params(pos: int, white_piece: bool, _type: int, board: Board) -> None:
     def _verify_params(pos: int, white_piece: bool, _type: int) -> None:
         """
         verify the validity of the values passed to the constructor
         :param pos: pos value of the piece
         :param white_piece: color value of the piece
         :param _type: type value of the piece
+        :param board: board object
         :raises TypeError if any value has a wrong type
         :raises ValueError if the pos or type value is wrong
         """
@@ -44,9 +48,11 @@ class Piece(ABC):
             raise TypeError('type value must be int.')
         if _type > 5 or _type < 0:
             raise ValueError('The type codes reach from 0 to 5 only.')
+        # if not type(board) == Board:
+        #     raise ValueError('Invalid board object.')
 
     """
-    getters
+    attribute getters
     """
     @property
     def pos(self) -> int:
@@ -72,62 +78,93 @@ class Piece(ABC):
         """
         return self._type
 
-    # @property
-    # @abstractmethod
-    # def legal_moves(self) -> Set[MOVE]:
-    #     """
-    #     generate all legal moves the piece can make
-    #     :return: set of all legal moves
-    #     """
-    #     pass
+    @property
+    @abstractmethod
+    def pseudo_legal_moves(self) -> Set[MOVE]:
+        """
+        generate all legal moves the piece can make
+        :return: set of all legal moves
+        """
+        pass
 
 
 class Pawn(Piece):
-    def __init__(self, pos: int, white_piece: bool) -> None:
-        super().__init__(pos, white_piece, 0)
+    def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
+        super().__init__(pos, white_piece, 0, board)
 
     def __repr__(self) -> str:
         return '{} pawn on pos {}'.format('white' if self._white_piece else 'black', self._pos)
 
+    @property
+    def pseudo_legal_moves(self) -> Set[MOVE]:
+        pass
+
 
 class Knight(Piece):
-    def __init__(self, pos: int, white_piece: bool) -> None:
-        super().__init__(pos, white_piece, 1)
+    def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
+        super().__init__(pos, white_piece, 1, board)
 
     def __repr__(self) -> str:
         return '{} knight on pos {}'.format('white' if self._white_piece else 'black', self._pos)
 
+    @property
+    def pseudo_legal_moves(self) -> Set[MOVE]:
+        pass
+
 
 class Bishop(Piece):
-    def __init__(self, pos: int, white_piece: bool) -> None:
-        super().__init__(pos, white_piece, 2)
+    def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
+        super().__init__(pos, white_piece, 2, board)
 
     def __repr__(self) -> str:
         return '{} bishop on pos {}'.format('white' if self._white_piece else 'black', self._pos)
 
+    @property
+    def pseudo_legal_moves(self) -> Set[MOVE]:
+        pass
+
 
 class Rook(Piece):
-    def __init__(self, pos: int, white_piece: bool) -> None:
-        super().__init__(pos, white_piece, 3)
+    def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
+        super().__init__(pos, white_piece, 3, board)
 
     def __repr__(self) -> str:
         return '{} rook on pos {}'.format('white' if self._white_piece else 'black', self._pos)
 
+    @property
+    def pseudo_legal_moves(self) -> Set[MOVE]:
+        pass
+
 
 class Queen(Piece):
-    def __init__(self, pos: int, white_piece: bool) -> None:
-        super().__init__(pos, white_piece, 4)
+    def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
+        super().__init__(pos, white_piece, 4, board)
 
     def __repr__(self) -> str:
         return '{} queen on pos {}'.format('white' if self._white_piece else 'black', self._pos)
 
+    @property
+    def pseudo_legal_moves(self) -> Set[MOVE]:
+        moves = set()
+        for pos in range(self._pos + 1, ((self._pos // 8) * 8) + 8, 1):
+            if self._board.own_piece_on_square(pos, self._white_piece):
+                break
+            moves.add((self._pos, pos))
+            if self._board.opponent_piece_on_square(pos, self._white_piece):
+                break
+        return moves
+
 
 class King(Piece):
-    def __init__(self, pos: int, white_piece: bool) -> None:
-        super().__init__(pos, white_piece, 5)
+    def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
+        super().__init__(pos, white_piece, 5, board)
 
     def __repr__(self) -> str:
         return '{} king on pos {}'.format('white' if self._white_piece else 'black', self._pos)
+
+    @property
+    def pseudo_legal_moves(self) -> Set[MOVE]:
+        pass
 
 
 # class Piece(ABC):
@@ -217,8 +254,7 @@ class Board(object):
         self._half_move_clock: int = 0
         self._turn_number: int = 1
 
-    @staticmethod
-    def _parse_fen(fen: str) -> Tuple[Set[Piece], bool, int, int, int, int]:
+    def _parse_fen(self, fen: str) -> Tuple[Set[Piece], bool, int, int, int, int]:
         """
         translate a fen string to the data the class needs for the board representation
         :param fen: the fen string to translate
@@ -252,17 +288,17 @@ class Board(object):
                     f += int(sq)
                     continue
                 elif sq == 'p' or sq == 'P':
-                    pieces.add(Pawn((7 - r) * 8 + f, sq.isupper()))
+                    pieces.add(Pawn((7 - r) * 8 + f, sq.isupper(), self))
                 elif sq == 'n' or sq == 'N':
-                    pieces.add(Knight((7 - r) * 8 + f, sq.isupper()))
+                    pieces.add(Knight((7 - r) * 8 + f, sq.isupper(), self))
                 elif sq == 'b' or sq == 'B':
-                    pieces.add(Bishop((7 - r) * 8 + f, sq.isupper()))
+                    pieces.add(Bishop((7 - r) * 8 + f, sq.isupper(), self))
                 elif sq == 'r' or sq == 'R':
-                    pieces.add(Rook((7 - r) * 8 + f, sq.isupper()))
+                    pieces.add(Rook((7 - r) * 8 + f, sq.isupper(), self))
                 elif sq == 'q' or sq == 'Q':
-                    pieces.add(Queen((7 - r) * 8 + f, sq.isupper()))
+                    pieces.add(Queen((7 - r) * 8 + f, sq.isupper(), self))
                 elif sq == 'k' or sq == 'K':
-                    pieces.add(King((7 - r) * 8 + f, sq.isupper()))
+                    pieces.add(King((7 - r) * 8 + f, sq.isupper(), self))
                 f += 1
         white_to_move = fen[1] == 'w'
         castling_rights = get_castling_rights()
@@ -271,8 +307,11 @@ class Board(object):
         turn_number = int(fen[5])
         return pieces, white_to_move, castling_rights, ep_target_square, half_move_clock, turn_number
 
+    def __repr__(self):
+        pass
+
     """
-    getters
+    attribute getters
     """
     @property
     def pieces(self) -> Set[Piece]:
@@ -322,6 +361,47 @@ class Board(object):
         """
         return self._turn_number
 
+    """
+    position state getter
+    """
+    def is_square_empty(self, pos: int) -> bool:
+        """
+        test whether there is a piece on the given position
+        :param pos: position of the square to test
+        :return: whether there is a piece at the given position
+        """
+        for piece in self._pieces:
+            if piece.pos == pos:
+                return False
+        return True
+
+    def own_piece_on_square(self, pos: int, color: bool) -> bool:
+        """
+        test whether there is a piece on the given position the the same color as given
+        :param pos: positions of the square to test
+        :param color: own color
+        :return: whether there is one of your own pieces at the given position
+        """
+        for piece in self._pieces:
+            if piece.pos == pos and piece.color == color:
+                return True
+        return False
+
+    def opponent_piece_on_square(self, pos: int, color: bool) -> bool:
+        """
+        test whether there is a piece on the given position the a different color as given
+        :param pos: positions of the square to test
+        :param color: own color
+        :return: whether there is one of your opponent's own pieces at the given position
+        """
+        for piece in self._pieces:
+            if piece.pos == pos and not piece.color == color:
+                return True
+        return False
+
+    """
+    misc getters
+    """
     def get_piece(self, pos: int) -> Piece:
         """
         get the piece on the given position
@@ -333,7 +413,3 @@ class Board(object):
             if piece.pos == pos:
                 return piece
         raise ValueError('No piece found on the given position.')
-
-
-if __name__ == '__main__':
-    board = Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkg - 0 1')
