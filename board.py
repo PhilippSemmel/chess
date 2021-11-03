@@ -146,12 +146,15 @@ class Queen(Piece):
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         moves = set()
-        for pos in range(self._pos + 1, ((self._pos // 8) * 8) + 8, 1):
-            if self._board.own_piece_on_square(pos, self._white_piece):
-                break
-            moves.add((self._pos, pos))
-            if self._board.opponent_piece_on_square(pos, self._white_piece):
-                break
+        direction = [1, -1, 8, -8]   # rights, left, up, down
+        direction_limiter = [((self._pos // 8) * 8) + 8, ((self._pos // 8) * 8) - 1, 64, -1]  # rights, left, up, down
+        for d, l in zip(direction, direction_limiter):
+            for pos in range(self._pos + d, l, d):
+                if self._board.own_piece_on_square(pos, self._white_piece):
+                    break
+                moves.add((self._pos, pos))
+                if self._board.opponent_piece_on_square(pos, self._white_piece):
+                    break
         return moves
 
 
