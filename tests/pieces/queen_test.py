@@ -130,7 +130,7 @@ class QueenMoveGenerationTestCase(unittest.TestCase):
         queen = Board('8/8/4PPPp/5QP1/4PPP1/8/8/8 w - - 0 1').get_piece(37)
         self.assertEqual({(37, 36), (37, 35), (37, 34), (37, 33), (37, 32)}, queen.pseudo_legal_moves)
 
-    # horizontal
+    # horizontal moves
     # up
     def test_can_move_one_step_up(self):
         queen = Board('8/8/8/3P4/2P1P3/2PQP3/2PPP3/8 w - - 0 1').get_piece(19)
@@ -188,6 +188,40 @@ class QueenMoveGenerationTestCase(unittest.TestCase):
     def test_can_move_and_capture_three_steps_down(self):
         queen = Board('8/5PPP/5PQP/5P1P/8/6p1/8/8 w - - 0 1').get_piece(46)
         self.assertEqual({(46, 38), (46, 30), (46, 22)}, queen.pseudo_legal_moves)
+
+    # diagonal moves
+    # right up
+    def test_can_move_one_step_right_up(self):
+        queen = Board('8/8/8/8/3P4/PP6/PQP5/PPP5 w - - 0 1').get_piece(9)
+        self.assertEqual({(9, 18)}, queen.pseudo_legal_moves)
+
+    """def test_can_move_two_steps_to_the_right(self):
+        queen = Board('8/8/2PPP3/2PQ2P1/2PPP3/8/8/8 w - - 0 1').get_piece(35)
+        self.assertEqual({(35, 36), (35, 37)}, queen.pseudo_legal_moves)
+
+    def test_can_move_three_steps_to_the_right(self):
+        queen = Board('8/8/2PPP3/2PQ3P/2PPP3/8/8/8 w - - 0 1').get_piece(35)
+        self.assertEqual({(35, 36), (35, 37), (35, 38)}, queen.pseudo_legal_moves)
+
+    def test_cannot_move_beyond_the_edge_of_the_board_to_the_right(self):
+        queen = Board('8/8/2PPP3/2PQ4/2PPP3/8/8/8 w - - 0 1').get_piece(35)
+        self.assertEqual({(35, 36), (35, 37), (35, 38), (35, 39)}, queen.pseudo_legal_moves)
+
+    def test_can_move_from_any_position_to_the_right(self):
+        queen = Board('8/8/8/8/8/1PPP4/1PQ5/1PPP4 w - - 0 1').get_piece(10)
+        self.assertEqual({(10, 11), (10, 12), (10, 13), (10, 14), (10, 15)}, queen.pseudo_legal_moves)
+
+    def test_can_capture_one_step_to_the_right(self):
+        queen = Board('8/8/2PPP3/2PQp3/2PPP3/8/8/8 w - - 0 1').get_piece(35)
+        self.assertEqual({(35, 36)}, queen.pseudo_legal_moves)
+
+    def test_can_move_and_capture_three_steps_to_the_right(self):
+        queen = Board('8/8/2PPP3/2PQ2p1/2PPP3/8/8/8 w - - 0 1').get_piece(35)
+        self.assertEqual({(35, 36), (35, 37), (35, 38)}, queen.pseudo_legal_moves)
+
+    def test_cannot_capture_beyond_the_board_to_the_right(self):
+        queen = Board('8/8/p1PPP3/2PQ4/2PPP3/8/8/8 w - - 0 1').get_piece(35)
+        self.assertEqual({(35, 36), (35, 37), (35, 38), (35, 39)}, queen.pseudo_legal_moves)"""
 
 
 if __name__ == '__main__':
