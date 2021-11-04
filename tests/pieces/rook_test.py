@@ -44,19 +44,5 @@ class SpecificRookConstructionTestCase(unittest.TestCase):
         self.assertEqual(3, rook1._type)
 
 
-class GeneralRookAttributeGetterTestCase(unittest.TestCase):
-    def test_can_get_queen_pos(self):
-        self.assertEqual(35, rook1.pos)
-
-    def test_can_get_any_queen_pos(self):
-        self.assertEqual(21, rook2.pos)
-
-    def test_can_get_queen_color(self):
-        self.assertTrue(rook1.color)
-
-    def test_can_get_any_queen_color(self):
-        self.assertFalse(rook2.color)
-
-
 if __name__ == '__main__':
     unittest.main()

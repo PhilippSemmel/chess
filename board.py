@@ -22,10 +22,6 @@ class Piece(ABC):
         5 -> King
         """
 
-    @abstractmethod
-    def __repr__(self) -> str:
-        pass
-
     @staticmethod
     # def _verify_params(pos: int, white_piece: bool, _type: int, board: Board) -> None:
     def _verify_params(pos: int, white_piece: bool, _type: int) -> None:
@@ -50,6 +46,10 @@ class Piece(ABC):
             raise ValueError('The type codes reach from 0 to 5 only.')
         # if not type(board) == Board:
         #     raise ValueError('Invalid board object.')
+
+    @abstractmethod
+    def __repr__(self) -> str:
+        pass
 
     """
     attribute getters
@@ -78,6 +78,20 @@ class Piece(ABC):
         """
         return self._type
 
+    """
+    other getters
+    """
+    @property
+    def rank(self):
+        return self._pos // 8
+
+    @property
+    def file(self):
+        return self._pos % 8
+
+    """
+    move generation
+    """
     @property
     @abstractmethod
     def pseudo_legal_moves(self) -> Set[MOVE]:
@@ -86,6 +100,29 @@ class Piece(ABC):
         :return: set of all legal moves
         """
         pass
+
+    def _generate_sliding_moves(self, move_limit: Optional[int] = 7) -> Set[MOVE]:
+        """
+
+        :param move_limit: the limit a piece can move in the given directions
+        :return: all sliding moves a piece can make
+        """
+        moves = set()
+        # right, left, up, down, right up, left down, right down, left up
+        position_difference = [1, -1, 8, -8, 9, -9, 7, -7]
+        # right, left, up, down, right up, left down, right down, left up
+        max_moves = [7 - self.file, self.file, 7 - self.rank, self.rank, min(7 - self.file, 7 - self.rank),
+                     min(self.file, self.rank), min(self.file, 7 - self.rank), min(7 - self.file, self.rank)]
+        for d, m in zip(position_difference, max_moves):
+            for n, pos in enumerate(range(self._pos + d, self._pos + ((m + 1) * d), d)):
+                if self._board.own_piece_on_square(pos, self._white_piece):
+                    break
+                moves.add((self._pos, pos))
+                if self._board.opponent_piece_on_square(pos, self._white_piece):
+                    break
+                if n + 1 >= move_limit:
+                    break
+        return moves
 
 
 class Pawn(Piece):
@@ -145,17 +182,7 @@ class Queen(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        moves = set()
-        direction = [1, -1, 8, -8, 9]   # rights, left, up, down, right up
-        direction_limiter = [7 - (self._pos % 8), self._pos % 8, 7 - self._pos // 8, self._pos // 8, min(7 - (self._pos % 8), 7 - self._pos // 8)]  # rights, left, up, down
-        for d, l in zip(direction, direction_limiter):
-            for pos in range(self._pos + d, self._pos + (d * l), d):
-                if self._board.own_piece_on_square(pos, self._white_piece):
-                    break
-                moves.add((self._pos, pos))
-                if self._board.opponent_piece_on_square(pos, self._white_piece):
-                    break
-        return moves
+        return self._generate_sliding_moves()
 
 
 class King(Piece):
@@ -167,7 +194,7 @@ class King(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        pass
+        return self._generate_sliding_moves(1)
 
 
 # class Piece(ABC):

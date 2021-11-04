@@ -44,19 +44,5 @@ class SpecificPawnConstructionTestCase(unittest.TestCase):
         self.assertEqual(0, pawn1._type)
 
 
-class GeneralPawnAttributeGetterTestCase(unittest.TestCase):
-    def test_can_get_queen_pos(self):
-        self.assertEqual(35, pawn1.pos)
-
-    def test_can_get_any_queen_pos(self):
-        self.assertEqual(21, pawn2.pos)
-
-    def test_can_get_queen_color(self):
-        self.assertTrue(pawn1.color)
-
-    def test_can_get_any_queen_color(self):
-        self.assertFalse(pawn2.color)
-
-
 if __name__ == '__main__':
     unittest.main()

@@ -44,19 +44,5 @@ class SpecificBishopConstructionTestCase(unittest.TestCase):
         self.assertEqual(2, bishop1._type)
 
 
-class GeneralBishopAttributeGetterTestCase(unittest.TestCase):
-    def test_can_get_queen_pos(self):
-        self.assertEqual(35, bishop1.pos)
-
-    def test_can_get_any_queen_pos(self):
-        self.assertEqual(21, bishop2.pos)
-
-    def test_can_get_queen_color(self):
-        self.assertTrue(bishop1.color)
-
-    def test_can_get_any_queen_color(self):
-        self.assertFalse(bishop2.color)
-
-
 if __name__ == '__main__':
     unittest.main()
