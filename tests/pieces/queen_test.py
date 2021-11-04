@@ -8,40 +8,23 @@ queen2 = Queen(21, False, board)
 
 
 class GeneralQueenConstructionTestCase(unittest.TestCase):
+    def test_queen_is_subclass_of_piece(self):
+        self.assertTrue(issubclass(Queen, Piece))
+
+    def test_piece_type_is_queen_code(self):
+        self.assertEqual(4, queen1._type)
+
     def test_piece_pos_is_given_value(self):
         self.assertEqual(35, queen1._pos)
 
     def test_piece_pos_is_any_given_value(self):
         self.assertEqual(21, queen2._pos)
 
-    def test_raises_value_error_if_pos_value_is_too_high(self):
-        self.assertRaises(ValueError, Queen, 64, True, board)
-
-    def test_raises_value_error_is_pos_value_is_too_low(self):
-        self.assertRaises(ValueError, Queen, -1, True, board)
-
     def test_piece_color_is_given_value(self):
         self.assertTrue(queen1._white_piece)
 
     def test_piece_color_is_any_given_value(self):
         self.assertFalse(queen2._white_piece)
-
-    def test_raises_type_error_if_pos_is_not_int(self):
-        self.assertRaises(TypeError, Queen, True, True, board)
-
-    def test_raises_type_error_if_white_piece_is_not_bool(self):
-        self.assertRaises(TypeError, Queen, 1, 1, board)
-
-    # def test_raises_type_error_if_board_is_not_board(self):
-    #     self.assertRaises(TypeError, Queen, 1, True, 1)
-
-
-class SpecificQueenConstructionTestCase(unittest.TestCase):
-    def test_queen_is_subclass_of_piece(self):
-        self.assertTrue(issubclass(Queen, Piece))
-
-    def test_piece_type_is_queen_code(self):
-        self.assertEqual(4, queen1._type)
 
 
 class QueenMoveGenerationTestCase(unittest.TestCase):

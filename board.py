@@ -1,18 +1,22 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Union, Tuple, Set, Optional
+from typing import Union, Tuple, Set, Optional, List
 
 MOVE = Tuple[int, int]
 
 
 class Piece(ABC):
     def __init__(self, pos: int, white_piece: bool, _type: int, board: Board) -> None:
-        # self._verify_params(pos, white_piece, _type, board)
         self._verify_params(pos, white_piece, _type)
+        # piece info
         self._pos: int = pos
         self._white_piece: bool = white_piece
         self._type: int = _type
+        # objects
         self._board: Board = board
+        # misc data
+        self._all_position_differences: List[int] = [1, -1, 8, -8, 9, -7, -9, 7]
+        # order of the differences :right, left, up, down, right up, right down, left down, left up
         """
         0 -> Pawn
         1 -> Knight
@@ -23,7 +27,6 @@ class Piece(ABC):
         """
 
     @staticmethod
-    # def _verify_params(pos: int, white_piece: bool, _type: int, board: Board) -> None:
     def _verify_params(pos: int, white_piece: bool, _type: int) -> None:
         """
         verify the validity of the values passed to the constructor
@@ -44,12 +47,10 @@ class Piece(ABC):
             raise TypeError('type value must be int.')
         if _type > 5 or _type < 0:
             raise ValueError('The type codes reach from 0 to 5 only.')
-        # if not type(board) == Board:
-        #     raise ValueError('Invalid board object.')
 
-    @abstractmethod
-    def __repr__(self) -> str:
-        pass
+    # @abstractmethod
+    # def __repr__(self) -> str:
+    #     pass
 
     """
     attribute getters
@@ -82,38 +83,58 @@ class Piece(ABC):
     other getters
     """
     @property
-    def rank(self):
+    def rank(self) -> int:
+        """
+        get the rank the piece stands on
+        :return: the rank the piece stands on
+        """
         return self._pos // 8
 
     @property
-    def file(self):
+    def file(self) -> int:
+        """
+        get the file the piece stands on
+        :return: the file the piece stands on
+        """
         return self._pos % 8
+
+    @property
+    def _max_moves(self) -> List[int]:
+        """
+        get the number of squares in each direction starting from the pieces position
+        :return:list of numbers of squares in each direction starting from the pieces position
+        """
+        r = self.rank
+        f = self.file
+        right = 7 - f
+        left = f
+        up = 7 - r
+        down = r
+        return [right, left, up, down, min(right, up), min(right, down), min(left, down), min(left, up)]
 
     """
     move generation
     """
-    @property
-    @abstractmethod
-    def pseudo_legal_moves(self) -> Set[MOVE]:
-        """
-        generate all legal moves the piece can make
-        :return: set of all legal moves
-        """
-        pass
+    # @property
+    # @abstractmethod
+    # def pseudo_legal_moves(self) -> Set[MOVE]:
+    #     """
+    #     generate all legal moves the piece can make
+    #     :return: set of all legal moves
+    #     """
+    #     pass
 
-    def _generate_sliding_moves(self, move_limit: Optional[int] = 7) -> Set[MOVE]:
+    def _generate_sliding_moves(self, position_differences: List[int] = None, max_moves: List[int] = None,
+                                move_limit: Optional[int] = 7) -> Set[MOVE]:
         """
 
-        :param move_limit: the limit a piece can move in the given directions
-        :return: all sliding moves a piece can make
         """
+        if not position_differences:
+            position_differences = self._all_position_differences
+        if not max_moves:
+            max_moves = self._max_moves
         moves = set()
-        # right, left, up, down, right up, left down, right down, left up
-        position_difference = [1, -1, 8, -8, 9, -9, 7, -7]
-        # right, left, up, down, right up, left down, right down, left up
-        max_moves = [7 - self.file, self.file, 7 - self.rank, self.rank, min(7 - self.file, 7 - self.rank),
-                     min(self.file, self.rank), min(self.file, 7 - self.rank), min(7 - self.file, self.rank)]
-        for d, m in zip(position_difference, max_moves):
+        for d, m in zip(position_differences, max_moves):
             for n, pos in enumerate(range(self._pos + d, self._pos + ((m + 1) * d), d)):
                 if self._board.own_piece_on_square(pos, self._white_piece):
                     break
@@ -158,7 +179,7 @@ class Bishop(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        pass
+        return self._generate_sliding_moves(self._all_position_differences[4:], self._max_moves[4:])
 
 
 class Rook(Piece):
@@ -170,7 +191,7 @@ class Rook(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        pass
+        return self._generate_sliding_moves(self._all_position_differences[:4], self._max_moves[:4])
 
 
 class Queen(Piece):
@@ -194,7 +215,7 @@ class King(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        return self._generate_sliding_moves(1)
+        return self._generate_sliding_moves(move_limit=1)
 
 
 # class Piece(ABC):
