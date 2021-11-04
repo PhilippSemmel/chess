@@ -44,19 +44,5 @@ class SpecificKnightConstructionTestCase(unittest.TestCase):
         self.assertEqual(1, knight1._type)
 
 
-class GeneralKnightAttributeGetterTestCase(unittest.TestCase):
-    def test_can_get_queen_pos(self):
-        self.assertEqual(35, knight1.pos)
-
-    def test_can_get_any_queen_pos(self):
-        self.assertEqual(21, knight2.pos)
-
-    def test_can_get_queen_color(self):
-        self.assertTrue(knight1.color)
-
-    def test_can_get_any_queen_color(self):
-        self.assertFalse(knight2.color)
-
-
 if __name__ == '__main__':
     unittest.main()

@@ -57,7 +57,7 @@ class SpecificPieceConstructionTestCase(unittest.TestCase):
         self.assertRaises(ValueError, Piece, 0, True, 6, board)
 
 
-class GeneralPieceAttributeGetterTestCase(unittest.TestCase):
+class PieceAttributeGetterTestCase(unittest.TestCase):
     def test_can_get_queen_pos(self):
         self.assertEqual(35, piece1.pos)
 
@@ -70,13 +70,25 @@ class GeneralPieceAttributeGetterTestCase(unittest.TestCase):
     def test_can_get_any_queen_color(self):
         self.assertFalse(piece2.color)
 
-
-class SpecialPieceAttributeGetterTestCase(unittest.TestCase):
     def test_can_get_piece_type(self):
         self.assertEqual(0, piece1.type)
 
     def test_can_get_any_piece_type(self):
         self.assertEqual(1, piece2.type)
+
+
+class PieceGetterTestCase(unittest.TestCase):
+    def test_can_get_rank(self):
+        self.assertEqual(4, piece1.rank)
+
+    def test_can_get_any_rank(self):
+        self.assertEqual(2, piece2.rank)
+
+    def test_can_get_file(self):
+        self.assertEqual(3, piece1.file)
+
+    def test_can_get_any_file(self):
+        self.assertEqual(5, piece2.file)
 
 
 if __name__ == '__main__':
