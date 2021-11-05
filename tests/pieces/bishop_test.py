@@ -29,7 +29,7 @@ class GeneralBishopConstructionTestCase(unittest.TestCase):
 
 class BishopMoveGenerationTestCase(unittest.TestCase):
     # general
-    def test_cannot_move_when_trapped_by_own_pieces(self):
+    def test_cannot_move_when_blocked_by_own_pieces(self):
         bishop = Board('8/8/2PPP3/2PBP3/2PPP3/8/8/8 w - - 0 1').get_piece(35)
         self.assertEqual(set(), bishop.pseudo_legal_moves)
 

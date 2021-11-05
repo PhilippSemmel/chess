@@ -48,9 +48,9 @@ class Piece(ABC):
         if _type > 5 or _type < 0:
             raise ValueError('The type codes reach from 0 to 5 only.')
 
-    # @abstractmethod
-    # def __repr__(self) -> str:
-    #     pass
+    @abstractmethod
+    def __repr__(self) -> str:
+        pass
 
     """
     attribute getters
@@ -115,14 +115,14 @@ class Piece(ABC):
     """
     move generation
     """
-    # @property
-    # @abstractmethod
-    # def pseudo_legal_moves(self) -> Set[MOVE]:
-    #     """
-    #     generate all legal moves the piece can make
-    #     :return: set of all legal moves
-    #     """
-    #     pass
+    @property
+    @abstractmethod
+    def pseudo_legal_moves(self) -> Set[MOVE]:
+        """
+        generate all legal moves the piece can make
+        :return: set of all legal moves
+        """
+        pass
 
     def _generate_sliding_moves(self, position_differences: List[int] = None, max_moves: List[int] = None,
                                 move_limit: Optional[int] = 7) -> Set[MOVE]:
@@ -155,7 +155,7 @@ class Pawn(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        pass
+        return self._generate_sliding_moves([8], self._max_moves[2:3], 2)
 
 
 class Knight(Piece):
@@ -216,71 +216,6 @@ class King(Piece):
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_sliding_moves(move_limit=1)
-
-
-# class Piece(ABC):
-#     def __init__(self, pos: int, color: COLOR, type_: int, board: Board):
-#         self._pos: Union[int, None] = pos
-#         self._white_piece: COLOR = color
-#         self._type: int = type_
-#         self._board = board
-#         self._all_directions: List[int] = [1, -1, 8, -8, 7, -7, 9, -9]
-#         """
-#         0 -> Pawn
-#         1 -> Knight
-#         2 -> Bishop
-#         3 -> Rook
-#         4 -> Queen
-#         5 -> King
-#         """
-#
-#     @property
-#     def rank(self) -> int:
-#         """
-#         :return: number of the rank (vertical line)
-#         """
-#         return (self._pos // 8) + 1
-#
-#     def get_pos(self) -> int:
-#         return self._pos
-#
-#     def is_white_piece(self) -> COLOR:
-#         return self._white_piece
-#
-#     def _squares_in_vertical_and_horizontal_directions(self) -> List[int]:
-#         pass
-#
-#     @property
-#     @abstractmethod
-#     def attacking_squares(self) -> Set[MOVE]:
-#         """
-#         :return: a set of squares the piece attacks
-#         """
-#         pass
-#
-#     @property
-#     @abstractmethod
-#     def pseudo_legal_moves(self) -> Set[MOVE]:
-#         """
-#         :return: a set of squares the piece can move to in this turn
-#         """
-#         pass
-#
-#     def get_sliding_moves(self, directions: List[int], squares_in_directions: List[int], limiter: Optional[int] = 7) \
-#             -> Set[MOVE]:
-#         """
-#         generate the moves of king, queen, rook, bishop and pawn except castling and en passant
-#         :param directions: directions the piece can move
-#         :param squares_in_directions: number of squares the piece can move into a direction
-#         :param limiter: limits the squares a piece can move
-#         :return: a set of squares a piece can move to by sliding
-#         """
-#         for direction, squares_in_direction in zip(directions, squares_in_directions):
-#             pos = self._pos
-#             for i in range(min(limiter, squares_in_direction)):
-#                 pos += direction
-#                 if self._board.piece_on(pos, self._white_piece):
-#                     pass
 
 
 class Board(object):
