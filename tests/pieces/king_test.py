@@ -29,7 +29,7 @@ class GeneralKingConstructionTestCase(unittest.TestCase):
 
 class KingMoveGenerationTestCase(unittest.TestCase):
     # general
-    def test_cannot_move_when_trapped_by_own_pieces(self):
+    def test_cannot_move_when_blocked_by_own_pieces(self):
         king = Board('8/8/2PPP3/2PKP3/2PPP3/8/8/8 w - - 0 1').get_piece(35)
         self.assertEqual(set(), king.pseudo_legal_moves)
 
