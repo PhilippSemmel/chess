@@ -15,8 +15,8 @@ class Piece(ABC):
         # objects
         self._board: Board = board
         # misc data
-        self._all_position_differences: List[int] = [1, -1, 8, -8, 9, -7, -9, 7]
-        # order of the differences :right, left, up, down, right up, right down, left down, left up
+        self._all_position_differences: List[int] = [1, -1, 8, -8, 9, 7, -7, -9]
+        # order of the differences :right, left, up, down, right up, left up, right down, left down
         """
         0 -> Pawn
         1 -> Knight
@@ -33,7 +33,6 @@ class Piece(ABC):
         :param pos: pos value of the piece
         :param white_piece: color value of the piece
         :param _type: type value of the piece
-        :param board: board object
         :raises TypeError if any value has a wrong type
         :raises ValueError if the pos or type value is wrong
         """
@@ -110,7 +109,7 @@ class Piece(ABC):
         left = f
         up = 7 - r
         down = r
-        return [right, left, up, down, min(right, up), min(right, down), min(left, down), min(left, up)]
+        return [right, left, up, down, min(right, up), min(left, up), min(right, down), min(left, down)]
 
     """
     move generation
@@ -119,13 +118,14 @@ class Piece(ABC):
     @abstractmethod
     def pseudo_legal_moves(self) -> Set[MOVE]:
         """
-        generate all legal moves the piece can make
-        :return: set of all legal moves
+        generate all pseudo legal moves the piece can make
+        :return: set of all legal moves available
         """
         pass
 
     def _generate_sliding_moves(self, position_differences: List[int] = None, max_moves: List[int] = None,
-                                move_limit: Optional[int] = 7) -> Set[MOVE]:
+                                move_limit: Optional[int] = 7, no_capturing: Optional[bool] = False,
+                                capturing_only: Optional[bool] = False) -> Set[MOVE]:
         """
 
         """
@@ -140,7 +140,11 @@ class Piece(ABC):
                     break
                 moves.add((self._pos, pos))
                 if self._board.opponent_piece_on_square(pos, self._white_piece):
+                    if no_capturing:
+                        moves.discard((self._pos, pos))
                     break
+                if capturing_only:
+                    moves.discard((self._pos, pos))
                 if n + 1 >= move_limit:
                     break
         return moves
@@ -155,7 +159,12 @@ class Pawn(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        return self._generate_sliding_moves([8], self._max_moves[2:3], 2)
+        move_limit = 2 if self.rank == 1 else 1
+        moves = self._generate_sliding_moves(self._all_position_differences[2:3], self._max_moves[2:3], move_limit,
+                                             no_capturing=True)
+        moves |= self._generate_sliding_moves(self._all_position_differences[4:6], self._max_moves[4:6], 1,
+                                              capturing_only=True)
+        return moves
 
 
 class Knight(Piece):
