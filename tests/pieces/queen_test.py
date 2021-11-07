@@ -7,7 +7,7 @@ queen1 = Queen(35, True, board)
 queen2 = Queen(21, False, board)
 
 
-class GeneralQueenConstructionTestCase(unittest.TestCase):
+class QueenConstructionTestCase(unittest.TestCase):
     def test_queen_is_subclass_of_piece(self):
         self.assertTrue(issubclass(Queen, Piece))
 

@@ -7,7 +7,7 @@ rook1 = Rook(35, True, board)
 rook2 = Rook(21, False, board)
 
 
-class GeneralRookConstructionTestCase(unittest.TestCase):
+class RookConstructionTestCase(unittest.TestCase):
     def test_rook_is_subclass_of_piece(self):
         self.assertTrue(issubclass(Rook, Piece))
 

@@ -7,7 +7,7 @@ bishop1 = Bishop(35, True, board)
 bishop2 = Bishop(21, False, board)
 
 
-class GeneralBishopConstructionTestCase(unittest.TestCase):
+class BishopConstructionTestCase(unittest.TestCase):
     def test_bishop_is_subclass_of_piece(self):
         self.assertTrue(issubclass(Bishop, Piece))
 

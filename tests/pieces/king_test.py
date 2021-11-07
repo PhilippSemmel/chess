@@ -7,7 +7,7 @@ king1 = King(35, True, board)
 king2 = King(21, False, board)
 
 
-class GeneralKingConstructionTestCase(unittest.TestCase):
+class KingConstructionTestCase(unittest.TestCase):
     def test_king_is_subclass_of_piece(self):
         self.assertTrue(issubclass(King, Piece))
 
