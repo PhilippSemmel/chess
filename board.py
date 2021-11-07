@@ -159,10 +159,16 @@ class Pawn(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        move_limit = 2 if self.rank == 1 else 1
-        moves = self._generate_sliding_moves(self._all_position_differences[2:3], self._max_moves[2:3], move_limit,
+        move_limit = 2 if (self._white_piece and self.rank == 1) or (not self._white_piece and self.rank == 6) else 1
+        if self._white_piece:
+            position_differences = [self._all_position_differences[2:3], self._all_position_differences[4:6]]
+            max_moves = [self._max_moves[2:3], self._max_moves[4:6]]
+        else:
+            position_differences = [self._all_position_differences[3:4], self._all_position_differences[6:]]
+            max_moves = [self._max_moves[3:4], self._max_moves[6:]]
+        moves = self._generate_sliding_moves(position_differences[0], max_moves[0], move_limit,
                                              no_capturing=True)
-        moves |= self._generate_sliding_moves(self._all_position_differences[4:6], self._max_moves[4:6], 1,
+        moves |= self._generate_sliding_moves(position_differences[1], max_moves[1], 1,
                                               capturing_only=True)
         return moves
 
@@ -176,7 +182,7 @@ class Knight(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        pass
+        return set()
 
 
 class Bishop(Piece):
