@@ -115,7 +115,7 @@ class PawnMoveGenerationTestCase(unittest.TestCase):
 
     # black
     def test_cannot_move_when_blocked_by_own_pieces_as_black(self):
-        pawn = Board('8/4p3/3ppp2/8/8/8/8/8 w - - 0 1').get_piece(52)
+        pawn = Board('8/4p3/3ppp2/8/8/8/8/8 b - - 0 1').get_piece(52)
         self.assertEqual(set(), pawn.pseudo_legal_moves)
 
     # advance
@@ -162,36 +162,36 @@ class PawnMoveGenerationTestCase(unittest.TestCase):
     # capturing sideways
     # right down
     def test_can_capture_one_step_right_down_as_black(self):
-        pawn = Board('8/8/8/3p4/3pP3/8/8/8 w - - 0 1').get_piece(35)
+        pawn = Board('8/8/8/3p4/3pP3/8/8/8 b - - 0 1').get_piece(35)
         self.assertEqual({(35, 28)}, pawn.pseudo_legal_moves)
 
     def test_cannot_capture_two_steps_right_down_as_black(self):
-        pawn = Board('8/8/8/3p4/3p4/5P2/8/8 w - - 0 1').get_piece(35)
+        pawn = Board('8/8/8/3p4/3p4/5P2/8/8 b - - 0 1').get_piece(35)
         self.assertEqual(set(), pawn.pseudo_legal_moves)
 
     def test_can_capture_anywhere_one_step_right_down_as_black(self):
-        pawn = Board('8/8/8/4p3/4pP2/8/8/8 w - - 0 1').get_piece(36)
+        pawn = Board('8/8/8/4p3/4pP2/8/8/8 b - - 0 1').get_piece(36)
         self.assertEqual({(36, 29)}, pawn.pseudo_legal_moves)
 
     def test_cannot_capture_right_down_beyond_the_edge_of_the_board_as_black(self):
-        pawn = Board('8/8/8/P6p/7p/8/8/8 w - - 0 1').get_piece(39)
+        pawn = Board('8/8/8/P6p/7p/8/8/8 b - - 0 1').get_piece(39)
         self.assertEqual(set(), pawn.pseudo_legal_moves)
 
     # left down
     def test_can_capture_one_step_left_down_as_black(self):
-        pawn = Board('8/8/8/4p3/3Pp3/8/8/8 w - - 0 1').get_piece(36)
+        pawn = Board('8/8/8/4p3/3Pp3/8/8/8 b - - 0 1').get_piece(36)
         self.assertEqual({(36, 27)}, pawn.pseudo_legal_moves)
 
     def test_cannot_capture_two_steps_left_down_as_black(self):
-        pawn = Board('8/8/8/4p3/4p3/2P5/8/8 w - - 0 1').get_piece(36)
+        pawn = Board('8/8/8/4p3/4p3/2P5/8/8 b - - 0 1').get_piece(36)
         self.assertEqual(set(), pawn.pseudo_legal_moves)
 
     def test_can_capture_anywhere_one_step_left_down_as_black(self):
-        pawn = Board('8/8/8/3p4/2Pp4/8/8/8 w - - 0 1').get_piece(35)
+        pawn = Board('8/8/8/3p4/2Pp4/8/8/8 b - - 0 1').get_piece(35)
         self.assertEqual({(35, 26)}, pawn.pseudo_legal_moves)
 
     def test_cannot_capture_left_down_beyond_the_edge_of_the_board_as_black(self):
-        pawn = Board('8/8/8/p7/p7/7P/8/8 w - - 0 1').get_piece(32)
+        pawn = Board('8/8/8/p7/p7/7P/8/8 b - - 0 1').get_piece(32)
         self.assertEqual(set(), pawn.pseudo_legal_moves)
 
 
