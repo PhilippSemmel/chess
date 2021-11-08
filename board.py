@@ -15,8 +15,8 @@ class Piece(ABC):
         # objects
         self._board: Board = board
         # misc data
-        self._all_position_differences: List[int] = [1, -1, 8, -8, 9, 7, -7, -9]
         # order of the differences :right, left, up, down, right up, left up, right down, left down
+        self._all_position_differences: List[int] = [1, -1, 8, -8, 9, 7, -7, -9]
         """
         0 -> Pawn
         1 -> Knight
@@ -123,9 +123,7 @@ class Piece(ABC):
         """
         pass
 
-    def _generate_sliding_moves(self, position_differences: List[int] = None, max_moves: List[int] = None,
-                                move_limit: Optional[int] = 7, no_capturing: Optional[bool] = False,
-                                capturing_only: Optional[bool] = False) -> Set[MOVE]:
+    def _generate_sliding_moves(self, position_differences: List[int] = None, max_moves: List[int] = None) -> Set[MOVE]:
         """
 
         """
@@ -134,18 +132,13 @@ class Piece(ABC):
         if not max_moves:
             max_moves = self._max_moves
         moves = set()
+
         for d, m in zip(position_differences, max_moves):
-            for n, pos in enumerate(range(self._pos + d, self._pos + ((m + 1) * d), d)):
-                if self._board.own_piece_on_square(pos, self._white_piece):
+            for n, new_pos in enumerate(range(self._pos + d, self._pos + ((m + 1) * d), d)):
+                if self._board.own_piece_on_square(new_pos, self._white_piece):
                     break
-                moves.add((self._pos, pos))
-                if self._board.opponent_piece_on_square(pos, self._white_piece):
-                    if no_capturing:
-                        moves.discard((self._pos, pos))
-                    break
-                if capturing_only:
-                    moves.discard((self._pos, pos))
-                if n + 1 >= move_limit:
+                moves.add((self._pos, new_pos))
+                if self._board.opponent_piece_on_square(new_pos, self._white_piece):
                     break
         return moves
 
@@ -159,6 +152,25 @@ class Pawn(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
+        def generate_advances():
+            nonlocal move_limit
+            _moves = set()
+            move_limit = min(move_limit, max_moves[0][0])
+            d = position_differences[0][0]
+            for n in range(move_limit):
+                if not self._board.is_square_empty(self._pos + ((n + 1) * d)):
+                    break
+                _moves.add((self._pos, self._pos + ((n + 1) * d)))
+            return _moves
+
+        def generate_diagonal_capturing_moves():
+            _moves = set()
+            for n in range(2):
+                if max_moves[1][n] > 0 and self._board.opponent_piece_on_square(self._pos + position_differences[1][n],
+                                                                                self._white_piece):
+                    _moves.add((self._pos, self._pos + position_differences[1][n]))
+            return _moves
+
         move_limit = 2 if (self._white_piece and self.rank == 1) or (not self._white_piece and self.rank == 6) else 1
         if self._white_piece:
             position_differences = [self._all_position_differences[2:3], self._all_position_differences[4:6]]
@@ -166,10 +178,8 @@ class Pawn(Piece):
         else:
             position_differences = [self._all_position_differences[3:4], self._all_position_differences[6:]]
             max_moves = [self._max_moves[3:4], self._max_moves[6:]]
-        moves = self._generate_sliding_moves(position_differences[0], max_moves[0], move_limit,
-                                             no_capturing=True)
-        moves |= self._generate_sliding_moves(position_differences[1], max_moves[1], 1,
-                                              capturing_only=True)
+        moves = generate_advances()
+        moves |= generate_diagonal_capturing_moves()
         return moves
 
 
@@ -182,7 +192,16 @@ class Knight(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        return set()
+        moves = set()
+        for d, off_set in ([17, 10, -6, -15, -17, -10, 6, 15], [(1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1),
+                                                                (-2, 1), (-1, 2)]):
+            new_pos = self._pos + d
+            # new pos is beyond board
+            if new_pos // 8 > 7 or new_pos // 8 < 0 or new_pos % 8 > 7 or new_pos % 8 < 0:
+                continue
+            if not self._board.own_piece_on_square(self._pos + d, self._white_piece):
+                moves.add((self._pos, self._pos + d))
+        return moves
 
 
 class Bishop(Piece):
@@ -230,7 +249,14 @@ class King(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        return self._generate_sliding_moves(move_limit=1)
+        moves = set()
+        for d, m in zip(self._all_position_differences, self._max_moves):
+            if m == 0:
+                continue
+            if self._board.own_piece_on_square(self._pos + d, self._white_piece):
+                continue
+            moves.add((self._pos, self._pos + d))
+        return moves
 
 
 class Board(object):
