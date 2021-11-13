@@ -37,6 +37,10 @@ class RookMoveGenerationTestCase(unittest.TestCase):
         rook = Board('8/1p6/8/5P2/1p2R2P/4P3/8/1P6 w - - 0 1').get_piece(28)
         self.assertEqual({(28, 29), (28, 30), (28, 36), (28, 44), (28, 52), (28, 60), (28, 27), (28, 26), (28, 25)},
                          rook.pseudo_legal_moves)
+    
+    def test_attacking_squares_equal_pseudo_legal_move_target_squares(self):
+        rook = Board('8/1p6/8/5P2/1p2R2P/4P3/8/1P6 w - - 0 1').get_piece(28)
+        self.assertEqual({29, 30, 36, 44, 52, 60, 27, 26, 25}, rook.attacking_squares)
 
     # horizontal moves
     # right

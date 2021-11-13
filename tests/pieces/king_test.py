@@ -37,6 +37,10 @@ class KingMoveGenerationTestCase(unittest.TestCase):
         king = Board('8/1p1p4/4p3/2PKp3/4P3/1P1P4/8/8 w - - 0 1').get_piece(35)
         self.assertEqual({(35, 36), (35, 44), (35, 43), (35, 42), (35, 26), (35, 27)}, king.pseudo_legal_moves)
 
+    def test_attacking_squares_equal_pseudo_legal_move_target_squares(self):
+        king = Board('8/1p1p4/4p3/2PKp3/4P3/1P1P4/8/8 w - - 0 1').get_piece(35)
+        self.assertEqual({36, 44, 43, 42, 26, 27}, king.attacking_squares)
+
     # horizontal moves
     # right
     def test_can_move_one_step_right(self):
@@ -263,6 +267,105 @@ class KingMoveGenerationTestCase(unittest.TestCase):
     def test_cannot_capture_beyond_the_board_left_down(self):
         king = Board('8/8/PP6/KP5P/PP5P/7p/8/8 w - - 0 1').get_piece(32)
         self.assertEqual(set(), king.pseudo_legal_moves)
+
+    # castling
+    # white
+    def test_can_generate_castling_moves_as_white(self):
+        king = Board('8/8/8/8/8/8/3PPP2/R3K2R w KQ - 0 1').get_piece(4)
+        self.assertEqual({(4, 3), (4, 5), (4, 2), (4, 6)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_kingside_if_blocked_by_own_piece_as_white(self):
+        king = Board('8/8/8/8/8/8/3PPP2/R3K1NR w KQ - 0 1').get_piece(4)
+        self.assertEqual({(4, 3), (4, 5), (4, 2)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_kingside_if_blocked_by_own_piece_anywhere_as_white(self):
+        king = Board('8/8/8/8/8/8/3PPP2/R3KN1R w KQ - 0 1').get_piece(4)
+        self.assertEqual({(4, 3), (4, 2)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_kingside_if_blocked_by_opponent_piece_as_white(self):
+        king = Board('8/8/8/8/8/8/3PPP2/R3Kn1R w KQ - 0 1').get_piece(4)
+        self.assertEqual({(4, 3), (4, 5), (4, 2)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_queenside_if_blocked_by_own_piece_as_white(self):
+        king = Board('8/8/8/8/8/8/3PPP2/RN2K2R w KQ - 0 1').get_piece(4)
+        self.assertEqual({(4, 3), (4, 5), (4, 6)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_queenside_if_blocked_by_own_piece_anywhere_as_white(self):
+        king = Board('8/8/8/8/8/8/3PPP2/R2NK2R w KQ - 0 1').get_piece(4)
+        self.assertEqual({(4, 5), (4, 6)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_queenside_if_blocked_by_opponent_piece_as_white(self):
+        king = Board('8/8/8/8/8/8/3PPP2/R2nK2R w KQ - 0 1').get_piece(4)
+        self.assertEqual({(4, 3), (4, 5), (4, 6)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_kingside_without_right_as_white(self):
+        king = Board('8/8/8/8/8/8/3PPP2/R3K2R w Q - 0 1').get_piece(4)
+        self.assertEqual({(4, 3), (4, 5), (4, 2)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_queenside_without_right_as_white(self):
+        king = Board('8/8/8/8/8/8/3PPP2/R3K2R w K - 0 1').get_piece(4)
+        self.assertEqual({(4, 3), (4, 5), (4, 6)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_if_king_is_threatened_as_white(self):
+        king = Board('8/8/8/8/8/8/3PrP2/R3K2R w KQ - 0 1').get_piece(4)
+        self.assertEqual({(4, 3), (4, 5), (4, 12)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_kingside_if_square_to_move_over_is_threatened_as_white(self):
+        king = Board('8/8/8/8/8/8/3PPr2/R3K2R w KQ - 0 1').get_piece(4)
+        self.assertEqual({(4, 3), (4, 5), (4, 13), (4, 2)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_queenside_if_square_to_move_over_is_threatened_as_white(self):
+        king = Board('8/8/8/8/8/8/3rPP2/R3K2R w KQ - 0 1').get_piece(4)
+        self.assertEqual({(4, 3), (4, 5), (4, 11), (4, 6)}, king.pseudo_legal_moves)
+
+    # black
+    def test_can_generate_castling_moves_as_black(self):
+        king = Board('r3k2r/3ppp2/8/8/8/8/8/8 b kq - 0 1').get_piece(60)
+        self.assertEqual({(60, 59), (60, 61), (60, 58), (60, 62)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_kingside_if_blocked_by_own_piece_as_black(self):
+        king = Board('r3k1nr/3ppp2/8/8/8/8/8/8 b kq - 0 1').get_piece(60)
+        self.assertEqual({(60, 59), (60, 61), (60, 58)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_kingside_if_blocked_by_own_piece_anywhere_as_black(self):
+        king = Board('r3kn1r/3ppp2/8/8/8/8/8/8 b kq - 0 1').get_piece(60)
+        self.assertEqual({(60, 59), (60, 58)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_kingside_if_blocked_by_opponent_piece_as_black(self):
+        king = Board('r3kN1r/3ppp2/8/8/8/8/8/8 b kq - 0 1').get_piece(60)
+        self.assertEqual({(60, 59), (60, 61), (60, 58)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_queenside_if_blocked_by_own_piece_as_black(self):
+        king = Board('rn2k2r/3ppp2/8/8/8/8/8/8 b kq - 0 1').get_piece(60)
+        self.assertEqual({(60, 59), (60, 61), (60, 62)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_queenside_if_blocked_by_own_piece_anywhere_as_black(self):
+        king = Board('r2nk2r/3ppp2/8/8/8/8/8/8 b kq - 0 1').get_piece(60)
+        self.assertEqual({(60, 61), (60, 62)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_queenside_if_blocked_by_opponent_piece_as_black(self):
+        king = Board('r2Nk2r/3ppp2/8/8/8/8/8/8 b kq - 0 1').get_piece(60)
+        self.assertEqual({(60, 59), (60, 61), (60, 62)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_kingside_without_right_as_black(self):
+        king = Board('r3k2r/3ppp2/8/8/8/8/8/8 b q - 0 1').get_piece(60)
+        self.assertEqual({(60, 59), (60, 61), (60, 58)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_queenside_without_right_as_black(self):
+        king = Board('r3k2r/3ppp2/8/8/8/8/8/8 b k - 0 1').get_piece(60)
+        self.assertEqual({(60, 59), (60, 61), (60, 62)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_if_king_is_threatened_as_black(self):
+        king = Board('r3k2r/3pRp2/8/8/8/8/8/8 b kq - 0 1').get_piece(60)
+        self.assertEqual({(60, 59), (60, 61), (60, 52)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_kingside_if_square_to_move_over_is_threatened_as_black(self):
+        king = Board('r3k2r/3ppR2/8/8/8/8/8/8 b kq - 0 1').get_piece(60)
+        self.assertEqual({(60, 59), (60, 61), (60, 53), (60, 58)}, king.pseudo_legal_moves)
+
+    def test_cannot_castle_queenside_if_square_to_move_over_is_threatened_as_black(self):
+        king = Board('r3k2r/3Rpp2/8/8/8/8/8/8 b kq - 0 1').get_piece(60)
+        self.assertEqual({(60, 59), (60, 61), (60, 51), (60, 62)}, king.pseudo_legal_moves)
 
 
 if __name__ == '__main__':
