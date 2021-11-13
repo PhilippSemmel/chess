@@ -63,10 +63,10 @@ class PieceAttributeGetterTestCase(unittest.TestCase):
         self.assertEqual(21, piece2.pos)
 
     def test_can_get_queen_color(self):
-        self.assertTrue(piece1.color)
+        self.assertTrue(piece1.white_piece)
 
     def test_can_get_any_queen_color(self):
-        self.assertFalse(piece2.color)
+        self.assertFalse(piece2.white_piece)
 
     def test_can_get_piece_type(self):
         self.assertEqual(0, piece1.type)

@@ -37,6 +37,10 @@ class PawnMoveGenerationTestCase(unittest.TestCase):
         pawn = Board('8/8/8/8/2p5/3P4/8/8 w - - 0 1').get_piece(19)
         self.assertEqual({(19, 27), (19, 26)}, pawn.pseudo_legal_moves)
 
+    def test_attacking_squares_equal_diagonal_capture_move_target_squares(self):
+        pawn = Board('8/8/8/8/2p5/3P4/8/8 w - - 0 1').get_piece(19)
+        self.assertEqual({26}, pawn.attacking_squares)
+
     # advance
     def test_can_move_one_step_up_as_white(self):
         pawn = Board('8/8/8/8/2P5/1P1P4/2P5/8 w - - 0 1').get_piece(10)
@@ -113,10 +117,27 @@ class PawnMoveGenerationTestCase(unittest.TestCase):
         pawn = Board('8/8/8/P7/P6p/8/8/8 w - - 0 1').get_piece(24)
         self.assertEqual(set(), pawn.pseudo_legal_moves)
 
+    # en passant
+    # def test_generates_no_en_passant_capture_if_not_available(self):
+    #     pawn = Board('8/8/8/1pP5/8/8/8/8 w - - 0 1').get_piece(34)
+    #     self.assertEqual(set(), pawn._generate_en_passant_move())
+    #
+    # def test_generates_en_passant_capture_if_available(self):
+    #     pawn = Board('8/8/8/1pP5/8/8/8/8 w - b6 0 1').get_piece(34)
+    #     self.assertEqual({(34, 41)}, pawn._generate_en_passant_move())
+
     # black
     def test_cannot_move_when_blocked_by_own_pieces_as_black(self):
         pawn = Board('8/4p3/3ppp2/8/8/8/8/8 b - - 0 1').get_piece(52)
         self.assertEqual(set(), pawn.pseudo_legal_moves)
+
+    def test_can_make_multiple_moves(self):
+        pawn = Board('8/8/8/8/2p5/3P4/8/8 b - - 0 1').get_piece(26)
+        self.assertEqual({(26, 18), (26, 19)}, pawn.pseudo_legal_moves)
+
+    def test_attacking_squares_equal_diagonal_capture_move_target_squares(self):
+        pawn = Board('8/8/8/8/2p5/3P4/8/8 b - - 0 1').get_piece(26)
+        self.assertEqual({19}, pawn.attacking_squares)
 
     # advance
     def test_can_move_one_step_down_as_black(self):

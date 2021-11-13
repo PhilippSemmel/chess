@@ -39,6 +39,11 @@ class QueenMoveGenerationTestCase(unittest.TestCase):
                          (28, 27), (28, 26), (28, 25), (28, 19), (28, 10), (28, 21), (28, 14), (28, 7)},
                          queen.pseudo_legal_moves)
 
+    def test_attacking_squares_equal_pseudo_legal_move_target_squares(self):
+        queen = Board('8/1p6/8/5P2/1p2Q2P/4P3/8/1P6 w - - 0 1').get_piece(28)
+        self.assertEqual({29, 30, 36, 44, 52, 60, 35, 42, 49, 27, 26, 25, 19, 10, 21, 14, 7},
+                         queen.attacking_squares)
+
     # horizontal moves
     # right
     def test_can_move_one_step_right(self):

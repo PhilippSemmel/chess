@@ -37,6 +37,10 @@ class BishopMoveGenerationTestCase(unittest.TestCase):
         bishop = Board('8/1p6/8/5P2/1p2B2P/4P3/8/1P6 w - - 0 1').get_piece(28)
         self.assertEqual({(28, 35), (28, 42), (28, 49), (28, 19), (28, 10), (28, 21), (28, 14), (28, 7)},
                          bishop.pseudo_legal_moves)
+        
+    def test_attacking_squares_equal_pseudo_legal_move_target_squares(self):
+        bishop = Board('8/1p6/8/5P2/1p2B2P/4P3/8/1P6 w - - 0 1').get_piece(28)
+        self.assertEqual({35, 42, 49, 19, 10, 21, 14, 7}, bishop.attacking_squares)
 
     # horizontal moves
     # right
