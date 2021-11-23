@@ -1,17 +1,19 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List, Set, TYPE_CHECKING
+from typing import List, Set, TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from board import Board, MOVE
 
 
 class Piece(ABC):
-    def __init__(self, pos: int, white_piece: bool, _type: int, board: Board) -> None:
+    def __init__(self, pos: int, white_piece: bool, _type: int, board: Board, symbol: str, fen_symbol: str) -> None:
         self._verify_params(pos, white_piece, _type, board)
         # piece info
         self._pos: int = pos
         self._white_piece: bool = white_piece
         self._type: int = _type
+        self._symbol: str = symbol
+        self._fen_symbol: str = fen_symbol
         """
         0 -> Pawn
         1 -> Knight
@@ -85,11 +87,27 @@ class Piece(ABC):
         """
         return self._type
 
+    @property
+    def symbol(self) -> str:
+        """
+        get the symbol of the piece
+        :return: symbol of the piece
+        """
+        return self._symbol
+
+    @property
+    def fen_symbol(self) -> str:
+        """
+        get the fen symbol of the piece
+        :return: fen symbol of the piece
+        """
+        return self._fen_symbol
+
     """
     other getters
     """
     @property
-    def rank(self) -> int:
+    def _rank(self) -> int:
         """
         get the rank the piece stands on
         :return: the rank the piece stands on
@@ -97,7 +115,7 @@ class Piece(ABC):
         return self._pos // 8
 
     @property
-    def file(self) -> int:
+    def _file(self) -> int:
         """
         get the file the piece stands on
         :return: the file the piece stands on
@@ -111,13 +129,27 @@ class Piece(ABC):
         get the number of squares in each direction starting from the pieces position
         :return:list of numbers of squares in each direction starting from the pieces position
         """
-        r = self.rank
-        f = self.file
+        r = self._rank
+        f = self._file
         right = 7 - f
         left = f
         up = 7 - r
         down = r
         return [right, left, up, down, min(right, up), min(left, up), min(right, down), min(left, down)]
+
+    """
+    attribute setters
+    """
+    def move_to(self, new_pos: int):
+        """
+        set a new position for the piece
+        :param new_pos: new position of the piece
+        """
+        if new_pos > 63 or new_pos < 0:
+            raise ValueError('Position value must be between 0 and 63.')
+        if not type(new_pos) == int:
+            raise TypeError('Position value must be an int.')
+        self._pos = new_pos
 
     """
     move generation
@@ -131,20 +163,21 @@ class Piece(ABC):
         """
         pass
 
-    def _generate_sliding_moves(self, position_differences: List[int] = None, max_moves: List[int] = None) -> Set[MOVE]:
+    def _generate_sliding_moves(self, diffs: Optional[List[int]] = None, max_moves: Optional[List[int]] = None) \
+            -> Set[MOVE]:
         """
         generate all long range sliding moves of a piece
-        :param position_differences: the square index value differences of every direction the piece can move to
+        :param diffs: the square index value differences of every direction the piece can move to
         :param max_moves: list of squares in every direction the piece can move to
         :return: all long range sliding moves of a piece
         """
-        if not position_differences:
-            position_differences = self._all_diffs
+        if not diffs:
+            diffs = self._all_diffs
         if not max_moves:
             max_moves = self._max_moves
         moves = set()
 
-        for diff, m in zip(position_differences, max_moves):
+        for diff, m in zip(diffs, max_moves):
             for n, new_pos in enumerate(range(self._pos + diff, self._pos + ((m + 1) * diff), diff)):
                 # cannot move any further when blocked by own piece
                 if self._board.own_piece_on_square(new_pos, self._white_piece):
@@ -168,7 +201,8 @@ class Piece(ABC):
 
 class Pawn(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
-        super().__init__(pos, white_piece, 0, board)
+        symbol, fen_symbol = ('♟', 'P') if white_piece else ('♙', 'p')
+        super().__init__(pos, white_piece, 0, board, symbol, fen_symbol)
 
     def __repr__(self) -> str:
         return '{} pawn on pos {}'.format('white' if self._white_piece else 'black', self._pos)
@@ -179,7 +213,7 @@ class Pawn(Piece):
             [self._max_moves[3:4], self._max_moves[6:]]
 
     @property
-    def _diffs(self):
+    def _diffs(self) -> List[List[int]]:
         return [self._all_diffs[2:3], self._all_diffs[4:6]] if self._white_piece else \
             [self._all_diffs[3:4], self._all_diffs[6:]]
 
@@ -187,10 +221,15 @@ class Pawn(Piece):
     def pseudo_legal_moves(self) -> Set[MOVE]:
         moves = self._generate_advances()
         moves |= self._generate_diagonal_capturing_moves()
+        moves |= self._generate_en_passant_move()
         return moves
 
+    @property
+    def attacking_squares(self) -> Set[int]:
+        return {move[1] for move in self._generate_diagonal_capturing_moves()}
+
     def _generate_advances(self) -> Set[MOVE]:
-        pos_limit = 2 if (self._white_piece and self.rank == 1) or (not self._white_piece and self.rank == 6) else 1
+        pos_limit = 2 if (self._white_piece and self._rank == 1) or (not self._white_piece and self._rank == 6) else 1
         limits, diffs = min(pos_limit, self._limits[0][0]), self._diffs[0][0]
         _moves = set()
         for n in range(limits):
@@ -207,18 +246,18 @@ class Pawn(Piece):
                 _moves.add((self._pos, self._pos + diffs[n]))
         return _moves
 
-    # def _generate_en_passant_move(self) -> Set[MOVE]:
-    #     if
-    #     return {(34, 41)}
-
-    @property
-    def attacking_squares(self) -> Set[int]:
-        return {move[1] for move in self._generate_diagonal_capturing_moves()}
+    def _generate_en_passant_move(self) -> Set[MOVE]:
+        limits, diffs = self._limits[1], self._diffs[1]
+        for n in range(2):
+            if limits[n] > 0 and self._pos + diffs[n] == self._board.ep_target_square:
+                return {(self._pos, self._pos + diffs[n])}
+        return set()
 
 
 class Knight(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
-        super().__init__(pos, white_piece, 1, board)
+        symbol, fen_symbol = ('♞', 'N') if white_piece else ('♘', 'n')
+        super().__init__(pos, white_piece, 1, board, symbol, fen_symbol)
 
     def __repr__(self) -> str:
         return '{} knight on pos {}'.format('white' if self._white_piece else 'black', self._pos)
@@ -230,8 +269,8 @@ class Knight(Piece):
                                                                       (-2, -1), (-2, 1), (-1, 2)]):
             new_pos = self._pos + diff
             # new pos is beyond board
-            if self.file + off_set[0] > 7 or self.file + off_set[0] < 0 or self.rank + off_set[1] > 7 or \
-                    self.rank + off_set[1] < 0:
+            if self._file + off_set[0] > 7 or self._file + off_set[0] < 0 or self._rank + off_set[1] > 7 or \
+                    self._rank + off_set[1] < 0:
                 continue
             if not self._board.own_piece_on_square(new_pos, self._white_piece):
                 moves.add((self._pos, new_pos))
@@ -244,7 +283,8 @@ class Knight(Piece):
 
 class Bishop(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
-        super().__init__(pos, white_piece, 2, board)
+        symbol, fen_symbol = ('♝', 'B') if white_piece else ('♗', 'b')
+        super().__init__(pos, white_piece, 2, board, symbol, fen_symbol)
 
     def __repr__(self) -> str:
         return '{} bishop on pos {}'.format('white' if self._white_piece else 'black', self._pos)
@@ -260,7 +300,8 @@ class Bishop(Piece):
 
 class Rook(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
-        super().__init__(pos, white_piece, 3, board)
+        symbol, fen_symbol = ('♜', 'R') if white_piece else ('♖', 'r')
+        super().__init__(pos, white_piece, 3, board, symbol, fen_symbol)
 
     def __repr__(self) -> str:
         return '{} rook on pos {}'.format('white' if self._white_piece else 'black', self._pos)
@@ -276,7 +317,8 @@ class Rook(Piece):
 
 class Queen(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
-        super().__init__(pos, white_piece, 4, board)
+        symbol, fen_symbol = ('♛', 'Q') if white_piece else ('♕', 'q')
+        super().__init__(pos, white_piece, 4, board, symbol, fen_symbol)
 
     def __repr__(self) -> str:
         return '{} queen on pos {}'.format('white' if self._white_piece else 'black', self._pos)
@@ -292,7 +334,8 @@ class Queen(Piece):
 
 class King(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
-        super().__init__(pos, white_piece, 5, board)
+        symbol, fen_symbol = ('♚', 'K') if white_piece else ('♔', 'k')
+        super().__init__(pos, white_piece, 5, board, symbol, fen_symbol)
 
     def __repr__(self) -> str:
         return '{} king on pos {}'.format('white' if self._white_piece else 'black', self._pos)
