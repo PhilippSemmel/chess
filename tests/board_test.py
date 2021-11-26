@@ -2,63 +2,62 @@ import unittest
 from board import Board
 
 
-board0 = Board()
-board1 = Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1')
-board2 = Board('rnbqkbnr/ppppp1pp/8/4p3/5P2/8/PPPPP1PP/RNBQKBNR b KQkq f5 2 2')
+board1 = Board()
+board2 = Board('rnbqkbnr/ppppp1pp/8/4p3/5P2/8/PPPPP1PP/RNBQKBNR b - f5 2 2')
 
 
 class ConstructionTestCase(unittest.TestCase):
     def test_initializes_standard_piece_positions(self):
-        self.assertTrue(board0._get_piece(0).type == 3)
-        self.assertTrue(board0._get_piece(1).type == 1)
-        self.assertTrue(board0._get_piece(2).type == 2)
-        self.assertTrue(board0._get_piece(3).type == 4)
-        self.assertTrue(board0._get_piece(4).type == 5)
-        self.assertTrue(board0._get_piece(5).type == 2)
-        self.assertTrue(board0._get_piece(6).type == 1)
-        self.assertTrue(board0._get_piece(7).type == 3)
-        self.assertTrue(board0._get_piece(8).type == 0)
-        self.assertTrue(board0._get_piece(9).type == 0)
-        self.assertTrue(board0._get_piece(10).type == 0)
-        self.assertTrue(board0._get_piece(11).type == 0)
-        self.assertTrue(board0._get_piece(12).type == 0)
-        self.assertTrue(board0._get_piece(13).type == 0)
-        self.assertTrue(board0._get_piece(14).type == 0)
-        self.assertTrue(board0._get_piece(15).type == 0)
-        self.assertTrue(board0._get_piece(48).type == 0)
-        self.assertTrue(board0._get_piece(49).type == 0)
-        self.assertTrue(board0._get_piece(50).type == 0)
-        self.assertTrue(board0._get_piece(51).type == 0)
-        self.assertTrue(board0._get_piece(52).type == 0)
-        self.assertTrue(board0._get_piece(53).type == 0)
-        self.assertTrue(board0._get_piece(54).type == 0)
-        self.assertTrue(board0._get_piece(55).type == 0)
-        self.assertTrue(board0._get_piece(56).type == 3)
-        self.assertTrue(board0._get_piece(57).type == 1)
-        self.assertTrue(board0._get_piece(58).type == 2)
-        self.assertTrue(board0._get_piece(59).type == 4)
-        self.assertTrue(board0._get_piece(60).type == 5)
-        self.assertTrue(board0._get_piece(61).type == 2)
-        self.assertTrue(board0._get_piece(62).type == 1)
-        self.assertTrue(board0._get_piece(63).type == 3)
+        self.assertTrue(board1._get_piece(0).type == 3)
+        self.assertTrue(board1._get_piece(1).type == 1)
+        self.assertTrue(board1._get_piece(2).type == 2)
+        self.assertTrue(board1._get_piece(3).type == 4)
+        self.assertTrue(board1._get_piece(4).type == 5)
+        self.assertTrue(board1._get_piece(5).type == 2)
+        self.assertTrue(board1._get_piece(6).type == 1)
+        self.assertTrue(board1._get_piece(7).type == 3)
+        self.assertTrue(board1._get_piece(8).type == 0)
+        self.assertTrue(board1._get_piece(9).type == 0)
+        self.assertTrue(board1._get_piece(10).type == 0)
+        self.assertTrue(board1._get_piece(11).type == 0)
+        self.assertTrue(board1._get_piece(12).type == 0)
+        self.assertTrue(board1._get_piece(13).type == 0)
+        self.assertTrue(board1._get_piece(14).type == 0)
+        self.assertTrue(board1._get_piece(15).type == 0)
+        self.assertTrue(board1._get_piece(48).type == 0)
+        self.assertTrue(board1._get_piece(49).type == 0)
+        self.assertTrue(board1._get_piece(50).type == 0)
+        self.assertTrue(board1._get_piece(51).type == 0)
+        self.assertTrue(board1._get_piece(52).type == 0)
+        self.assertTrue(board1._get_piece(53).type == 0)
+        self.assertTrue(board1._get_piece(54).type == 0)
+        self.assertTrue(board1._get_piece(55).type == 0)
+        self.assertTrue(board1._get_piece(56).type == 3)
+        self.assertTrue(board1._get_piece(57).type == 1)
+        self.assertTrue(board1._get_piece(58).type == 2)
+        self.assertTrue(board1._get_piece(59).type == 4)
+        self.assertTrue(board1._get_piece(60).type == 5)
+        self.assertTrue(board1._get_piece(61).type == 2)
+        self.assertTrue(board1._get_piece(62).type == 1)
+        self.assertTrue(board1._get_piece(63).type == 3)
 
     def test_color_to_move_is_white(self):
-        self.assertTrue(board0._white_to_move)
+        self.assertTrue(board1._white_to_move)
 
     def test_all_castling_rights_available(self):
-        self.assertEqual([True, True, True, True], board0._castling_rights)
+        self.assertEqual([True, True, True, True], board1._castling_rights)
 
     def test_ep_target_square_is_none(self):
-        self.assertIsNone(board0._ep_target_square)
+        self.assertIsNone(board1._ep_target_square)
 
     def test_half_move_clock_is_zero(self):
-        self.assertEqual(0, board0._half_move_clock)
+        self.assertEqual(0, board1._half_move_clock)
 
     def test_turn_number_is_one(self):
-        self.assertEqual(1, board0._turn_number)
+        self.assertEqual(1, board1._turn_number)
 
     def test_positions_is_empty_list(self):
-        self.assertEqual([], board0._positions)
+        self.assertEqual([], board1._positions)
 
 
 class AttributeGetterTestCase(unittest.TestCase):
@@ -120,54 +119,54 @@ class GetPieceTestCase(unittest.TestCase):
         self.assertRaises(ValueError, board1._get_piece, 16)
 
     def test_uses_given_piece_set(self):
-        self.assertRaises(ValueError, board0._get_piece, 0, set())
+        self.assertRaises(ValueError, board1._get_piece, 0, set())
 
 
 class CreatePieceTestCase(unittest.TestCase):
     def test_can_create_white_pawn_on_pos(self):
-        piece = board0._create_piece(0, True, 0)
+        piece = board1._create_piece(0, True, 0)
         self.assertEqual(0, piece.pos)
         self.assertTrue(piece.white_piece)
         self.assertEqual(0, piece.type)
 
     def test_can_create_white_pawn_on_any_pos(self):
-        piece = board0._create_piece(45, True, 0)
+        piece = board1._create_piece(45, True, 0)
         self.assertEqual(45, piece.pos)
         self.assertTrue(piece.white_piece)
         self.assertEqual(0, piece.type)
 
     def test_can_create_black_pawn(self):
-        piece = board0._create_piece(0, False, 0)
+        piece = board1._create_piece(0, False, 0)
         self.assertEqual(0, piece.pos)
         self.assertFalse(piece.white_piece)
         self.assertEqual(0, piece.type)
 
     def test_can_create_knight(self):
-        piece = board0._create_piece(0, True, 1)
+        piece = board1._create_piece(0, True, 1)
         self.assertEqual(0, piece.pos)
         self.assertTrue(piece.white_piece)
         self.assertEqual(1, piece.type)
 
     def test_can_create_bishop(self):
-        piece = board0._create_piece(0, True, 2)
+        piece = board1._create_piece(0, True, 2)
         self.assertEqual(0, piece.pos)
         self.assertTrue(piece.white_piece)
         self.assertEqual(2, piece.type)
 
     def test_can_create_rook(self):
-        piece = board0._create_piece(0, True, 3)
+        piece = board1._create_piece(0, True, 3)
         self.assertEqual(0, piece.pos)
         self.assertTrue(piece.white_piece)
         self.assertEqual(3, piece.type)
 
     def test_can_create_queen(self):
-        piece = board0._create_piece(0, True, 4)
+        piece = board1._create_piece(0, True, 4)
         self.assertEqual(0, piece.pos)
         self.assertTrue(piece.white_piece)
         self.assertEqual(4, piece.type)
 
     def test_can_create_king(self):
-        piece = board0._create_piece(0, True, 5)
+        piece = board1._create_piece(0, True, 5)
         self.assertEqual(0, piece.pos)
         self.assertTrue(piece.white_piece)
         self.assertEqual(5, piece.type)
@@ -184,7 +183,7 @@ class PositionsStateTestCase(unittest.TestCase):
         self.assertFalse(board2.is_square_empty(29))
 
     def test_is_square_empty_can_use_given_piece_set(self):
-        self.assertTrue(board0.is_square_empty(16, set()))
+        self.assertTrue(board1.is_square_empty(16, set()))
 
     def test_own_piece_on_square_if_own_piece_on_square(self):
         self.assertTrue(board1.own_piece_on_square(0, True))
@@ -686,8 +685,9 @@ class MakeMoveTestCase(unittest.TestCase):
 
     # half move clock
     def test_half_move_clock_increases_after_a_move(self):
-        board0.make_move((1, 16))
-        self.assertEqual(1, board0.half_move_clock)
+        board = Board()
+        board.make_move((1, 16))
+        self.assertEqual(1, board.half_move_clock)
 
     def test_half_move_clock_resets_after_a_pawn_move(self):
         board = Board('8/8/8/8/8/8/P7/8 w - - 10 1')
@@ -710,86 +710,108 @@ class MakeMoveTestCase(unittest.TestCase):
         board.make_move((48, 40))
         self.assertEqual(2, board.turn_number)
 
+    def test_adds_old_position_to_position_list(self):
+        board = Board()
+        board.make_move((8, 16))
+        self.assertEqual(['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'], board._positions)
+
+    def test_can_add_any_old_position_to_position_list(self):
+        board = Board('PPPPPPPP/rKqqQRRP/BBKpQnRq/nBbpQQRQ/bbbpbQRN/nppbKKRP/npQrbPKk/NNNkkkkk w - - 0 1')
+        board.make_move((0, 17))
+        self.assertEqual(['PPPPPPPP/rKqqQRRP/BBKpQnRq/nBbpQQRQ/bbbpbQRN/nppbKKRP/npQrbPKk/NNNkkkkk w - - 0 1'],
+                         board._positions)
+
+    def test_two_positions_in_list_after_two_moves(self):
+        board = Board()
+        board.make_move((8, 16))
+        board.make_move((48, 40))
+        self.assertEqual(['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+                          'rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq - 0 1'], board._positions)
+
+
+class UndoMoveTestCase(unittest.TestCase):
+    pass
+
 
 class BoardConversionTestCase(unittest.TestCase):
     # positions
     def test_can_convert_empty_board(self):
-        self.assertEqual(set(), board0._positions_to_board('8/8/8/8/8/8/8/8'))
+        self.assertEqual(set(), board1._positions_to_board('8/8/8/8/8/8/8/8'))
 
     def test_can_convert_white_king_on_first_rank(self):
-        piece = list(board0._positions_to_board('8/8/8/8/8/8/8/K7'))[0]
+        piece = list(board1._positions_to_board('8/8/8/8/8/8/8/K7'))[0]
         self.assertEqual(5, piece.type)
         self.assertTrue(piece.white_piece)
         self.assertEqual(0, piece.pos)
 
     def test_can_convert_white_king_on_second_rank(self):
-        piece = list(board0._positions_to_board('8/8/8/8/8/8/K7/8'))[0]
+        piece = list(board1._positions_to_board('8/8/8/8/8/8/K7/8'))[0]
         self.assertEqual(5, piece.type)
         self.assertTrue(piece.white_piece)
         self.assertEqual(8, piece.pos)
 
     def test_can_convert_white_king_on_any_rank(self):
-        piece = list(board0._positions_to_board('8/8/8/K7/8/8/8/8'))[0]
+        piece = list(board1._positions_to_board('8/8/8/K7/8/8/8/8'))[0]
         self.assertEqual(5, piece.type)
         self.assertTrue(piece.white_piece)
         self.assertEqual(32, piece.pos)
 
     def test_can_convert_white_king_on_second_file(self):
-        piece = list(board0._positions_to_board('8/8/8/8/8/8/8/1K6'))[0]
+        piece = list(board1._positions_to_board('8/8/8/8/8/8/8/1K6'))[0]
         self.assertEqual(5, piece.type)
         self.assertTrue(piece.white_piece)
         self.assertEqual(1, piece.pos)
 
     def test_can_convert_white_king_on_any_file(self):
-        piece = list(board0._positions_to_board('8/8/8/8/8/8/8/3K4'))[0]
+        piece = list(board1._positions_to_board('8/8/8/8/8/8/8/3K4'))[0]
         self.assertEqual(5, piece.type)
         self.assertTrue(piece.white_piece)
         self.assertEqual(3, piece.pos)
 
     def test_can_convert_white_king_on_any_rank_and_any_file(self):
-        piece = list(board0._positions_to_board('8/8/8/8/6K1/8/8/8'))[0]
+        piece = list(board1._positions_to_board('8/8/8/8/6K1/8/8/8'))[0]
         self.assertEqual(5, piece.type)
         self.assertTrue(piece.white_piece)
         self.assertEqual(30, piece.pos)
 
     def test_can_convert_white_queen(self):
-        piece = list(board0._positions_to_board('8/8/8/8/8/8/8/Q7'))[0]
+        piece = list(board1._positions_to_board('8/8/8/8/8/8/8/Q7'))[0]
         self.assertEqual(4, piece.type)
         self.assertTrue(piece.white_piece)
         self.assertEqual(0, piece.pos)
 
     def test_can_convert_white_rook(self):
-        piece = list(board0._positions_to_board('8/8/8/8/8/8/8/R7'))[0]
+        piece = list(board1._positions_to_board('8/8/8/8/8/8/8/R7'))[0]
         self.assertEqual(3, piece.type)
         self.assertTrue(piece.white_piece)
         self.assertEqual(0, piece.pos)
 
     def test_can_convert_white_bishop(self):
-        piece = list(board0._positions_to_board('8/8/8/8/8/8/8/B7'))[0]
+        piece = list(board1._positions_to_board('8/8/8/8/8/8/8/B7'))[0]
         self.assertEqual(2, piece.type)
         self.assertTrue(piece.white_piece)
         self.assertEqual(0, piece.pos)
 
     def test_can_convert_white_knight(self):
-        piece = list(board0._positions_to_board('8/8/8/8/8/8/8/N7'))[0]
+        piece = list(board1._positions_to_board('8/8/8/8/8/8/8/N7'))[0]
         self.assertEqual(1, piece.type)
         self.assertTrue(piece.white_piece)
         self.assertEqual(0, piece.pos)
 
     def test_can_convert_white_pawn(self):
-        piece = list(board0._positions_to_board('8/8/8/8/8/8/8/P7'))[0]
+        piece = list(board1._positions_to_board('8/8/8/8/8/8/8/P7'))[0]
         self.assertEqual(0, piece.type)
         self.assertTrue(piece.white_piece)
         self.assertEqual(0, piece.pos)
 
     def test_can_convert_black_pieces(self):
-        piece = list(board0._positions_to_board('8/8/8/8/8/8/8/k7'))[0]
+        piece = list(board1._positions_to_board('8/8/8/8/8/8/8/k7'))[0]
         self.assertEqual(5, piece.type)
         self.assertFalse(piece.white_piece)
         self.assertEqual(0, piece.pos)
 
     def test_can_convert_multiple_pieces(self):
-        pieces = board0._positions_to_board('2k5/6r1/8/3B4/8/1Q4n1/8/7P')
+        pieces = board1._positions_to_board('2k5/6r1/8/3B4/8/1Q4n1/8/7P')
         piece_data = [[7, True, 0], [17, True, 4], [22, False, 1], [35, True, 2], [54, False, 3], [58, False, 5]]
         self.assertEqual(len(piece_data), len(pieces))
         for piece in pieces:
@@ -798,7 +820,7 @@ class BoardConversionTestCase(unittest.TestCase):
         self.assertEqual([], piece_data)
 
     def test_can_convert_complex_positions(self):
-        pieces = board0._positions_to_board('3r2k1/pp3rpp/2pR4/3bP3/1Bp1pPq1/4P3/PP5P/2K3R1')
+        pieces = board1._positions_to_board('3r2k1/pp3rpp/2pR4/3bP3/1Bp1pPq1/4P3/PP5P/2K3R1')
         piece_data = [[2, True, 5], [6, True, 3], [8, True, 0], [9, True, 0], [15, True, 0], [20, True, 0],
                       [25, True, 2], [26, False, 0], [28, False, 0], [29, True, 0], [30, False, 4], [35, False, 2],
                       [36, True, 0], [42, False, 0], [43, True, 3], [48, False, 0], [49, False, 0], [53, False, 3],
@@ -811,194 +833,194 @@ class BoardConversionTestCase(unittest.TestCase):
 
     # color to move
     def test_can_convert_white_to_move(self):
-        self.assertTrue(board0._color_to_move_to_board('w'))
+        self.assertTrue(board1._color_to_move_to_board('w'))
 
     def test_can_convert_black_to_move(self):
-        self.assertFalse(board0._color_to_move_to_board('b'))
+        self.assertFalse(board1._color_to_move_to_board('b'))
 
     # castling rights
     def test_can_convert_no_castling_rights(self):
-        self.assertEqual([False, False, False, False], board0._castling_rights_to_board('-'))
+        self.assertEqual([False, False, False, False], board1._castling_rights_to_board('-'))
 
     def test_can_convert_white_kingside_castling_right(self):
-        self.assertEqual([True, False, False, False], board0._castling_rights_to_board('K'))
+        self.assertEqual([True, False, False, False], board1._castling_rights_to_board('K'))
 
     def test_can_convert_white_queenside_castling_right(self):
-        self.assertEqual([False, True, False, False], board0._castling_rights_to_board('Q'))
+        self.assertEqual([False, True, False, False], board1._castling_rights_to_board('Q'))
 
     def test_can_convert_black_kingside_castling_right(self):
-        self.assertEqual([False, False, True, False], board0._castling_rights_to_board('k'))
+        self.assertEqual([False, False, True, False], board1._castling_rights_to_board('k'))
 
     def test_can_convert_black_queenside_castling_right(self):
-        self.assertEqual([False, False, False, True], board0._castling_rights_to_board('q'))
+        self.assertEqual([False, False, False, True], board1._castling_rights_to_board('q'))
 
     def test_can_convert_all_castling_rights(self):
-        self.assertEqual([True, True, True, True], board0._castling_rights_to_board('KQkq'))
+        self.assertEqual([True, True, True, True], board1._castling_rights_to_board('KQkq'))
 
     def test_can_convert_mixed_castling_rights(self):
-        self.assertEqual([False, True, True, False], board0._castling_rights_to_board('Qk'))
+        self.assertEqual([False, True, True, False], board1._castling_rights_to_board('Qk'))
 
     # ep target square
     def test_can_convert_no_ep_target_square(self):
-        self.assertIsNone(board0._ep_target_square_to_board('-'))
+        self.assertIsNone(board1._ep_target_square_to_board('-'))
     
     def test_can_convert_ep_target_square(self):
-        self.assertEqual(16, board0._ep_target_square_to_board('a3'))
+        self.assertEqual(16, board1._ep_target_square_to_board('a3'))
 
     def test_can_convert_any_ep_target_square(self):
-        self.assertEqual(46, board0._ep_target_square_to_board('g6'))
+        self.assertEqual(46, board1._ep_target_square_to_board('g6'))
 
     # half move clock
     def test_can_convert_half_move_clock_value(self):
-        self.assertEqual(0, board0._half_move_clock_to_board('0'))
+        self.assertEqual(0, board1._half_move_clock_to_board('0'))
 
     def test_can_convert_any_half_move_clock_value(self):
-        self.assertEqual(1, board0._half_move_clock_to_board('1'))
+        self.assertEqual(1, board1._half_move_clock_to_board('1'))
 
     # turn number
     def test_can_convert_turn_number_value(self):
-        self.assertEqual(1, board0._turn_number_to_board('1'))
+        self.assertEqual(1, board1._turn_number_to_board('1'))
 
     def test_can_convert_any_turn_number_value(self):
-        self.assertEqual(2, board0._turn_number_to_board('2'))
+        self.assertEqual(2, board1._turn_number_to_board('2'))
 
 
 class FenConversionTestCase(unittest.TestCase):
     # positions
     def test_can_convert_empty_board(self):
-        self.assertEqual('8/8/8/8/8/8/8/8', board0._positions_to_fen(set()))
+        self.assertEqual('8/8/8/8/8/8/8/8', board1._positions_to_fen(set()))
 
     def test_can_convert_white_king_on_first_rank(self):
-        pieces = {board0._create_piece(0, True, 5)}
-        self.assertEqual('8/8/8/8/8/8/8/K7', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(0, True, 5)}
+        self.assertEqual('8/8/8/8/8/8/8/K7', board1._positions_to_fen(pieces))
 
     def test_can_convert_white_king_on_second_rank(self):
-        pieces = {board0._create_piece(8, True, 5)}
-        self.assertEqual('8/8/8/8/8/8/K7/8', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(8, True, 5)}
+        self.assertEqual('8/8/8/8/8/8/K7/8', board1._positions_to_fen(pieces))
 
     def test_can_convert_white_king_on_any_rank(self):
-        pieces = {board0._create_piece(32, True, 5)}
-        self.assertEqual('8/8/8/K7/8/8/8/8', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(32, True, 5)}
+        self.assertEqual('8/8/8/K7/8/8/8/8', board1._positions_to_fen(pieces))
 
     def test_can_convert_white_king_on_second_file(self):
-        pieces = {board0._create_piece(1, True, 5)}
-        self.assertEqual('8/8/8/8/8/8/8/1K6', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(1, True, 5)}
+        self.assertEqual('8/8/8/8/8/8/8/1K6', board1._positions_to_fen(pieces))
 
     def test_can_convert_white_king_on_any_file(self):
-        pieces = {board0._create_piece(3, True, 5)}
-        self.assertEqual('8/8/8/8/8/8/8/3K4', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(3, True, 5)}
+        self.assertEqual('8/8/8/8/8/8/8/3K4', board1._positions_to_fen(pieces))
 
     def test_can_convert_white_king_on_any_rank_and_any_file(self):
-        pieces = {board0._create_piece(30, True, 5)}
-        self.assertEqual('8/8/8/8/6K1/8/8/8', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(30, True, 5)}
+        self.assertEqual('8/8/8/8/6K1/8/8/8', board1._positions_to_fen(pieces))
 
     def test_can_convert_white_queen(self):
-        pieces = {board0._create_piece(0, True, 4)}
-        self.assertEqual('8/8/8/8/8/8/8/Q7', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(0, True, 4)}
+        self.assertEqual('8/8/8/8/8/8/8/Q7', board1._positions_to_fen(pieces))
 
     def test_can_convert_white_rook(self):
-        pieces = {board0._create_piece(0, True, 3)}
-        self.assertEqual('8/8/8/8/8/8/8/R7', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(0, True, 3)}
+        self.assertEqual('8/8/8/8/8/8/8/R7', board1._positions_to_fen(pieces))
 
     def test_can_convert_white_bishop(self):
-        pieces = {board0._create_piece(0, True, 2)}
-        self.assertEqual('8/8/8/8/8/8/8/B7', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(0, True, 2)}
+        self.assertEqual('8/8/8/8/8/8/8/B7', board1._positions_to_fen(pieces))
 
     def test_can_convert_white_knight(self):
-        pieces = {board0._create_piece(0, True, 1)}
-        self.assertEqual('8/8/8/8/8/8/8/N7', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(0, True, 1)}
+        self.assertEqual('8/8/8/8/8/8/8/N7', board1._positions_to_fen(pieces))
 
     def test_can_convert_white_pawn(self):
-        pieces = {board0._create_piece(0, True, 0)}
-        self.assertEqual('8/8/8/8/8/8/8/P7', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(0, True, 0)}
+        self.assertEqual('8/8/8/8/8/8/8/P7', board1._positions_to_fen(pieces))
 
     def test_can_convert_black_pieces(self):
-        pieces = {board0._create_piece(0, False, 5)}
-        self.assertEqual('8/8/8/8/8/8/8/k7', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(0, False, 5)}
+        self.assertEqual('8/8/8/8/8/8/8/k7', board1._positions_to_fen(pieces))
 
     def test_can_convert_multiple_pieces(self):
         piece_data = [[7, True, 0], [17, True, 4], [22, False, 1], [35, True, 2], [54, False, 3], [58, False, 5]]
-        pieces = {board0._create_piece(p, c, t) for p, c, t in piece_data}
-        self.assertEqual('2k5/6r1/8/3B4/8/1Q4n1/8/7P', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(p, c, t) for p, c, t in piece_data}
+        self.assertEqual('2k5/6r1/8/3B4/8/1Q4n1/8/7P', board1._positions_to_fen(pieces))
 
     def test_can_convert_complex_positions(self):
         piece_data = [[2, True, 5], [6, True, 3], [8, True, 0], [9, True, 0], [15, True, 0], [20, True, 0],
                       [25, True, 2], [26, False, 0], [28, False, 0], [29, True, 0], [30, False, 4], [35, False, 2],
                       [36, True, 0], [42, False, 0], [43, True, 3], [48, False, 0], [49, False, 0], [53, False, 3],
                       [54, False, 0], [55, False, 0], [59, False, 3], [62, False, 5]]
-        pieces = {board0._create_piece(p, c, t) for p, c, t in piece_data}
-        self.assertEqual('3r2k1/pp3rpp/2pR4/3bP3/1Bp1pPq1/4P3/PP5P/2K3R1', board0._positions_to_fen(pieces))
+        pieces = {board1._create_piece(p, c, t) for p, c, t in piece_data}
+        self.assertEqual('3r2k1/pp3rpp/2pR4/3bP3/1Bp1pPq1/4P3/PP5P/2K3R1', board1._positions_to_fen(pieces))
 
     def test_converts_pieces_of_board_object_if_no_param_given(self):
-        self.assertEqual('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR', board0._positions_to_fen())
+        self.assertEqual('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR', board1._positions_to_fen())
 
     # color to move
     def test_can_convert_white_to_move(self):
-        self.assertEqual('w', board0._color_to_move_to_fen(True))
+        self.assertEqual('w', board1._color_to_move_to_fen(True))
 
     def test_can_convert_black_to_move(self):
-        self.assertEqual('b', board0._color_to_move_to_fen(False))
+        self.assertEqual('b', board1._color_to_move_to_fen(False))
 
     def test_converts_color_to_move_of_board_object_if_no_param_given(self):
-        self.assertEqual('w', board0._color_to_move_to_fen())
+        self.assertEqual('w', board1._color_to_move_to_fen())
 
     # castling rights
     def test_can_convert_no_castling_rights(self):
-        self.assertEqual('-', board0._castling_rights_to_fen([False, False, False, False]))
+        self.assertEqual('-', board1._castling_rights_to_fen([False, False, False, False]))
 
     def test_can_convert_white_kingside_castling_right(self):
-        self.assertEqual('K', board0._castling_rights_to_fen([True, False, False, False]))
+        self.assertEqual('K', board1._castling_rights_to_fen([True, False, False, False]))
 
     def test_can_convert_white_queenside_castling_right(self):
-        self.assertEqual('Q', board0._castling_rights_to_fen([False, True, False, False]))
+        self.assertEqual('Q', board1._castling_rights_to_fen([False, True, False, False]))
 
     def test_can_convert_black_kingside_castling_right(self):
-        self.assertEqual('k', board0._castling_rights_to_fen([False, False, True, False]))
+        self.assertEqual('k', board1._castling_rights_to_fen([False, False, True, False]))
 
     def test_can_convert_black_queenside_castling_right(self):
-        self.assertEqual('q', board0._castling_rights_to_fen([False, False, False, True]))
+        self.assertEqual('q', board1._castling_rights_to_fen([False, False, False, True]))
 
     def test_can_convert_all_castling_rights(self):
-        self.assertEqual('KQkq', board0._castling_rights_to_fen([True, True, True, True]))
+        self.assertEqual('KQkq', board1._castling_rights_to_fen([True, True, True, True]))
 
     def test_can_convert_mixed_castling_rights(self):
-        self.assertEqual('Qk', board0._castling_rights_to_fen([False, True, True, False]))
+        self.assertEqual('Qk', board1._castling_rights_to_fen([False, True, True, False]))
 
     def test_converts_castling_rights_of_board_object_if_no_param_given(self):
-        self.assertEqual('KQkq', board0._castling_rights_to_fen())
+        self.assertEqual('KQkq', board1._castling_rights_to_fen())
 
     # ep target square
     def test_can_convert_no_ep_target_square(self):
-        self.assertEqual('-', board0._ep_target_square_to_fen(None))
+        self.assertEqual('-', board1._ep_target_square_to_fen(None))
 
     def test_can_convert_ep_target_square(self):
-        self.assertEqual('a3', board0._ep_target_square_to_fen(16))
+        self.assertEqual('a3', board1._ep_target_square_to_fen(16))
 
     def test_can_convert_any_ep_target_square(self):
-        self.assertEqual('g6', board0._ep_target_square_to_fen(46))
+        self.assertEqual('g6', board1._ep_target_square_to_fen(46))
 
     def test_converts_ep_target_square_of_board_object_if_no_param_given(self):
-        self.assertEqual('-', board0._ep_target_square_to_fen())
+        self.assertEqual('-', board1._ep_target_square_to_fen())
 
     # half move clock
     def test_can_convert_half_move_clock_value(self):
-        self.assertEqual('0', board0._half_move_clock_to_fen(0))
+        self.assertEqual('0', board1._half_move_clock_to_fen(0))
 
     def test_can_convert_any_half_move_clock_value(self):
-        self.assertEqual('1', board0._half_move_clock_to_fen(1))
+        self.assertEqual('1', board1._half_move_clock_to_fen(1))
 
     def test_converts_half_move_clock_of_board_object_if_no_param_given(self):
-        self.assertEqual('0', board0._half_move_clock_to_fen())
+        self.assertEqual('0', board1._half_move_clock_to_fen())
 
     # turn number
     def test_can_convert_turn_number_value(self):
-        self.assertEqual('1', board0._turn_number_to_fen(1))
+        self.assertEqual('1', board1._turn_number_to_fen(1))
 
     def test_can_convert_any_turn_number_value(self):
-        self.assertEqual('2', board0._turn_number_to_fen(2))
+        self.assertEqual('2', board1._turn_number_to_fen(2))
 
     def test_converts_turn_number_of_board_object_if_no_param_given(self):
-        self.assertEqual('1', board0._turn_number_to_fen())
+        self.assertEqual('1', board1._turn_number_to_fen())
 
 
 if __name__ == '__main__':
