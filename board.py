@@ -83,7 +83,7 @@ class Board:
     moves
     """
     @property
-    def legal_moves(self) -> Set[MOVE]:
+    def legal_moves(self) -> Set[MOVE]:  # comments for algorithm
         """
         generate all legal moves
         :return: set of all legal moves
@@ -95,7 +95,7 @@ class Board:
             moves |= piece.pseudo_legal_moves
         return moves
 
-    def make_move(self, move: MOVE) -> None:
+    def make_move(self, move: MOVE) -> None:  # comments for algorithm
         """
         make a given move
         :param move: tuple of the starting position and the final position
@@ -172,8 +172,8 @@ class Board:
             if not self._white_to_move:
                 self._turn_number += 1
 
-        # self._save_board()  # not yet tested
         piece = self._get_piece(move[0])
+        self._save_position()
         adjust_half_move_clock()
         move_pieces()
         adjust_castling_rights()
@@ -222,7 +222,7 @@ class Board:
                 return True
         return False
 
-    def is_square_attacked(self, pos: int, color: bool):
+    def is_square_attacked(self, pos: int, color: bool):  # comments for algorithm
         """
         test is a square is being threatened by a player
         only considers moves that could threaten the king
@@ -300,7 +300,7 @@ class Board:
             self._castling_rights_to_board(fen[2]), self._ep_target_square_to_board(fen[3]), \
             self._half_move_clock_to_board(fen[4]), self._turn_number_to_board(fen[5])
 
-    def _positions_to_board(self, positions: str) -> Set[Piece]:
+    def _positions_to_board(self, positions: str) -> Set[Piece]:  # comments for algorithm
         """
         convert positions from fen data to board object data
         :param positions: fen positions
@@ -386,10 +386,10 @@ class Board:
         translate the board object attribute data type to a fen string
         :return: fen string of the current board
         """
-        return f'{self._positions_to_fen()} {self._color_to_move_to_fen()} {self._castling_rights_to_fen()}' \
+        return f'{self._positions_to_fen()} {self._color_to_move_to_fen()} {self._castling_rights_to_fen()} ' \
                f'{self._ep_target_square_to_fen()} {self._half_move_clock_to_fen()} {self._turn_number_to_fen()}'
 
-    def _positions_to_fen(self, pieces: Set[Piece] = None) -> str:
+    def _positions_to_fen(self, pieces: Set[Piece] = None) -> str:  # comments for algorithm
         """
         convert positions from board object data to fen data
         :param pieces: board object piece set

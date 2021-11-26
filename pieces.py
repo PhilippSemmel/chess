@@ -53,12 +53,11 @@ class Piece(ABC):
         # if not isinstance(board, Board):
         #     raise ValueError('No board object as board attribute.')
 
-    @abstractmethod
     def __repr__(self) -> str:
         """
-        :return: {color} {type} on pos {pos}
+        :return: {color} {type} {pos}
         """
-        pass
+        return f'{"w" if self._white_piece else "b"} {self._fen_symbol} {self._pos}'
 
     """
     attribute getters
@@ -124,7 +123,7 @@ class Piece(ABC):
 
     # @lru_cache(max_size=64)
     @property
-    def _max_moves(self) -> List[int]:
+    def _max_moves(self) -> List[int]:  # comments for algorithm
         """
         get the number of squares in each direction starting from the pieces position
         :return:list of numbers of squares in each direction starting from the pieces position
@@ -164,7 +163,7 @@ class Piece(ABC):
         pass
 
     def _generate_sliding_moves(self, diffs: Optional[List[int]] = None, max_moves: Optional[List[int]] = None) \
-            -> Set[MOVE]:
+            -> Set[MOVE]:  # comments for algorithm
         """
         generate all long range sliding moves of a piece
         :param diffs: the square index value differences of every direction the piece can move to
@@ -204,31 +203,28 @@ class Pawn(Piece):
         symbol, fen_symbol = ('♟', 'P') if white_piece else ('♙', 'p')
         super().__init__(pos, white_piece, 0, board, symbol, fen_symbol)
 
-    def __repr__(self) -> str:
-        return '{} pawn on pos {}'.format('white' if self._white_piece else 'black', self._pos)
-
     @property
-    def _limits(self) -> List[List[int]]:
+    def _limits(self) -> List[List[int]]:  # comments for algorithm
         return [self._max_moves[2:3], self._max_moves[4:6]] if self._white_piece else \
             [self._max_moves[3:4], self._max_moves[6:]]
 
     @property
-    def _diffs(self) -> List[List[int]]:
+    def _diffs(self) -> List[List[int]]:  # comments for algorithm
         return [self._all_diffs[2:3], self._all_diffs[4:6]] if self._white_piece else \
             [self._all_diffs[3:4], self._all_diffs[6:]]
 
     @property
-    def pseudo_legal_moves(self) -> Set[MOVE]:
+    def pseudo_legal_moves(self) -> Set[MOVE]:  # comments for algorithm
         moves = self._generate_advances()
         moves |= self._generate_diagonal_capturing_moves()
         moves |= self._generate_en_passant_move()
         return moves
 
     @property
-    def attacking_squares(self) -> Set[int]:
+    def attacking_squares(self) -> Set[int]:  # comments for algorithm
         return {move[1] for move in self._generate_diagonal_capturing_moves()}
 
-    def _generate_advances(self) -> Set[MOVE]:
+    def _generate_advances(self) -> Set[MOVE]:  # comments for algorithm
         pos_limit = 2 if (self._white_piece and self._rank == 1) or (not self._white_piece and self._rank == 6) else 1
         limits, diffs = min(pos_limit, self._limits[0][0]), self._diffs[0][0]
         _moves = set()
@@ -238,7 +234,7 @@ class Pawn(Piece):
             _moves.add((self._pos, self._pos + ((n + 1) * diffs)))
         return _moves
 
-    def _generate_diagonal_capturing_moves(self) -> Set[MOVE]:
+    def _generate_diagonal_capturing_moves(self) -> Set[MOVE]:  # comments for algorithm
         limits, diffs = self._limits[1], self._diffs[1]
         _moves = set()
         for n in range(2):
@@ -246,7 +242,7 @@ class Pawn(Piece):
                 _moves.add((self._pos, self._pos + diffs[n]))
         return _moves
 
-    def _generate_en_passant_move(self) -> Set[MOVE]:
+    def _generate_en_passant_move(self) -> Set[MOVE]:  # comments for algorithm
         limits, diffs = self._limits[1], self._diffs[1]
         for n in range(2):
             if limits[n] > 0 and self._pos + diffs[n] == self._board.ep_target_square:
@@ -259,11 +255,8 @@ class Knight(Piece):
         symbol, fen_symbol = ('♞', 'N') if white_piece else ('♘', 'n')
         super().__init__(pos, white_piece, 1, board, symbol, fen_symbol)
 
-    def __repr__(self) -> str:
-        return '{} knight on pos {}'.format('white' if self._white_piece else 'black', self._pos)
-
     @property
-    def pseudo_legal_moves(self) -> Set[MOVE]:
+    def pseudo_legal_moves(self) -> Set[MOVE]:  # comments for algorithm
         moves = set()
         for diff, off_set in zip([17, 10, -6, -15, -17, -10, 6, 15], [(1, 2), (2, 1), (2, -1), (1, -2), (-1, -2),
                                                                       (-2, -1), (-2, 1), (-1, 2)]):
@@ -277,7 +270,7 @@ class Knight(Piece):
         return moves
 
     @property
-    def attacking_squares(self) -> Set[int]:
+    def attacking_squares(self) -> Set[int]:  # comments for algorithm
         return {move[1] for move in self.pseudo_legal_moves}
 
 
@@ -285,9 +278,6 @@ class Bishop(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♝', 'B') if white_piece else ('♗', 'b')
         super().__init__(pos, white_piece, 2, board, symbol, fen_symbol)
-
-    def __repr__(self) -> str:
-        return '{} bishop on pos {}'.format('white' if self._white_piece else 'black', self._pos)
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
@@ -303,9 +293,6 @@ class Rook(Piece):
         symbol, fen_symbol = ('♜', 'R') if white_piece else ('♖', 'r')
         super().__init__(pos, white_piece, 3, board, symbol, fen_symbol)
 
-    def __repr__(self) -> str:
-        return '{} rook on pos {}'.format('white' if self._white_piece else 'black', self._pos)
-
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_sliding_moves(self._all_diffs[:4], self._max_moves[:4])
@@ -319,9 +306,6 @@ class Queen(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♛', 'Q') if white_piece else ('♕', 'q')
         super().__init__(pos, white_piece, 4, board, symbol, fen_symbol)
-
-    def __repr__(self) -> str:
-        return '{} queen on pos {}'.format('white' if self._white_piece else 'black', self._pos)
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
@@ -337,9 +321,6 @@ class King(Piece):
         symbol, fen_symbol = ('♚', 'K') if white_piece else ('♔', 'k')
         super().__init__(pos, white_piece, 5, board, symbol, fen_symbol)
 
-    def __repr__(self) -> str:
-        return '{} king on pos {}'.format('white' if self._white_piece else 'black', self._pos)
-
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         moves = self._generate_on_square_sliding_moves()
@@ -350,7 +331,7 @@ class King(Piece):
     def attacking_squares(self) -> Set[int]:
         return {move[1] for move in self._generate_on_square_sliding_moves()}
 
-    def _generate_on_square_sliding_moves(self) -> Set[MOVE]:
+    def _generate_on_square_sliding_moves(self) -> Set[MOVE]:  # comments for algorithm
         moves = set()
         for diff, m in zip(self._all_diffs, self._max_moves):
             if m == 0:
@@ -360,7 +341,7 @@ class King(Piece):
             moves.add((self._pos, self._pos + diff))
         return moves
 
-    def _generate_castling_moves(self) -> Set[MOVE]:
+    def _generate_castling_moves(self) -> Set[MOVE]:  # comments for algorithm
         def generate_castling_move_for_one_side(dir_: int, n: int) -> Set[MOVE]:
             # testing castling right
             if not self._board.castling_rights[n if self._white_piece else n + 2]:
