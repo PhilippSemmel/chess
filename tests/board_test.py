@@ -68,10 +68,10 @@ class AttributeGetterTestCase(unittest.TestCase):
         self.assertEqual(board2._pieces, board2.pieces)
 
     def test_can_get_color_to_move(self):
-        self.assertTrue(board1.color_to_move)
+        self.assertTrue(board1.white_to_move)
 
     def test_can_get_any_color_to_move(self):
-        self.assertFalse(board2.color_to_move)
+        self.assertFalse(board2.white_to_move)
 
     def test_can_get_castling_rights(self):
         self.assertEqual(board1._castling_rights, board1.castling_rights)
@@ -545,12 +545,12 @@ class MakeMoveTestCase(unittest.TestCase):
     def test_black_to_move_after_white_move(self):
         board = Board('8/8/8/8/8/8/P7/8 w - - 0 1')
         board.make_move((8, 16))
-        self.assertFalse(board.color_to_move)
+        self.assertFalse(board.white_to_move)
 
     def test_white_to_move_after_black_move(self):
         board = Board('8/p7/8/8/8/8/8/8 b - - 0 1')
         board.make_move((48, 40))
-        self.assertTrue(board.color_to_move)
+        self.assertTrue(board.white_to_move)
 
     # castling rights
     def test_castling_rights_do_not_change_after_unrelated_move(self):
@@ -730,7 +730,138 @@ class MakeMoveTestCase(unittest.TestCase):
 
 
 class UndoMoveTestCase(unittest.TestCase):
-    pass
+    # pieces
+
+    # color to move
+    def test_can_recover_white_to_move(self):
+        board = Board()  # board1
+        board.make_move((1, 16))
+        board._undo_move()
+        self.assertTrue(board._white_to_move)
+
+    def test_can_recover_black_to_move(self):
+        board = Board()  # board1
+        board.make_move((1, 16))
+        board.make_move((57, 48))
+        board._undo_move()
+        self.assertFalse(board._white_to_move)
+
+    # castling rights
+    def test_changes_nothing_if_no_rights_were_lost(self):
+        board1.make_move((1, 16))
+        board1._undo_move()
+        self.assertEqual([True, True, True, True], board1._castling_rights)
+
+    def test_can_recover_white_queenside_castling_right(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1')
+        board.make_move((0, 8))
+        board._undo_move()
+        self.assertEqual([True, True, True, True], board._castling_rights)
+
+    def test_can_recover_white_kingside_castling_right(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1')
+        board.make_move((7, 15))
+        board._undo_move()
+        self.assertEqual([True, True, True, True], board._castling_rights)
+
+    def test_can_recover_both_white_castling_rights(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1')
+        board.make_move((4, 12))
+        board._undo_move()
+        self.assertEqual([True, True, True, True], board._castling_rights)
+
+    def test_can_recover_black_queenside_castling_right(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1')
+        board.make_move((56, 48))
+        board._undo_move()
+        self.assertEqual([True, True, True, True], board._castling_rights)
+
+    def test_can_recover_black_kingside_castling_right(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1')
+        board.make_move((63, 55))
+        board._undo_move()
+        self.assertEqual([True, True, True, True], board._castling_rights)
+
+    def test_can_recover_both_black_castling_rights(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1')
+        board.make_move((60, 52))
+        board._undo_move()
+        self.assertEqual([True, True, True, True], board._castling_rights)
+    
+    def test_can_recover_incomplete_castling_rights(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R w Kq - 0 1')
+        board.make_move((7, 15))
+        board._undo_move()
+        self.assertEqual([True, False, False, True], board._castling_rights)
+
+    def test_can_recover_no_castling_rights(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R w - - 0 1')
+        board.make_move((7, 15))
+        board._undo_move()
+        self.assertEqual([False, False, False, False], board._castling_rights)
+
+    # ep target square
+    def test_can_recover_no_ep_target_square(self):
+        board0 = Board()
+        board0.make_move((1, 16))
+        board0._undo_move()
+        self.assertIsNone(board0._ep_target_square)
+
+    def test_can_recover_ep_target_square(self):
+        board = Board('rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq a3 0 1')
+        board.make_move((57, 48))
+        board._undo_move()
+        self.assertEqual(16, board._ep_target_square)
+
+    def test_can_recover_any_ep_target_square(self):
+        board = Board('rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq b3 0 1')
+        board.make_move((57, 48))
+        board._undo_move()
+        self.assertEqual(17, board._ep_target_square)
+
+    # half move clock
+    def test_can_recover_half_move_clock(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 10 1')
+        board.make_move((60, 52))
+        board._undo_move()
+        self.assertEqual(10, board._half_move_clock)
+
+    def test_can_recover_any_half_move_clock(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 25 1')
+        board.make_move((60, 52))
+        board._undo_move()
+        self.assertEqual(25, board._half_move_clock)
+
+    def test_can_recover_half_move_clock_after_reset(self):
+        board = Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 10 1')
+        board.make_move((8, 16))
+        board._undo_move()
+        self.assertEqual(10, board._half_move_clock)
+
+    def test_can_recover_any_half_move_clock_after_reset(self):
+        board = Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 25 1')
+        board.make_move((8, 16))
+        board._undo_move()
+        self.assertEqual(25, board._half_move_clock)
+
+    # turn number
+    def test_can_recover_turn_number_after_white_move(self):
+        board = Board()  # board1
+        board.make_move((1, 16))
+        board._undo_move()
+        self.assertEqual(1, board._turn_number)
+
+    def test_can_recover_turn_number_after_black_move(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1')
+        board.make_move((60, 52))
+        board._undo_move()
+        self.assertEqual(1, board._turn_number)
+
+    def test_can_recover_any_turn_number_after_black_move(self):
+        board = Board('r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 5')
+        board.make_move((60, 52))
+        board._undo_move()
+        self.assertEqual(5, board._turn_number)
 
 
 class BoardConversionTestCase(unittest.TestCase):

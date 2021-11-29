@@ -29,30 +29,6 @@ class Piece(ABC):
         # order of the differences :right, left, up, down, right up, left up, right down, left down
         self._all_diffs: List[int] = [1, -1, 8, -8, 9, 7, -7, -9]
 
-    @staticmethod
-    def _verify_params(pos: int, white_piece: bool, _type: int, board: Board) -> None:
-        """
-        verify the validity of the values passed to the constructor
-        :param pos: pos value of the piece
-        :param white_piece: color value of the piece
-        :param _type: type value of the piece
-        :param board: board object
-        :raises TypeError if any value has a wrong type
-        :raises ValueError if the pos or type value is wrong
-        """
-        if not type(pos) == int:
-            raise TypeError('Positions value must be int.')
-        if pos > 63 or pos < 0:
-            raise ValueError('The position reach from value 0 to value 63 only.')
-        if not type(white_piece) == bool:
-            raise TypeError('white_piece values must be bool.')
-        if not type(_type) == int:
-            raise TypeError('type value must be int.')
-        if _type > 5 or _type < 0:
-            raise ValueError('The type codes reach from 0 to 5 only.')
-        # if not isinstance(board, Board):
-        #     raise ValueError('No board object as board attribute.')
-
     def __repr__(self) -> str:
         """
         :return: {color} {type} {pos}
@@ -139,7 +115,7 @@ class Piece(ABC):
     """
     attribute setters
     """
-    def move_to(self, new_pos: int):
+    def move_to(self, new_pos: int) -> None:
         """
         set a new position for the piece
         :param new_pos: new position of the piece
@@ -159,6 +135,16 @@ class Piece(ABC):
         """
         generate all pseudo legal moves the piece can make
         :return: set of all legal moves available
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def attacking_squares(self) -> Set[int]:
+        """
+        generate all squares the piece threatens
+        only considers moves that could threaten the king
+        :return: set of all squares the piece threatens
         """
         pass
 
@@ -187,31 +173,38 @@ class Piece(ABC):
                     break
         return moves
 
-    @property
-    @abstractmethod
-    def attacking_squares(self) -> Set[int]:
+    """
+    misc
+    """
+    @staticmethod
+    def _verify_params(pos: int, white_piece: bool, _type: int, board: Board) -> None:
         """
-        generate all squares the piece threatens
-        only considers moves that could threaten the king
-        :return: set of all squares the piece threatens
+        verify the validity of the values passed to the constructor
+        :param pos: pos value of the piece
+        :param white_piece: color value of the piece
+        :param _type: type value of the piece
+        :param board: board object
+        :raises TypeError if any value has a wrong type
+        :raises ValueError if the pos or type value is wrong
         """
-        pass
+        if not type(pos) == int:
+            raise TypeError('Positions value must be int.')
+        if pos > 63 or pos < 0:
+            raise ValueError('The position reach from value 0 to value 63 only.')
+        if not type(white_piece) == bool:
+            raise TypeError('white_piece values must be bool.')
+        if not type(_type) == int:
+            raise TypeError('type value must be int.')
+        if _type > 5 or _type < 0:
+            raise ValueError('The type codes reach from 0 to 5 only.')
+        # if not isinstance(board, Board):
+        #     raise ValueError('No board object as board attribute.')
 
 
 class Pawn(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♟', 'P') if white_piece else ('♙', 'p')
         super().__init__(pos, white_piece, 0, board, symbol, fen_symbol)
-
-    @property
-    def _limits(self) -> List[List[int]]:  # comments for algorithm
-        return [self._max_moves[2:3], self._max_moves[4:6]] if self._white_piece else \
-            [self._max_moves[3:4], self._max_moves[6:]]
-
-    @property
-    def _diffs(self) -> List[List[int]]:  # comments for algorithm
-        return [self._all_diffs[2:3], self._all_diffs[4:6]] if self._white_piece else \
-            [self._all_diffs[3:4], self._all_diffs[6:]]
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:  # comments for algorithm
@@ -248,6 +241,16 @@ class Pawn(Piece):
             if limits[n] > 0 and self._pos + diffs[n] == self._board.ep_target_square:
                 return {(self._pos, self._pos + diffs[n])}
         return set()
+
+    @property
+    def _limits(self) -> List[List[int]]:  # comments for algorithm
+        return [self._max_moves[2:3], self._max_moves[4:6]] if self._white_piece else \
+            [self._max_moves[3:4], self._max_moves[6:]]
+
+    @property
+    def _diffs(self) -> List[List[int]]:  # comments for algorithm
+        return [self._all_diffs[2:3], self._all_diffs[4:6]] if self._white_piece else \
+            [self._all_diffs[3:4], self._all_diffs[6:]]
 
 
 class Knight(Piece):
@@ -323,15 +326,15 @@ class King(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        moves = self._generate_on_square_sliding_moves()
+        moves = self._generate_one_square_sliding_moves()
         moves |= self._generate_castling_moves()
         return moves
 
     @property
     def attacking_squares(self) -> Set[int]:
-        return {move[1] for move in self._generate_on_square_sliding_moves()}
+        return {move[1] for move in self._generate_one_square_sliding_moves()}
 
-    def _generate_on_square_sliding_moves(self) -> Set[MOVE]:  # comments for algorithm
+    def _generate_one_square_sliding_moves(self) -> Set[MOVE]:  # comments for algorithm
         moves = set()
         for diff, m in zip(self._all_diffs, self._max_moves):
             if m == 0:

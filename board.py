@@ -8,8 +8,13 @@ MOVE = Tuple[int, int]
 
 class Board:
     def __init__(self, fen: Optional[str] = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') -> None:
-        self._pieces, self._white_to_move, self._castling_rights, self._ep_target_square, self._half_move_clock, \
-            self._turn_number = self._fen_to_board(fen)
+        self._pieces: Set[Piece]
+        self._white_to_move: bool
+        self._castling_rights: List[bool]
+        self._ep_target_square: Union[None, int]
+        self._half_move_clock: int
+        self._turn_number: int
+        self._load_position(fen)
         self._positions: List[str] = []
 
     def __repr__(self) -> str:
@@ -40,10 +45,10 @@ class Board:
         return self._pieces
 
     @property
-    def color_to_move(self) -> bool:
+    def white_to_move(self) -> bool:
         """
-        get the color to move
-        :return: the color to move
+        get the player to move
+        :return: whether white to move
         """
         return self._white_to_move
 
@@ -181,6 +186,14 @@ class Board:
         increase_turn_number()
         alternate_color_to_move()
 
+    def _undo_move(self) -> None:
+        # self._load_fen(self._positions.pop())
+        self._castling_rights = self._castling_rights_to_board(self._positions[-1].split()[2])
+        self._ep_target_square = self._ep_target_square_to_board(self._positions[-1].split()[3])
+        self._half_move_clock = self._half_move_clock_to_board(self._positions[-1].split()[4])
+        self._turn_number = self._turn_number - 1 if self._white_to_move else self._turn_number
+        self._white_to_move = not self._white_to_move
+
     """
     position state getter
     """
@@ -198,41 +211,41 @@ class Board:
                 return False
         return True
 
-    def own_piece_on_square(self, pos: int, color: bool) -> bool:
+    def own_piece_on_square(self, pos: int, white_piece: bool) -> bool:
         """
         test whether there is a piece on the given position the the same color as given
         :param pos: positions of the square to test
-        :param color: own color
+        :param white_piece: own color
         :return: whether there is one of your own pieces at the given position
         """
         for piece in self._pieces:
-            if piece.pos == pos and piece.white_piece == color:
+            if piece.pos == pos and piece.white_piece == white_piece:
                 return True
         return False
 
-    def opponent_piece_on_square(self, pos: int, color: bool) -> bool:
+    def opponent_piece_on_square(self, pos: int, white_piece: bool) -> bool:
         """
         test whether there is a piece on the given position the a different color as given
         :param pos: positions of the square to test
-        :param color: own color
+        :param white_piece: own color
         :return: whether there is one of your opponent's own pieces at the given position
         """
         for piece in self._pieces:
-            if piece.pos == pos and not piece.white_piece == color:
+            if piece.pos == pos and not piece.white_piece == white_piece:
                 return True
         return False
 
-    def is_square_attacked(self, pos: int, color: bool):  # comments for algorithm
+    def is_square_attacked(self, pos: int, white_piece: bool):  # comments for algorithm
         """
         test is a square is being threatened by a player
         only considers moves that could threaten the king
         :param pos: position of the square
-        :param color: point of view of the test
+        :param white_piece: point of view of the test
         :return: whether a square is being threatened by a player
         """
         squares = set()
         for piece in self._pieces:
-            if not piece.white_piece == color:
+            if not piece.white_piece == white_piece:
                 squares |= piece.attacking_squares
         return pos in squares
 
@@ -284,6 +297,14 @@ class Board:
         """
         self._positions.append(self._board_to_fen())
 
+    def _load_position(self, fen: str) -> None:
+        """
+        load the data of a fen string into the object's attributes
+        :param fen: fen string to load
+        """
+        self._pieces, self._white_to_move, self._castling_rights, self._ep_target_square, self._half_move_clock, \
+            self._turn_number = self._fen_to_board(fen)
+
     """
     board conversion
     convert fen string data to board object data
@@ -295,7 +316,7 @@ class Board:
         :return: piece objects on the board, color to move, castling rights, ep target square, half move clock, turn
                  number
         """
-        fen = fen.strip().split(' ')
+        fen = fen.strip().split()
         return self._positions_to_board(fen[0]), self._color_to_move_to_board(fen[1]), \
             self._castling_rights_to_board(fen[2]), self._ep_target_square_to_board(fen[3]), \
             self._half_move_clock_to_board(fen[4]), self._turn_number_to_board(fen[5])
