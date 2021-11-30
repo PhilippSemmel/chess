@@ -369,12 +369,12 @@ class MoveGenerationTestCase(unittest.TestCase):
 
 class MakeMoveTestCase(unittest.TestCase):
     # piece tests
-    def test_starting_pos_is_empty_after_move(self):
+    def test_starting_pos_is_empty(self):
         board = Board('8/8/8/8/8/8/P7/8 w - - 0 1')
         board.make_move((8, 16))
         self.assertRaises(ValueError, board._get_piece, 8)
 
-    def test_final_piece_on_final_square_after_move(self):
+    def test_piece_on_final_square(self):
         board = Board('8/8/8/8/8/8/P7/8 w - - 0 1')
         pawn = board._get_piece(8)
         board.make_move((8, 16))
@@ -730,8 +730,207 @@ class MakeMoveTestCase(unittest.TestCase):
 
 
 class UndoMoveTestCase(unittest.TestCase):
-    # pieces
+    # piece tests
+    def test_starting_pos_is_not_empty(self):
+        board = Board('8/8/8/8/8/8/P7/8 w - - 0 1')
+        piece = board._get_piece(8)
+        board.make_move((8, 16))
+        board._undo_move()
+        piece_new = board._get_piece(8)
+        self.assertRaises(ValueError, board._get_piece, 16)
+        self.assertEqual(0, piece_new._type)
+        self.assertEqual(8, piece_new._pos)
+        self.assertTrue(piece._white_piece)
 
+    def test_not_piece_on_final_square(self):
+        board = Board('8/8/8/8/8/8/P7/8 w - - 0 1')
+        board.make_move((8, 16))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 16)
+
+    def test_can_undo_white_pawn_move(self):
+        board = Board('8/8/8/8/8/8/P7/8 w - - 0 1')
+        board.make_move((8, 16))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 16)
+
+    def test_can_undo_any_white_pawn_move(self):
+        board = Board('8/8/8/8/8/8/1P6/8 w - - 0 1')
+        board.make_move((9, 17))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 17)
+
+    def test_can_undo_black_pawn_move(self):
+        board = Board('8/p7/8/8/8/8/8/8 b - - 0 1')
+        board.make_move((48, 40))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 40)
+
+    def test_can_undo_any_black_pawn_move(self):
+        board = Board('8/1p6/8/8/8/8/8/8 b - - 0 1')
+        board.make_move((49, 41))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 41)
+
+    def test_can_undo_knight_move(self):
+        board = Board('8/8/8/8/8/8/8/N7 w - - 0 1')
+        board.make_move((0, 17))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 17)
+
+    def test_can_undo_any_knight_move(self):
+        board = Board('8/8/8/8/8/8/8/N7 w - - 0 1')
+        board.make_move((0, 10))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 10)
+
+    def test_can_undo_bishop_move(self):
+        board = Board('8/8/8/8/8/8/1B6/8 w - - 0 1')
+        board.make_move((9, 0))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 0)
+
+    def test_can_undo_any_bishop_move(self):
+        board = Board('8/8/8/8/8/8/1B6/8 w - - 0 1')
+        board.make_move((9, 18))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 18)
+
+    def test_can_undo_rook_move(self):
+        board = Board('8/8/8/8/8/8/1R6/8 w - - 0 1')
+        board.make_move((9, 8))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 8)
+
+    def test_can_undo_any_rook_move(self):
+        board = Board('8/8/8/8/8/8/1R6/8 w - - 0 1')
+        board.make_move((9, 10))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 10)
+
+    def test_can_undo_queen_move(self):
+        board = Board('8/8/8/8/8/8/1Q6/8 w - - 0 1')
+        board.make_move((9, 10))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 10)
+
+    def test_can_undo_any_queen_move(self):
+        board = Board('8/8/8/8/8/8/1Q6/8 w - - 0 1')
+        board.make_move((9, 8))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 8)
+
+    def test_can_undo_king_move(self):
+        board = Board('8/8/8/8/8/8/1K6/8 w - - 0 1')
+        board.make_move((9, 10))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 10)
+
+    def test_can_undo_any_king_move(self):
+        board = Board('8/8/8/8/8/8/1K6/8 w - - 0 1')
+        board.make_move((9, 8))
+        board._undo_move()
+        self.assertRaises(ValueError, board._get_piece, 8)
+
+    # capturing
+    def test_captured_piece_is_added_to_piece_set(self):
+        board = Board('r7/8/8/8/8/8/8/R7 w - - 0 1')
+        board.make_move((0, 56))
+        board._undo_move()
+        b_rook = board._get_piece(56)
+        w_rook = board._get_piece(0)
+        self.assertEqual(56, b_rook._pos)
+        self.assertEqual(3, b_rook._type)
+        self.assertFalse(b_rook._white_piece)
+        self.assertEqual(0, w_rook._pos)
+        self.assertEqual(3, w_rook._type)
+        self.assertTrue(w_rook._white_piece)
+
+    # castling moves
+    def test_rook_moved_after_undoing_castling_kingside_as_white(self):
+        board = Board('8/8/8/8/8/8/8/4K2R w K - 0 1')
+        board.make_move((4, 6))
+        board._undo_move()
+        king = board._get_piece(4)
+        rook = board._get_piece(7)
+        self.assertEqual(4, king._pos)
+        self.assertEqual(5, king._type)
+        self.assertTrue(king._white_piece)
+        self.assertEqual(7, rook._pos)
+        self.assertEqual(3, rook._type)
+        self.assertTrue(rook._white_piece)
+
+    def test_rook_moved_after_undoing_castling_queenside_as_white(self):
+        board = Board('8/8/8/8/8/8/8/R3K3 w Q - 0 1')
+        board.make_move((4, 2))
+        board._undo_move()
+        king = board._get_piece(4)
+        rook = board._get_piece(0)
+        self.assertEqual(4, king._pos)
+        self.assertEqual(5, king._type)
+        self.assertTrue(king._white_piece)
+        self.assertEqual(0, rook._pos)
+        self.assertEqual(3, rook._type)
+        self.assertTrue(rook._white_piece)
+
+    def test_rook_moved_after_undoing_castling_kingside_as_black(self):
+        board = Board('4k2r/8/8/8/8/8/8/8 b k - 0 1')
+        board.make_move((60, 62))
+        board._undo_move()
+        king = board._get_piece(60)
+        rook = board._get_piece(63)
+        self.assertEqual(60, king._pos)
+        self.assertEqual(5, king._type)
+        self.assertFalse(king._white_piece)
+        self.assertEqual(63, rook._pos)
+        self.assertEqual(3, rook._type)
+        self.assertFalse(rook._white_piece)
+
+    # def test_rook_moved_after_castling_queenside_as_black(self):
+    #     board = Board('r3k3/8/8/8/8/8/8/8 b q - 0 1')
+    #     king = board._get_piece(60)
+    #     rook = board._get_piece(56)
+    #     board.make_move((60, 58))
+    #     self.assertEqual(king, board._get_piece(58))
+    #     self.assertEqual(rook, board._get_piece(59))
+    #
+    # # en passant moves
+    # def test_removes_pawn_after_capturing_en_passant_right_as_white(self):
+    #     board = Board('8/8/8/Pp6/8/8/8/8 w - b6 0 1')
+    #     b_pawn = board._get_piece(33)
+    #     board.make_move((32, 41))
+    #     self.assertNotIn(b_pawn, board.pieces)
+    #
+    # def test_removes_pawn_after_capturing_en_passant_left_as_white(self):
+    #     board = Board('8/8/8/pP6/8/8/8/8 w - a6 0 1')
+    #     b_pawn = board._get_piece(32)
+    #     board.make_move((33, 40))
+    #     self.assertNotIn(b_pawn, board.pieces)
+    #
+    # def test_removes_pawn_after_capturing_en_passant_right_as_black(self):
+    #     board = Board('8/8/8/8/8/pP6/8/8 b - b2 0 1')
+    #     w_pawn = board._get_piece(17)
+    #     board.make_move((16, 9))
+    #     self.assertNotIn(w_pawn, board.pieces)
+    #
+    # def test_removes_pawn_after_capturing_en_passant_left_as_black(self):
+    #     board = Board('8/8/8/8/8/Pp6/8/8 b - a2 0 1')
+    #     w_pawn = board._get_piece(16)
+    #     board.make_move((17, 8))
+    #     self.assertNotIn(w_pawn, board.pieces)
+    #
+    # # promotion
+    # def test_pawn_will_be_promoted_to_a_queen_when_moving_to_the_last_row_as_white(self):
+    #     board = Board('8/P7/8/8/8/8/8/8 w - - 0 1')
+    #     board.make_move((48, 56))
+    #     self.assertEqual(4, board._get_piece(56).type)
+    #
+    # def test_pawn_will_be_promoted_to_a_queen_when_moving_to_the_last_row_as_black(self):
+    #     board = Board('8/9/8/8/8/8/p7/8 b - - 0 1')
+    #     board.make_move((8, 0))
+    #     self.assertEqual(4, board._get_piece(0).type)
+
+    # board info except pieces
     # color to move
     def test_can_recover_white_to_move(self):
         board = Board()  # board1
@@ -787,7 +986,7 @@ class UndoMoveTestCase(unittest.TestCase):
         board.make_move((60, 52))
         board._undo_move()
         self.assertEqual([True, True, True, True], board._castling_rights)
-    
+
     def test_can_recover_incomplete_castling_rights(self):
         board = Board('r3k2r/8/8/8/8/8/8/R3K2R w Kq - 0 1')
         board.make_move((7, 15))
