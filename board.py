@@ -187,13 +187,10 @@ class Board:
         alternate_color_to_move()
 
     def _undo_move(self) -> None:
-        # self._load_fen(self._positions.pop())
-        self._pieces = self._positions_to_board(self._positions[-1].split()[0])
-        self._castling_rights = self._castling_rights_to_board(self._positions[-1].split()[2])
-        self._ep_target_square = self._ep_target_square_to_board(self._positions[-1].split()[3])
-        self._half_move_clock = self._half_move_clock_to_board(self._positions[-1].split()[4])
-        self._turn_number = self._turn_number - 1 if self._white_to_move else self._turn_number
-        self._white_to_move = not self._white_to_move
+        """
+        restore the last board constellation
+        """
+        self._load_position(self._positions.pop())
 
     """
     position state getter
