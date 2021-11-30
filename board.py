@@ -188,6 +188,7 @@ class Board:
 
     def _undo_move(self) -> None:
         # self._load_fen(self._positions.pop())
+        self._pieces = self._positions_to_board(self._positions[-1].split()[0])
         self._castling_rights = self._castling_rights_to_board(self._positions[-1].split()[2])
         self._ep_target_square = self._ep_target_square_to_board(self._positions[-1].split()[3])
         self._half_move_clock = self._half_move_clock_to_board(self._positions[-1].split()[4])

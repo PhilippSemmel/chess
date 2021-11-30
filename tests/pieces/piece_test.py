@@ -54,18 +54,6 @@ class PieceConstructionTestCase(unittest.TestCase):
     def test_raises_value_error_is_type_value_is_too_low(self):
         self.assertRaises(ValueError, Piece, 0, True, 6, board, '♞', 'N')
 
-    def test_raises_type_error_if_pos_is_not_int(self):
-        self.assertRaises(TypeError, Piece, True, True, 1, board, '♞', 'N')
-
-    def test_raises_type_error_if_white_piece_is_not_bool(self):
-        self.assertRaises(TypeError, Piece, 1, 1, 1, board, '♞', 'N')
-
-    def test_raises_type_error_if_type_is_not_int(self):
-        self.assertRaises(TypeError, Piece, 1, True, True, board, '♞', 'N')
-
-    # def test_raises_type_error_if_board_is_not_board(self):
-    #     self.assertRaises(TypeError, Piece, 1, True, 1, 1)
-
 
 class PieceAttributeGetterTestCase(unittest.TestCase):
     def test_can_get_queen_pos(self):

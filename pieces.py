@@ -7,27 +7,18 @@ if TYPE_CHECKING:
 
 class Piece(ABC):
     def __init__(self, pos: int, white_piece: bool, _type: int, board: Board, symbol: str, fen_symbol: str) -> None:
-        self._verify_params(pos, white_piece, _type, board)
+        self._verify_params(pos, _type)
         # piece info
         self._pos: int = pos
         self._white_piece: bool = white_piece
-        self._type: int = _type
+        self._type: int = _type  # 0: Pawn, 1: Knight, 2: Bishop, 3: Rook, 4: Queen, 5: King
         self._symbol: str = symbol
         self._fen_symbol: str = fen_symbol
-        """
-        0 -> Pawn
-        1 -> Knight
-        2 -> Bishop
-        3 -> Rook
-        4 -> Queen
-        5 -> King
-        """
         # objects
         self._board: Board = board
         # misc data
-        # differences between the square values
+        self._all_diffs: List[int] = [1, -1, 8, -8, 9, 7, -7, -9]  # differences between the square values
         # order of the differences :right, left, up, down, right up, left up, right down, left down
-        self._all_diffs: List[int] = [1, -1, 8, -8, 9, 7, -7, -9]
 
     def __repr__(self) -> str:
         """
@@ -177,28 +168,18 @@ class Piece(ABC):
     misc
     """
     @staticmethod
-    def _verify_params(pos: int, white_piece: bool, _type: int, board: Board) -> None:
+    def _verify_params(pos: int, _type: int) -> None:
         """
         verify the validity of the values passed to the constructor
         :param pos: pos value of the piece
-        :param white_piece: color value of the piece
         :param _type: type value of the piece
-        :param board: board object
         :raises TypeError if any value has a wrong type
         :raises ValueError if the pos or type value is wrong
         """
-        if not type(pos) == int:
-            raise TypeError('Positions value must be int.')
         if pos > 63 or pos < 0:
             raise ValueError('The position reach from value 0 to value 63 only.')
-        if not type(white_piece) == bool:
-            raise TypeError('white_piece values must be bool.')
-        if not type(_type) == int:
-            raise TypeError('type value must be int.')
         if _type > 5 or _type < 0:
             raise ValueError('The type codes reach from 0 to 5 only.')
-        # if not isinstance(board, Board):
-        #     raise ValueError('No board object as board attribute.')
 
 
 class Pawn(Piece):
