@@ -59,6 +59,9 @@ class ConstructionTestCase(unittest.TestCase):
     def test_positions_is_empty_list(self):
         self.assertEqual([], board1._positions)
 
+    def test_moves_is_empty_list(self):
+        self.assertEqual([], board1._moves)
+
 
 class AttributeGetterTestCase(unittest.TestCase):
     def test_can_get_pieces(self):
@@ -367,13 +370,13 @@ class MoveGenerationTestCase(unittest.TestCase):
                          board.legal_moves)
 
 
-class MakeMoveTestCase(unittest.TestCase):
-    def test_removes_last_move_from_positions_list(self):
-        board = Board()
-        board.make_move((1, 16))
-        board._undo_move()
-        self.assertEqual([], board._positions)
+# class LegalMoveGenerationTextCase(unittest.TestCase):
+#     def test_king_can_not_move_into_check(self):
+#         board = Board('8/8/8/8/8/8/7r/K7 w - - 0 1')
+#         self.assertEqual({(0, 1)}, board.legal_moves)
 
+
+class MakeMoveTestCase(unittest.TestCase):
     # piece tests
     def test_starting_pos_is_empty(self):
         board = Board('8/8/8/8/8/8/P7/8 w - - 0 1')
@@ -721,7 +724,7 @@ class MakeMoveTestCase(unittest.TestCase):
         board.make_move((8, 16))
         self.assertEqual(['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'], board._positions)
 
-    def test_can_add_any_old_position_to_position_list(self):
+    def test_adds_any_old_position_to_position_list(self):
         board = Board('PPPPPPPP/rKqqQRRP/BBKpQnRq/nBbpQQRQ/bbbpbQRN/nppbKKRP/npQrbPKk/NNNkkkkk w - - 0 1')
         board.make_move((0, 17))
         self.assertEqual(['PPPPPPPP/rKqqQRRP/BBKpQnRq/nBbpQQRQ/bbbpbQRN/nppbKKRP/npQrbPKk/NNNkkkkk w - - 0 1'],
@@ -734,8 +737,33 @@ class MakeMoveTestCase(unittest.TestCase):
         self.assertEqual(['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
                           'rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq - 0 1'], board._positions)
 
+    def test_adds_moves(self):
+        board = Board()
+        board.make_move((8, 16))
+        self.assertEqual([(8, 16)], board._moves)
+
+    def test_adds_any_moves(self):
+        board = Board()
+        board.make_move((8, 24))
+        self.assertEqual([(8, 24)], board._moves)
+
+    def test_two_moves_in_list_after_two_moves(self):
+        board = Board()
+        board.make_move((8, 24))
+        board.make_move((48, 40))
+        self.assertEqual([(8, 24), (48, 40)], board._moves)
+
 
 class UndoMoveTestCase(unittest.TestCase):
+    # def tests_moves_pieces_back(self):
+    #
+
+    def test_removes_last_move_from_positions_list(self):
+        board = Board()
+        board.make_move((1, 16))
+        board._undo_move()
+        self.assertEqual([], board._positions)
+
     # piece tests
     def test_starting_pos_is_not_empty(self):
         board = Board('8/8/8/8/8/8/P7/8 w - - 0 1')
