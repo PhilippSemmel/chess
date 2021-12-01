@@ -16,6 +16,7 @@ class Board:
         self._turn_number: int
         self._load_position(fen)
         self._positions: List[str] = []
+        self._moves: List[MOVE] = []
 
     def __repr__(self) -> str:
         def positions_to_str() -> str:
@@ -97,6 +98,14 @@ class Board:
         for piece in self._pieces:
             if not piece.white_piece == self._white_to_move:
                 continue
+            if piece.type == 5:
+                for move in piece.pseudo_legal_moves:
+                    self.make_move(move)
+                    if not self.is_square_attacked(piece.pos, piece.white_piece):
+                        moves.add(move)
+                    self._undo_move()
+                    # need to move all pieces not creating new ones when undoing a move
+                continue
             moves |= piece.pseudo_legal_moves
         return moves
 
@@ -105,12 +114,15 @@ class Board:
         make a given move
         :param move: tuple of the starting position and the final position
         """
+        def save_move() -> None:
+            self._moves.append(move)
+
         def move_pieces() -> None:
             def capture_piece() -> None:
                 with contextlib.suppress(ValueError):
                     self._pieces.discard(self._get_piece(move[1]))
 
-            def castle() -> None:
+            def move_castling_rook() -> None:
                 if piece.type == 5 and abs(move[0] - move[1]) == 2:
                     # castles queenside
                     if (move[0] - move[1]) == abs(move[0] - move[1]):
@@ -121,7 +133,7 @@ class Board:
                         # move queenside rook
                         self._get_piece(move[0] + 3).move_to(move[1] - 1)
 
-            def capture_en_passant() -> None:
+            def capture_pawn_en_passant() -> None:
                 if move[1] == self._ep_target_square and piece.type == 0:
                     # remove piece from piece set
                     self._pieces.discard(self._get_piece(move[0] - ((move[0] % 8) - (move[1] % 8))))
@@ -137,8 +149,8 @@ class Board:
                 piece.move_to(move[1])
 
             capture_piece()
-            castle()
-            capture_en_passant()
+            move_castling_rook()
+            capture_pawn_en_passant()
             promote_pawn()
             move_piece()
 
@@ -179,6 +191,7 @@ class Board:
 
         piece = self._get_piece(move[0])
         self._save_position()
+        save_move()
         adjust_half_move_clock()
         move_pieces()
         adjust_castling_rights()
@@ -190,7 +203,13 @@ class Board:
         """
         restore the last board constellation
         """
-        self._load_position(self._positions.pop())
+        position = self._positions.pop().split()
+        self._pieces = self._positions_to_board(position[0])  # move pieces back
+        self._white_to_move = self._color_to_move_to_board(position[1])
+        self._castling_rights = self._castling_rights_to_board(position[2])
+        self._ep_target_square = self._ep_target_square_to_board(position[3])
+        self._half_move_clock = self._half_move_clock_to_board(position[4])
+        self._turn_number = self._turn_number_to_board(position[5])
 
     """
     position state getter
@@ -241,11 +260,11 @@ class Board:
         :param white_piece: point of view of the test
         :return: whether a square is being threatened by a player
         """
-        squares = set()
         for piece in self._pieces:
             if not piece.white_piece == white_piece:
-                squares |= piece.attacking_squares
-        return pos in squares
+                if pos in piece.attacking_squares:
+                    return True
+        return False
 
     """
     pieces
@@ -299,6 +318,7 @@ class Board:
         """
         load the data of a fen string into the object's attributes
         :param fen: fen string to load
+        only moves pieces back if piece set is not empty
         """
         self._pieces, self._white_to_move, self._castling_rights, self._ep_target_square, self._half_move_clock, \
             self._turn_number = self._fen_to_board(fen)
