@@ -38,24 +38,32 @@ class ConstructionTestCase(unittest.TestCase):
 
 class GetterTestCase(unittest.TestCase):
     def test_on_board_if_not_captured_nor_promoted(self):
-        pawn = Pawn(0, True, Board())
+        pawn = Pawn(0, True, board)
         self.assertTrue(pawn.on_board)
 
     def test_not_on_board_if_captured(self):
-        pawn = Pawn(0, True, Board())
+        pawn = Pawn(0, True, board)
         pawn.capture(3, True)
         self.assertFalse(pawn.on_board)
 
     def test_not_on_board_if_promoted(self):
-        pawn = Pawn(0, True, Board())
+        pawn = Pawn(0, True, board)
         pawn.promote(3, True)
         self.assertFalse(pawn.on_board)
 
     def test_not_on_board_if_captured_and_promoted(self):
-        pawn = Pawn(0, True, Board())
+        pawn = Pawn(0, True, board)
         pawn.capture(3, True)
         pawn.promote(3, True)
         self.assertFalse(pawn.on_board)
+
+    def test_can_get_capture_data(self):
+        self.assertIsNone(pawn1.promotion_data)
+
+    def test_can_get_any_capture_data(self):
+        pawn = Pawn(35, True, Board())
+        pawn.promote(1, True)
+        self.assertEqual((1, True), pawn.promotion_data)
 
 
 class SetterTestCase(unittest.TestCase):

@@ -96,6 +96,22 @@ class Board:
         """
         return {piece for piece in self._pieces if piece.on_board}
 
+    @property
+    def checkmate(self) -> bool:
+        """
+        test whether the current board constellation is checkmate
+        :return: whether its checkmate
+        """
+        return len(self.legal_moves) == 0 and self.is_square_attacked(self._get_king(True).pos, True)
+
+    @property
+    def stalemate(self) -> bool:
+        """
+        test whether the current board constellation is stalemate
+        :return: whether its stalemate
+        """
+        return len(self.legal_moves) == 0 and not self.is_square_attacked(self._get_king(True).pos, True)
+
     """
     moves
     """
@@ -106,18 +122,15 @@ class Board:
         :return: set of all legal moves
         """
         moves = set()
+        king = self._get_king(self._white_to_move)
         for piece in self._pieces:
             if not piece.white_piece == self._white_to_move:
                 continue
-            # if piece.type == 5:
-            #     for move in piece.pseudo_legal_moves:
-            #         self.make_move(move)
-            #         if not self.is_square_attacked(move[1], piece.white_piece):
-            #             moves.add(move)
-            #         self._undo_move()
-            #         # need to move all pieces not creating new ones when undoing a move
-            #     continue
-            moves |= piece.pseudo_legal_moves
+            for move in piece.pseudo_legal_moves:
+                self.make_move(move)
+                if not self.is_square_attacked(king.pos, king.white_piece):
+                    moves.add(move)
+                self._undo_move()
         return moves
 
     def make_move(self, move: MOVE) -> None:  # comments for algorithm
@@ -229,9 +242,9 @@ class Board:
                 for piece in self._pieces:
                     with contextlib.suppress(AttributeError):
                         if piece.promotion_data == (self._turn_number, self._white_to_move):
-                            self._pieces.discard(self._get_piece(move[1]))
+                            self._pieces.discard(moved_piece)
                             piece.unpromote()
-                            moved_piece = self._get_piece(move[1])
+                            moved_piece = piece
                             return
 
             def move_piece() -> None:
@@ -329,7 +342,18 @@ class Board:
         for piece in pieces:
             if piece.pos == pos:
                 return piece
-        raise ValueError('No piece found on the given position.')
+        raise ValueError('No piece found on given position.')
+
+    def _get_king(self, white_piece: bool) -> Piece:
+        """
+        get the king with the given color
+        :param white_piece: color of the king
+        :return: king with given color
+        """
+        for piece in self._pieces:
+            if piece.type == 5 and piece.white_piece == white_piece:
+                return piece
+        raise ValueError('No king found.')
 
     def _create_piece(self, pos: int, white_piece: bool, _type: int) -> Piece:
         """
