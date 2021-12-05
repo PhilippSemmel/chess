@@ -1,9 +1,9 @@
 from __future__ import annotations
 import contextlib
 from pieces import Piece, Pawn, Knight, Bishop, Rook, Queen, King
-from typing import Tuple, Optional, Union, Set, List
-
-MOVE = Tuple[int, int]
+from typing import Tuple, Optional, Union, Set, List, TYPE_CHECKING
+if TYPE_CHECKING:
+    from chess import MOVE
 
 
 class Board:
@@ -22,17 +22,19 @@ class Board:
         def positions_to_str() -> str:
             output = ''
             for row in range(7, -1, -1):
+                output += ' ' + str(row + 1) + ' '
                 for file in range(8):
                     try:
                         output += ' ' + self._get_piece((row * 8) + file).symbol + ' '
                     except ValueError:
                         output += ' - '
-                output += '\n'
+                output += ' ' + str(row + 1) + ' \n'
             return output
 
-        return f'{positions_to_str()}\ncolor to move: {self._color_to_move_to_fen()}\ncastling rights:' \
-               f'{self._castling_rights_to_fen()}\nep target: {self._ep_target_square_to_fen()}\nhalf move clock: ' \
-               f'{self._half_move_clock_to_fen()}\nturn: {self._turn_number_to_fen()}\n'
+        return f'    a  b  c  d  e  f  g  h\n{positions_to_str()}    a  b  c  d  e  f  g  h\n\ncolor to move: ' \
+               f'{self._color_to_move_to_fen()}\ncastling rights: {self._castling_rights_to_fen()}\nep target: ' \
+               f'{self._ep_target_square_to_fen()}\nhalf move clock: {self._half_move_clock_to_fen()}\nturn: ' \
+               f'{self._turn_number_to_fen()}\n'
 
     """
     attribute getters
@@ -116,7 +118,7 @@ class Board:
     moves
     """
     @property
-    def legal_moves(self) -> Set[MOVE]:  # comments for algorithm
+    def legal_moves(self) -> Set[MOVE]:  
         """
         generate all legal moves
         :return: set of all legal moves
@@ -133,7 +135,7 @@ class Board:
                 self._undo_move()
         return moves
 
-    def make_move(self, move: MOVE) -> None:  # comments for algorithm
+    def make_move(self, move: MOVE) -> None:  
         """
         make a given move
         :param move: tuple of the starting position and the final position
@@ -312,7 +314,7 @@ class Board:
                 return True
         return False
 
-    def is_square_attacked(self, pos: int, white_piece: bool):  # comments for algorithm
+    def is_square_attacked(self, pos: int, white_piece: bool):  
         """
         test is a square is being threatened by a player
         only considers moves that could threaten the king
@@ -416,7 +418,7 @@ class Board:
             self._castling_rights_to_board(fen[2]), self._ep_target_square_to_board(fen[3]), \
             self._half_move_clock_to_board(fen[4]), self._turn_number_to_board(fen[5])
 
-    def _pieces_to_board(self, positions: str) -> Set[Piece]:  # comments for algorithm
+    def _pieces_to_board(self, positions: str) -> Set[Piece]:  
         """
         convert positions from fen data to board object data
         :param positions: fen positions
@@ -505,7 +507,7 @@ class Board:
         return f'{self._pieces_to_fen()} {self._color_to_move_to_fen()} {self._castling_rights_to_fen()} ' \
                f'{self._ep_target_square_to_fen()} {self._half_move_clock_to_fen()} {self._turn_number_to_fen()}'
 
-    def _pieces_to_fen(self, pieces: Set[Piece] = None) -> str:  # comments for algorithm
+    def _pieces_to_fen(self, pieces: Set[Piece] = None) -> str:  
         """
         convert positions from board object data to fen data
         :param pieces: board object piece set

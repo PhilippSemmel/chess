@@ -107,7 +107,7 @@ class Piece(ABC):
 
     # @lru_cache(max_size=64)
     @property
-    def _max_moves(self) -> List[int]:  # comments for algorithm
+    def _max_moves(self) -> List[int]:  
         """
         get the number of squares in each direction starting from the pieces position
         :return:list of numbers of squares in each direction starting from the pieces position
@@ -171,7 +171,7 @@ class Piece(ABC):
         pass
 
     def _generate_sliding_moves(self, diffs: Optional[List[int]] = None, max_moves: Optional[List[int]] = None) \
-            -> Set[MOVE]:  # comments for algorithm
+            -> Set[MOVE]:  
         """
         generate all long range sliding moves of a piece
         :param diffs: the square index value differences of every direction the piece can move to
@@ -185,7 +185,7 @@ class Piece(ABC):
         moves = set()
 
         for diff, m in zip(diffs, max_moves):
-            for n, new_pos in enumerate(range(self._pos + diff, self._pos + ((m + 1) * diff), diff)):
+            for new_pos in range(self._pos + diff, self._pos + ((m + 1) * diff), diff):
                 # cannot move any further when blocked by own piece
                 if self._board.own_piece_on_square(new_pos, self._white_piece):
                     break
@@ -262,17 +262,17 @@ class Pawn(Piece):
     move generation
     """
     @property
-    def pseudo_legal_moves(self) -> Set[MOVE]:  # comments for algorithm
+    def pseudo_legal_moves(self) -> Set[MOVE]:  
         moves = self._generate_advances()
         moves |= self._generate_diagonal_capturing_moves()
         moves |= self._generate_en_passant_move()
         return moves
 
     @property
-    def attacking_squares(self) -> Set[int]:  # comments for algorithm
+    def attacking_squares(self) -> Set[int]:  
         return {move[1] for move in self._generate_diagonal_capturing_moves()}
 
-    def _generate_advances(self) -> Set[MOVE]:  # comments for algorithm
+    def _generate_advances(self) -> Set[MOVE]:  
         pos_limit = 2 if (self._white_piece and self._rank == 1) or (not self._white_piece and self._rank == 6) else 1
         limits, diffs = min(pos_limit, self._limits[0][0]), self._diffs[0][0]
         _moves = set()
@@ -282,7 +282,7 @@ class Pawn(Piece):
             _moves.add((self._pos, self._pos + ((n + 1) * diffs)))
         return _moves
 
-    def _generate_diagonal_capturing_moves(self) -> Set[MOVE]:  # comments for algorithm
+    def _generate_diagonal_capturing_moves(self) -> Set[MOVE]:  
         limits, diffs = self._limits[1], self._diffs[1]
         _moves = set()
         for n in range(2):
@@ -290,7 +290,7 @@ class Pawn(Piece):
                 _moves.add((self._pos, self._pos + diffs[n]))
         return _moves
 
-    def _generate_en_passant_move(self) -> Set[MOVE]:  # comments for algorithm
+    def _generate_en_passant_move(self) -> Set[MOVE]:  
         limits, diffs = self._limits[1], self._diffs[1]
         for n in range(2):
             if limits[n] > 0 and self._pos + diffs[n] == self._board.ep_target_square:
@@ -298,12 +298,12 @@ class Pawn(Piece):
         return set()
 
     @property
-    def _limits(self) -> List[List[int]]:  # comments for algorithm
+    def _limits(self) -> List[List[int]]:  
         return [self._max_moves[2:3], self._max_moves[4:6]] if self._white_piece else \
             [self._max_moves[3:4], self._max_moves[6:]]
 
     @property
-    def _diffs(self) -> List[List[int]]:  # comments for algorithm
+    def _diffs(self) -> List[List[int]]:  
         return [self._all_diffs[2:3], self._all_diffs[4:6]] if self._white_piece else \
             [self._all_diffs[3:4], self._all_diffs[6:]]
 
@@ -314,7 +314,7 @@ class Knight(Piece):
         super().__init__(pos, white_piece, 1, board, symbol, fen_symbol)
 
     @property
-    def pseudo_legal_moves(self) -> Set[MOVE]:  # comments for algorithm
+    def pseudo_legal_moves(self) -> Set[MOVE]:  
         moves = set()
         for diff, off_set in zip([17, 10, -6, -15, -17, -10, 6, 15], [(1, 2), (2, 1), (2, -1), (1, -2), (-1, -2),
                                                                       (-2, -1), (-2, 1), (-1, 2)]):
@@ -328,7 +328,7 @@ class Knight(Piece):
         return moves
 
     @property
-    def attacking_squares(self) -> Set[int]:  # comments for algorithm
+    def attacking_squares(self) -> Set[int]:  
         return {move[1] for move in self.pseudo_legal_moves}
 
 
@@ -389,7 +389,7 @@ class King(Piece):
     def attacking_squares(self) -> Set[int]:
         return {move[1] for move in self._generate_one_square_sliding_moves()}
 
-    def _generate_one_square_sliding_moves(self) -> Set[MOVE]:  # comments for algorithm
+    def _generate_one_square_sliding_moves(self) -> Set[MOVE]:  
         moves = set()
         for diff, m in zip(self._all_diffs, self._max_moves):
             if m == 0:
@@ -399,7 +399,7 @@ class King(Piece):
             moves.add((self._pos, self._pos + diff))
         return moves
 
-    def _generate_castling_moves(self) -> Set[MOVE]:  # comments for algorithm
+    def _generate_castling_moves(self) -> Set[MOVE]:  
         def generate_castling_move_for_one_side(dir_: int, n: int) -> Set[MOVE]:
             # testing castling right
             if not self._board.castling_rights[n if self._white_piece else n + 2]:
