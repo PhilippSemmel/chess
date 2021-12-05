@@ -220,6 +220,17 @@ class Pawn(Piece):
         self._promotion_data: Union[None, Tuple[int, bool]] = None
 
     """
+    attribute getters
+    """
+    @property
+    def promotion_data(self) -> Union[None, Tuple[int, bool]]:
+        """
+        get the promotion data
+        :return: Tuple[promotion turn, color of active player while promotion]
+        """
+        return self._promotion_data
+
+    """
     other getters
     """
     @property

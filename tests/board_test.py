@@ -119,6 +119,30 @@ class OtherGetterTestCase(unittest.TestCase):
         piece.promote(1, True)
         self.assertEqual(set(), board._active_pieces)
 
+    def test_no_checkmate_if_more_than_one_move_available(self):
+        board = Board('8/8/8/8/8/8/8/K7 w - - 0 1')
+        self.assertFalse(board.checkmate)
+
+    def test_checkmate_if_not_move_available_and_king_in_check(self):
+        board = Board('8/8/8/8/8/2b5/1q6/K7 w - - 0 1')
+        self.assertTrue(board.checkmate)
+
+    def test_no_checkmate_if_not_move_available_and_king_not_in_check(self):
+        board = Board('8/8/8/8/8/2b5/1r6/K7 w - - 0 1')
+        self.assertFalse(board.checkmate)
+
+    def test_no_stalemate_if_more_than_one_move_available(self):
+        board = Board('8/8/8/8/8/8/8/K7 w - - 0 1')
+        self.assertFalse(board.stalemate)
+
+    def test_no_stalemate_if_not_move_available_and_king_in_check(self):
+        board = Board('8/8/8/8/8/2b5/1q6/K7 w - - 0 1')
+        self.assertFalse(board.stalemate)
+
+    def test_stalemate_if_not_move_available_and_king_not_in_check(self):
+        board = Board('8/8/8/8/8/2b5/1r6/K7 w - - 0 1')
+        self.assertTrue(board.stalemate)
+
 
 class GetPieceTestCase(unittest.TestCase):
     def test_can_get_piece_on_pos(self):
@@ -147,6 +171,44 @@ class GetPieceTestCase(unittest.TestCase):
         board = Board()
         board._get_piece(8).capture(1, True)
         self.assertRaises(ValueError, board._get_piece, 8)
+
+    def test_can_get_white_king(self):
+        board = Board('8/8/8/8/8/8/8/K7 w - - 0 1')
+        king = board._get_piece(0)
+        self.assertIs(king, board._get_king(True))
+
+    def test_can_get_any_white_king(self):
+        board = Board('8/8/8/8/8/8/8/7K w - - 0 1')
+        king = board._get_piece(7)
+        self.assertIs(king, board._get_king(True))
+
+    def test_can_get_black_king(self):
+        board = Board('8/8/8/8/8/8/8/k7 w - - 0 1')
+        king = board._get_piece(0)
+        self.assertIs(king, board._get_king(False))
+
+    def test_can_get_any_black_king(self):
+        board = Board('8/8/8/8/8/8/8/7k w - - 0 1')
+        king = board._get_piece(7)
+        self.assertIs(king, board._get_king(False))
+
+    def test_can_get_white_king_with_two_king_on_board(self):
+        board = Board('8/8/8/8/8/8/8/Kk w - - 0 1')
+        king = board._get_piece(0)
+        self.assertIs(king, board._get_king(True))
+
+    def test_can_get_black_king_with_two_king_on_board(self):
+        board = Board('8/8/8/8/8/8/8/Kk w - - 0 1')
+        king = board._get_piece(1)
+        self.assertIs(king, board._get_king(False))
+
+    def test_can_get_white_king_on_busy_board(self):
+        king = board1._get_piece(4)
+        self.assertIs(king, board1._get_king(True))
+
+    def test_can_get_black_king_on_busy_board(self):
+        king = board1._get_piece(60)
+        self.assertIs(king, board1._get_king(False))
 
 
 class CreatePieceTestCase(unittest.TestCase):
@@ -414,14 +476,58 @@ class MoveGenerationTestCase(unittest.TestCase):
                          board.legal_moves)
 
 
-# class LegalMoveGenerationTextCase(unittest.TestCase):
-#     def test_king_can_not_move_into_check(self):
-#         board = Board('8/8/8/8/8/8/7r/K7 w - - 0 1')
-#         self.assertEqual({(0, 1)}, board.legal_moves)
-#
-#     def test_king_can_capture_checking_piece(self):
-#         board = Board('8/8/8/8/8/8/7r/7K w - - 0 1')
-#         self.assertEqual({(7, 15), (7, 6)}, board.legal_moves)
+class LegalMoveGenerationTextCase(unittest.TestCase):
+    def test_king_can_not_move_into_check(self):
+        board = Board('8/8/8/8/8/8/7r/K7 w - - 0 1')
+        self.assertEqual({(0, 1)}, board.legal_moves)
+
+    def test_king_can_capture_checking_piece(self):
+        board = Board('8/8/8/8/8/8/7r/7K w - - 0 1')
+        self.assertEqual({(7, 15), (7, 6)}, board.legal_moves)
+
+    def test_king_can_not_capture_checking_piece_if_it_is_saved(self):
+        board = Board('7r/8/8/8/8/8/7r/7K w - - 0 1')
+        self.assertEqual({(7, 6)}, board.legal_moves)
+
+    def test_king_can_move_out_of_check(self):
+        board = Board('7r/8/8/8/8/8/7r/7K w - - 0 1')
+        self.assertEqual({(7, 6)}, board.legal_moves)
+
+    def test_other_piece_can_capture_checking_piece(self):
+        board = Board('R6r/6r1/8/8/8/8/8/7K w - - 0 1')
+        self.assertEqual({(56, 63)}, board.legal_moves)
+
+    def test_other_piece_can_interpose_checking_piece(self):
+        board = Board('7r/6r1/R7/8/8/8/8/7K w - - 0 1')
+        self.assertEqual({(40, 47)}, board.legal_moves)
+
+    def test_other_piece_can_not_expose_king_to_check(self):
+        board = Board('7r/6r1/8/8/8/8/7R/7K w - - 0 1')
+        self.assertEqual({(15, 23), (15, 31), (15, 39), (15, 47), (15, 55), (15, 63)}, board.legal_moves)
+
+    def test_other_piece_cannot_capture_checking_piece_when_in_double_check(self):
+        board = Board('r6R/8/8/8/8/8/1P6/K6r w - - 0 1')
+        self.assertEqual(set(), board.legal_moves)
+
+    def test_other_piece_cannot_interpose_checking_piece_when_in_double_check(self):
+        board = Board('r7/6R1/8/8/8/8/1P6/K6r w - - 0 1')
+        self.assertEqual(set(), board.legal_moves)
+
+    def test_king_cannot_move_if_in_checkmate(self):
+        board = Board('8/8/8/8/8/2b5/1q6/K7 w - - 0 1')
+        self.assertEqual(set(), board.legal_moves)
+
+    def test_other_pieces_cannot_move_if_king_is_in_checkmate(self):
+        board = Board('8/8/8/8/8/2b5/1q6/K6P w - - 0 1')
+        self.assertEqual(set(), board.legal_moves)
+
+    def test_king_cannot_move_if_in_stalemate(self):
+        board = Board('8/8/8/8/8/2b5/1r6/K7 w - - 0 1')
+        self.assertEqual(set(), board.legal_moves)
+
+    def test_other_pieces_can_move_if_king_is_in_stalemate(self):
+        board = Board('8/8/8/8/8/2b5/1r6/K6P w - - 0 1')
+        self.assertEqual({(7, 15)}, board.legal_moves)
 
 
 class MakeMoveTestCase(unittest.TestCase):
@@ -1034,7 +1140,7 @@ class UndoMoveTestCase(unittest.TestCase):
         self.assertIs(w_pawn, board._get_piece(16))
 
     # promotion
-    def test_pawn_will_be_promoted_to_a_queen_when_moving_to_the_last_row_as_white(self):
+    def test_can_undo_white_promotion(self):
         board = Board('8/P7/8/8/8/8/8/8 w - - 0 1')
         w_pawn = board._get_piece(48)
         board.make_move((48, 56))
@@ -1042,7 +1148,7 @@ class UndoMoveTestCase(unittest.TestCase):
         board._undo_move()
         self.assertIs(w_pawn, board._get_piece(48))
 
-    def test_pawn_will_be_promoted_to_a_queen_when_moving_to_the_last_row_as_black(self):
+    def test_can_undo_black_promotion(self):
         board = Board('8/8/8/8/8/8/p7/8 b - - 0 1')
         b_pawn = board._get_piece(8)
         board.make_move((8, 0))
