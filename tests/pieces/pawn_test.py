@@ -7,27 +7,73 @@ pawn1 = Pawn(35, True, board)
 pawn2 = Pawn(21, False, board)
 
 
-class PawnConstructionTestCase(unittest.TestCase):
-    def test_pawn_is_subclass_of_piece(self):
+class ConstructionTestCase(unittest.TestCase):
+    def test_is_subclass_of_piece(self):
         self.assertTrue(issubclass(Pawn, Piece))
 
-    def test_piece_type_is_pawn_code(self):
-        self.assertEqual(0, pawn1._type)
-
-    def test_piece_pos_is_given_value(self):
+    def test_pos_is_given_value(self):
         self.assertEqual(35, pawn1._pos)
 
-    def test_piece_pos_is_any_given_value(self):
+    def test_pos_is_any_given_value(self):
         self.assertEqual(21, pawn2._pos)
 
-    def test_piece_color_is_given_value(self):
+    def test_color_is_given_value(self):
         self.assertTrue(pawn1._white_piece)
 
-    def test_piece_color_is_any_given_value(self):
+    def test_color_is_any_given_value(self):
         self.assertFalse(pawn2._white_piece)
 
+    def test_capture_data_is_none(self):
+        self.assertIsNone(pawn1._capture_data)
 
-class PawnMoveGenerationTestCase(unittest.TestCase):
+    def test_capture_data_is_always_none(self):
+        self.assertIsNone(pawn2._capture_data)
+
+    def test_promotion_data_is_none(self):
+        self.assertIsNone(pawn1._promotion_data)
+
+    def test_promotion_data_is_always_none(self):
+        self.assertIsNone(pawn2._promotion_data)
+
+
+class GetterTestCase(unittest.TestCase):
+    def test_on_board_if_not_captured_nor_promoted(self):
+        pawn = Pawn(0, True, Board())
+        self.assertTrue(pawn.on_board)
+
+    def test_not_on_board_if_captured(self):
+        pawn = Pawn(0, True, Board())
+        pawn.capture(3, True)
+        self.assertFalse(pawn.on_board)
+
+    def test_not_on_board_if_promoted(self):
+        pawn = Pawn(0, True, Board())
+        pawn.promote(3, True)
+        self.assertFalse(pawn.on_board)
+
+    def test_not_on_board_if_captured_and_promoted(self):
+        pawn = Pawn(0, True, Board())
+        pawn.capture(3, True)
+        pawn.promote(3, True)
+        self.assertFalse(pawn.on_board)
+
+
+class SetterTestCase(unittest.TestCase):
+    def test_can_be_promoted(self):
+        pawn1.promote(3, False)
+        self.assertEqual((3, False), pawn1._promotion_data)
+
+    def test_any_pawn_can_be_promoted(self):
+        pawn2.promote(4, True)
+        self.assertEqual((4, True), pawn2._promotion_data)
+
+    def test_can_reset_promotion_data(self):
+        pawn1.promote(3, False)
+        pawn1.unpromote()
+        self.assertIsNone(pawn1._promotion_data)
+
+
+class MoveGenerationTestCase(unittest.TestCase):
     # white
     def test_cannot_move_when_blocked_by_own_pieces_as_white(self):
         pawn = Board('8/8/8/8/8/1PPP4/2P5/8 w - - 0 1')._get_piece(10)

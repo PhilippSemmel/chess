@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List, Set, TYPE_CHECKING, Optional
+from typing import List, Set, TYPE_CHECKING, Optional, Union, Tuple
 if TYPE_CHECKING:
     from board import Board, MOVE
 
@@ -14,6 +14,7 @@ class Piece(ABC):
         self._type: int = _type  # 0: Pawn, 1: Knight, 2: Bishop, 3: Rook, 4: Queen, 5: King
         self._symbol: str = symbol
         self._fen_symbol: str = fen_symbol
+        self._capture_data: Union[None, Tuple[int, bool]] = None
         # objects
         self._board: Board = board
         # misc data
@@ -69,9 +70,25 @@ class Piece(ABC):
         """
         return self._fen_symbol
 
+    @property
+    def capture_data(self) -> Union[None, Tuple[int, bool]]:
+        """
+        data about the capture of the piece
+        :return: Tuple[capture turn, color of active player while capture]
+        """
+        return self._capture_data
+
     """
     other getters
     """
+    @property
+    def on_board(self) -> bool:
+        """
+        test whether the piece is on the board
+        :return: whether the piece is on the board
+        """
+        return self._capture_data is None
+
     @property
     def _rank(self) -> int:
         """
@@ -117,6 +134,20 @@ class Piece(ABC):
             raise TypeError('Position value must be an int.')
         self._pos = new_pos
 
+    def capture(self, turn_number: int, white_to_move: bool) -> None:
+        """
+        set the piece data to Tuple[turn_number, white_to_move]
+        :param turn_number: turn number when the capture occurred
+        :param white_to_move: color to move when to capture occurred
+        """
+        self._capture_data = (turn_number, white_to_move)
+
+    def uncapture(self) -> None:
+        """
+        set the capture data to None
+        """
+        self._capture_data = None
+
     """
     move generation
     """
@@ -159,7 +190,7 @@ class Piece(ABC):
                 if self._board.own_piece_on_square(new_pos, self._white_piece):
                     break
                 moves.add((self._pos, new_pos))
-                # cannot move any further after capturing a opponents piece
+                # cannot move any further after capturing an opponents piece
                 if self._board.opponent_piece_on_square(new_pos, self._white_piece):
                     break
         return moves
@@ -186,7 +217,39 @@ class Pawn(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♟', 'P') if white_piece else ('♙', 'p')
         super().__init__(pos, white_piece, 0, board, symbol, fen_symbol)
+        self._promotion_data: Union[None, Tuple[int, bool]] = None
 
+    """
+    other getters
+    """
+    @property
+    def on_board(self) -> bool:
+        """
+        test whether the piece is on the board
+        :return: whether the piece is on the board
+        """
+        return self._capture_data is None and self._promotion_data is None
+
+    """
+    attribute setters
+    """
+    def promote(self, turn_number: int, white_to_move: bool) -> None:
+        """
+        set the promotion data to Tuple[turn_number, white_to_move]
+        :param turn_number: turn number when the promotion occurred
+        :param white_to_move: color to move when to promotion occurred
+        """
+        self._promotion_data = (turn_number, white_to_move)
+
+    def unpromote(self) -> None:
+        """
+        set the promotion data to None
+        """
+        self._promotion_data = None
+
+    """
+    move generation
+    """
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:  # comments for algorithm
         moves = self._generate_advances()

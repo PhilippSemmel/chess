@@ -7,27 +7,30 @@ king1 = King(35, True, board)
 king2 = King(21, False, board)
 
 
-class KingConstructionTestCase(unittest.TestCase):
-    def test_king_is_subclass_of_piece(self):
+class ConstructionTestCase(unittest.TestCase):
+    def test_is_subclass_of_piece(self):
         self.assertTrue(issubclass(King, Piece))
 
-    def test_piece_type_is_king_code(self):
-        self.assertEqual(5, king1._type)
-
-    def test_piece_pos_is_given_value(self):
+    def test_pos_is_given_value(self):
         self.assertEqual(35, king1._pos)
 
-    def test_piece_pos_is_any_given_value(self):
+    def test_pos_is_any_given_value(self):
         self.assertEqual(21, king2._pos)
 
-    def test_piece_color_is_given_value(self):
+    def test_color_is_given_value(self):
         self.assertTrue(king1._white_piece)
 
-    def test_piece_color_is_any_given_value(self):
+    def test_color_is_any_given_value(self):
         self.assertFalse(king2._white_piece)
 
+    def test_capture_data_is_none(self):
+        self.assertIsNone(king1._capture_data)
 
-class KingMoveGenerationTestCase(unittest.TestCase):
+    def test_capture_data_is_always_none(self):
+        self.assertIsNone(king2._capture_data)
+
+
+class MoveGenerationTestCase(unittest.TestCase):
     # general
     def test_cannot_move_when_blocked_by_own_pieces(self):
         king = Board('8/8/2PPP3/2PKP3/2PPP3/8/8/8 w - - 0 1')._get_piece(35)

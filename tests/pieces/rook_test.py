@@ -7,27 +7,30 @@ rook1 = Rook(35, True, board)
 rook2 = Rook(21, False, board)
 
 
-class RookConstructionTestCase(unittest.TestCase):
-    def test_rook_is_subclass_of_piece(self):
+class ConstructionTestCase(unittest.TestCase):
+    def test_is_subclass_of_piece(self):
         self.assertTrue(issubclass(Rook, Piece))
 
-    def test_piece_type_is_rook_code(self):
-        self.assertEqual(3, rook1._type)
-
-    def test_piece_pos_is_given_value(self):
+    def test_pos_is_given_value(self):
         self.assertEqual(35, rook1._pos)
 
-    def test_piece_pos_is_any_given_value(self):
+    def test_pos_is_any_given_value(self):
         self.assertEqual(21, rook2._pos)
 
-    def test_piece_color_is_given_value(self):
+    def test_color_is_given_value(self):
         self.assertTrue(rook1._white_piece)
 
-    def test_piece_color_is_any_given_value(self):
+    def test_color_is_any_given_value(self):
         self.assertFalse(rook2._white_piece)
+
+    def test_capture_data_is_none(self):
+        self.assertIsNone(rook1._capture_data)
+
+    def test_capture_data_is_always_none(self):
+        self.assertIsNone(rook2._capture_data)
     
     
-class RookMoveGenerationTestCase(unittest.TestCase):
+class MoveGenerationTestCase(unittest.TestCase):
     # general
     def test_cannot_move_when_blocked_by_own_pieces(self):
         rook = Board('8/8/2PPP3/2PRP3/2PPP3/8/8/8 w - - 0 1')._get_piece(35)
