@@ -11,35 +11,41 @@ piece1 = Piece(35, True, 0, board, '♟', 'P')
 piece2 = Piece(21, False, 1, board, '♘', 'n')
 
 
-class PieceConstructionTestCase(unittest.TestCase):
-    def test_piece_pos_is_given_value(self):
+class ConstructionTestCase(unittest.TestCase):
+    def test_pos_is_given_value(self):
         self.assertEqual(35, piece1._pos)
 
-    def test_piece_pos_is_any_given_value(self):
+    def test_pos_is_any_given_value(self):
         self.assertEqual(21, piece2._pos)
 
-    def test_piece_color_is_given_value(self):
+    def test_color_is_given_value(self):
         self.assertTrue(piece1._white_piece)
 
-    def test_piece_color_is_any_given_value(self):
+    def test_color_is_any_given_value(self):
         self.assertFalse(piece2._white_piece)
 
-    def test_piece_type_is_given_value(self):
+    def test_type_is_given_value(self):
         self.assertEqual(0, piece1._type)
 
-    def test_piece_type_is_any_given_value(self):
+    def test_type_is_any_given_value(self):
         self.assertEqual(1, piece2._type)
 
-    def test_piece_symbol_is_given_value(self):
+    def test_capture_data_is_none(self):
+        self.assertIsNone(piece1._capture_data)
+
+    def test_capture_data_is_always_none(self):
+        self.assertIsNone(piece2._capture_data)
+
+    def test_symbol_is_given_value(self):
         self.assertEqual('♟', piece1._symbol)
 
-    def test_piece_symbol_is_any_given_value(self):
+    def test_symbol_is_any_given_value(self):
         self.assertEqual('♘', piece2._symbol)
 
-    def test_piece_fen_symbol_is_given_value(self):
+    def test_fen_symbol_is_given_value(self):
         self.assertEqual('P', piece1._fen_symbol)
 
-    def test_piece_fen_symbol_is_any_given_value(self):
+    def test_fen_symbol_is_any_given_value(self):
         self.assertEqual('n', piece2._fen_symbol)
 
     def test_raises_value_error_if_pos_value_is_too_high(self):
@@ -55,7 +61,7 @@ class PieceConstructionTestCase(unittest.TestCase):
         self.assertRaises(ValueError, Piece, 0, True, 6, board, '♞', 'N')
 
 
-class PieceAttributeGetterTestCase(unittest.TestCase):
+class AttributeGetterTestCase(unittest.TestCase):
     def test_can_get_queen_pos(self):
         self.assertEqual(35, piece1.pos)
 
@@ -86,8 +92,16 @@ class PieceAttributeGetterTestCase(unittest.TestCase):
     def test_can_get_any_fen_symbol(self):
         self.assertEqual('n', piece2.fen_symbol)
 
+    def test_can_get_capture_data(self):
+        self.assertIsNone(piece1.capture_data)
 
-class PieceGetterTestCase(unittest.TestCase):
+    def test_can_get_any_capture_data(self):
+        piece = Piece(35, True, 0, board, '♟', 'P')
+        piece.capture(1, True)
+        self.assertEqual((1, True), piece.capture_data)
+
+
+class GetterTestCase(unittest.TestCase):
     def test_can_get_rank(self):
         self.assertEqual(4, piece1._rank)
 
@@ -100,8 +114,15 @@ class PieceGetterTestCase(unittest.TestCase):
     def test_can_get_any_file(self):
         self.assertEqual(5, piece2._file)
 
+    def test_not_captured_if_capture_data_is_none(self):
+        self.assertTrue(piece2.on_board)
 
-class PieceSetterTestCase(unittest.TestCase):
+    def test_captured_if_capture_data_is_not_not(self):
+        piece1.capture(1, False)
+        self.assertFalse(piece1.on_board)
+
+
+class SetterTestCase(unittest.TestCase):
     def test_can_set_pos(self):
         piece1.move_to(0)
         self.assertEqual(0, piece1.pos)
@@ -118,6 +139,20 @@ class PieceSetterTestCase(unittest.TestCase):
 
     def test_raises_type_error_if_pos_value_not_int(self):
         self.assertRaises(TypeError, piece1.move_to, True)
+
+    def test_can_be_captured(self):
+        piece1.capture(1, False)
+        self.assertEqual((1, False), piece1._capture_data)
+
+    def test_any_piece_can_be_captured(self):
+        piece2.capture(2, True)
+        self.assertEqual((2, True), piece2._capture_data)
+
+    def test_can_reset_capture_data(self):
+        piece = Piece(35, True, 0, board, '♟', 'P')
+        piece.capture(1, True)
+        piece.uncapture()
+        self.assertIsNone(piece.capture_data)
 
 
 if __name__ == '__main__':

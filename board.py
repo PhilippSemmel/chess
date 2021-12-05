@@ -86,6 +86,17 @@ class Board:
         return self._turn_number
 
     """
+    other getters
+    """
+    @property
+    def _active_pieces(self) -> Set[Piece]:
+        """
+        get all pieces that are on the board and active
+        :return: set of all active pieces
+        """
+        return {piece for piece in self._pieces if piece.on_board}
+
+    """
     moves
     """
     @property
@@ -98,14 +109,14 @@ class Board:
         for piece in self._pieces:
             if not piece.white_piece == self._white_to_move:
                 continue
-            if piece.type == 5:
-                for move in piece.pseudo_legal_moves:
-                    self.make_move(move)
-                    if not self.is_square_attacked(piece.pos, piece.white_piece):
-                        moves.add(move)
-                    self._undo_move()
-                    # need to move all pieces not creating new ones when undoing a move
-                continue
+            # if piece.type == 5:
+            #     for move in piece.pseudo_legal_moves:
+            #         self.make_move(move)
+            #         if not self.is_square_attacked(move[1], piece.white_piece):
+            #             moves.add(move)
+            #         self._undo_move()
+            #         # need to move all pieces not creating new ones when undoing a move
+            #     continue
             moves |= piece.pseudo_legal_moves
         return moves
 
@@ -114,13 +125,10 @@ class Board:
         make a given move
         :param move: tuple of the starting position and the final position
         """
-        def save_move() -> None:
-            self._moves.append(move)
-
         def move_pieces() -> None:
             def capture_piece() -> None:
                 with contextlib.suppress(ValueError):
-                    self._pieces.discard(self._get_piece(move[1]))
+                    self._get_piece(move[1]).capture(self._turn_number, self._white_to_move)
 
             def move_castling_rook() -> None:
                 if piece.type == 5 and abs(move[0] - move[1]) == 2:
@@ -136,14 +144,14 @@ class Board:
             def capture_pawn_en_passant() -> None:
                 if move[1] == self._ep_target_square and piece.type == 0:
                     # remove piece from piece set
-                    self._pieces.discard(self._get_piece(move[0] - ((move[0] % 8) - (move[1] % 8))))
+                    self._get_piece(move[0] - ((move[0] % 8) - (move[1] % 8))).capture(self._turn_number,
+                                                                                       self._white_to_move)
 
             def promote_pawn() -> None:
                 nonlocal piece
                 if piece.type == 0 and (move[1] // 8 == 7 or move[1] // 8 == 0):
-                    self._pieces.discard(piece)
-                    piece = Queen(piece.pos, piece.white_piece, self)
-                    self._pieces.add(piece)
+                    piece.promote(self._turn_number, self._white_to_move)
+                    self._pieces.add(self._create_piece(piece.pos, piece.white_piece, 4))
 
             def move_piece() -> None:
                 piece.move_to(move[1])
@@ -151,8 +159,8 @@ class Board:
             capture_piece()
             move_castling_rook()
             capture_pawn_en_passant()
-            promote_pawn()
             move_piece()
+            promote_pawn()
 
         def alternate_color_to_move() -> None:
             self._white_to_move = not self._white_to_move
@@ -190,8 +198,8 @@ class Board:
                 self._turn_number += 1
 
         piece = self._get_piece(move[0])
-        self._save_position()
-        save_move()
+        self._log_position()
+        self._log_move(move)
         adjust_half_move_clock()
         move_pieces()
         adjust_castling_rights()
@@ -203,13 +211,52 @@ class Board:
         """
         restore the last board constellation
         """
-        position = self._positions.pop().split()
-        self._pieces = self._positions_to_board(position[0])  # move pieces back
-        self._white_to_move = self._color_to_move_to_board(position[1])
-        self._castling_rights = self._castling_rights_to_board(position[2])
-        self._ep_target_square = self._ep_target_square_to_board(position[3])
-        self._half_move_clock = self._half_move_clock_to_board(position[4])
-        self._turn_number = self._turn_number_to_board(position[5])
+        def move_pieces() -> None:
+            def uncastle() -> None:
+                if not moved_piece.type == 5 or not abs(move[0] - move[1]) == 2:
+                    return
+                # castles queenside
+                if (move[0] - move[1]) == abs(move[0] - move[1]):
+                    # move queenside rook
+                    self._get_piece(move[1] + 1).move_to(move[1] - 2)
+                # castles kingside
+                else:
+                    # move queenside rook
+                    self._get_piece(move[1] - 1).move_to(move[1] + 1)
+
+            def unpromote() -> None:
+                nonlocal moved_piece
+                for piece in self._pieces:
+                    with contextlib.suppress(AttributeError):
+                        if piece.promotion_data == (self._turn_number, self._white_to_move):
+                            self._pieces.discard(self._get_piece(move[1]))
+                            piece.unpromote()
+                            moved_piece = self._get_piece(move[1])
+                            return
+
+            def move_piece() -> None:
+                moved_piece.move_to(move[0])
+
+            def uncapture() -> None:
+                for piece in self._pieces:
+                    if piece.capture_data == (self._turn_number, self._white_to_move):
+                        piece.uncapture()
+                        return
+
+            uncastle()
+            unpromote()
+            move_piece()
+            uncapture()
+
+        move = self._moves.pop()
+        moved_piece = self._get_piece(move[1])
+        fen = self._positions.pop().split(' ')
+        self._white_to_move = self._color_to_move_to_board(fen[1])
+        self._turn_number = self._turn_number_to_board(fen[5])
+        move_pieces()
+        self._castling_rights = self._castling_rights_to_board(fen[2])
+        self._ep_target_square = self._ep_target_square_to_board(fen[3])
+        self._half_move_clock = self._half_move_clock_to_board(fen[4])
 
     """
     position state getter
@@ -222,7 +269,7 @@ class Board:
         :return: whether there is a piece at the given position
         """
         if pieces is None:
-            pieces = self._pieces
+            pieces = self._active_pieces
         for piece in pieces:
             if piece.pos == pos:
                 return False
@@ -230,24 +277,24 @@ class Board:
 
     def own_piece_on_square(self, pos: int, white_piece: bool) -> bool:
         """
-        test whether there is a piece on the given position the the same color as given
+        test whether there is a piece on the given position the same color as given
         :param pos: positions of the square to test
         :param white_piece: own color
         :return: whether there is one of your own pieces at the given position
         """
-        for piece in self._pieces:
+        for piece in self._active_pieces:
             if piece.pos == pos and piece.white_piece == white_piece:
                 return True
         return False
 
     def opponent_piece_on_square(self, pos: int, white_piece: bool) -> bool:
         """
-        test whether there is a piece on the given position the a different color as given
+        test whether there is a piece on the given position a different color as given
         :param pos: positions of the square to test
         :param white_piece: own color
         :return: whether there is one of your opponent's own pieces at the given position
         """
-        for piece in self._pieces:
+        for piece in self._active_pieces:
             if piece.pos == pos and not piece.white_piece == white_piece:
                 return True
         return False
@@ -260,7 +307,7 @@ class Board:
         :param white_piece: point of view of the test
         :return: whether a square is being threatened by a player
         """
-        for piece in self._pieces:
+        for piece in self._active_pieces:
             if not piece.white_piece == white_piece:
                 if pos in piece.attacking_squares:
                     return True
@@ -278,7 +325,7 @@ class Board:
         :raises ValueError if there is no piece on the square
         """
         if pieces is None:
-            pieces = self._pieces
+            pieces = self._active_pieces
         for piece in pieces:
             if piece.pos == pos:
                 return piece
@@ -306,9 +353,9 @@ class Board:
             return King(pos, white_piece, self)
 
     """
-    positions log
+    logs
     """
-    def _save_position(self) -> None:
+    def _log_position(self) -> None:
         """
         save a board state as fen string
         """
@@ -323,6 +370,12 @@ class Board:
         self._pieces, self._white_to_move, self._castling_rights, self._ep_target_square, self._half_move_clock, \
             self._turn_number = self._fen_to_board(fen)
 
+    def _log_move(self, move: MOVE) -> None:
+        """
+        saves the last move
+        """
+        self._moves.append(move)
+
     """
     board conversion
     convert fen string data to board object data
@@ -335,11 +388,11 @@ class Board:
                  number
         """
         fen = fen.strip().split()
-        return self._positions_to_board(fen[0]), self._color_to_move_to_board(fen[1]), \
+        return self._pieces_to_board(fen[0]), self._color_to_move_to_board(fen[1]), \
             self._castling_rights_to_board(fen[2]), self._ep_target_square_to_board(fen[3]), \
             self._half_move_clock_to_board(fen[4]), self._turn_number_to_board(fen[5])
 
-    def _positions_to_board(self, positions: str) -> Set[Piece]:  # comments for algorithm
+    def _pieces_to_board(self, positions: str) -> Set[Piece]:  # comments for algorithm
         """
         convert positions from fen data to board object data
         :param positions: fen positions
@@ -425,17 +478,17 @@ class Board:
         translate the board object attribute data type to a fen string
         :return: fen string of the current board
         """
-        return f'{self._positions_to_fen()} {self._color_to_move_to_fen()} {self._castling_rights_to_fen()} ' \
+        return f'{self._pieces_to_fen()} {self._color_to_move_to_fen()} {self._castling_rights_to_fen()} ' \
                f'{self._ep_target_square_to_fen()} {self._half_move_clock_to_fen()} {self._turn_number_to_fen()}'
 
-    def _positions_to_fen(self, pieces: Set[Piece] = None) -> str:  # comments for algorithm
+    def _pieces_to_fen(self, pieces: Set[Piece] = None) -> str:  # comments for algorithm
         """
         convert positions from board object data to fen data
         :param pieces: board object piece set
         :return: fen positions
         """
         if pieces is None:
-            pieces = self._pieces
+            pieces = self._active_pieces
         positions = ''
         for rank in range(7, -1, -1):
             n_empty_squares = 0
