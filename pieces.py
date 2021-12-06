@@ -105,7 +105,6 @@ class Piece(ABC):
         """
         return self._pos % 8
 
-    # @lru_cache(max_size=64)
     @property
     def _max_moves(self) -> List[int]:  
         """
