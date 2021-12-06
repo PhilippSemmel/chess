@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Set, Tuple
+from typing import TYPE_CHECKING, Set
 if TYPE_CHECKING:
     from chess import MOVE
 
@@ -48,15 +48,17 @@ class Player:
             print('> Available moves:', moves_str)
             move = input('> Enter your move (e.g.: "e2e4"): ')
             if not self._correct_input(move):
+                print('> Entry not correct.')
                 continue
             move = self._move_to_ints(move)
             if move not in moves:
+                print('> Move not available.')
                 continue
             return move
 
     @staticmethod
     def _correct_input(move: str) -> bool:
-        return len(move) == 5 and move[0] in 'abcdefgh' and move[1] in '12345678' and \
+        return len(move) == 4 and move[0] in 'abcdefgh' and move[1] in '12345678' and \
                move[2] in 'abcdefgh' and move[3] in '12345678'
 
     def _move_to_ints(self, move: str) -> MOVE:
@@ -65,8 +67,7 @@ class Player:
         :param move: move to convert
         :return: starting pos and final pos as int
         """
-        move = move.split('-')
-        return self._pos_to_int(move[0]), self._pos_to_int(move[1])
+        return self._pos_to_int(move[0:2]), self._pos_to_int(move[2:4])
 
     @staticmethod
     def _pos_to_int(pos: str) -> int:

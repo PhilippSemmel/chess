@@ -162,14 +162,14 @@ class Board:
                     self._get_piece(move[0] - ((move[0] % 8) - (move[1] % 8))).capture(self._turn_number,
                                                                                        self._white_to_move)
 
+            def move_piece() -> None:
+                piece.move_to(move[1])
+
             def promote_pawn() -> None:
                 nonlocal piece
                 if piece.type == 0 and (move[1] // 8 == 7 or move[1] // 8 == 0):
                     piece.promote(self._turn_number, self._white_to_move)
                     self._pieces.add(self._create_piece(piece.pos, piece.white_piece, 4))
-
-            def move_piece() -> None:
-                piece.move_to(move[1])
 
             capture_piece()
             move_castling_rook()
