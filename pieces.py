@@ -262,10 +262,7 @@ class Pawn(Piece):
     """
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:  
-        moves = self._generate_advances()
-        moves |= self._generate_diagonal_capturing_moves()
-        moves |= self._generate_en_passant_move()
-        return moves
+        return self._generate_advances() | self._generate_diagonal_capturing_moves() | self._generate_en_passant_move()
 
     @property
     def attacking_squares(self) -> Set[int]:  
@@ -380,9 +377,7 @@ class King(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        moves = self._generate_one_square_sliding_moves()
-        moves |= self._generate_castling_moves()
-        return moves
+        return self._generate_one_square_sliding_moves() | self._generate_castling_moves()
 
     @property
     def attacking_squares(self) -> Set[int]:
@@ -413,6 +408,4 @@ class King(Piece):
                 return set()
             return {(self._pos, self._pos + (2 * dir_))}
 
-        moves = generate_castling_move_for_one_side(1, 0)
-        moves |= generate_castling_move_for_one_side(-1, 1)
-        return moves
+        return generate_castling_move_for_one_side(1, 0) | generate_castling_move_for_one_side(-1, 1)
