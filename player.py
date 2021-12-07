@@ -47,7 +47,7 @@ class Player:
         while True:
             print('> Available moves:', moves_str)
             move = input('> Enter your move (e.g.: "e2e4"): ')
-            if not self._correct_input(move):
+            if not self._input_correct(move):
                 print('> Entry not correct.')
                 continue
             move = self._move_to_ints(move)
@@ -57,7 +57,7 @@ class Player:
             return move
 
     @staticmethod
-    def _correct_input(move: str) -> bool:
+    def _input_correct(move: str) -> bool:
         return len(move) == 4 and move[0] in 'abcdefgh' and move[1] in '12345678' and \
                move[2] in 'abcdefgh' and move[3] in '12345678'
 
@@ -77,14 +77,6 @@ class Player:
         :return: pos as int
         """
         return (ord(pos[0]) - 97) + ((int(pos[1]) - 1) * 8)
-
-    def _moves_to_str(self, moves: Set[MOVE]):
-        """
-        convert all int moves to str
-        :param moves: moves to convert
-        :return: starting pos and final pos as str
-        """
-        return [self._move_to_str(move) for move in moves]
 
     def _move_to_str(self, move: MOVE):
         """
