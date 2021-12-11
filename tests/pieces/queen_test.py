@@ -307,5 +307,9 @@ class MoveGenerationTestCase(unittest.TestCase):
         self.assertEqual({(9, 16)}, queen.pseudo_legal_moves)
 
 
-if __name__ == '__main__':
+def main() -> None:
     unittest.main()
+
+
+if __name__ == '__main__':
+    main()
