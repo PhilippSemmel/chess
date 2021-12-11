@@ -139,7 +139,7 @@ class Piece(ABC):
         :param turn_number: turn number when the capture occurred
         :param white_to_move: color to move when to capture occurred
         """
-        self._capture_data = (turn_number, white_to_move)
+        self._capture_data = turn_number, white_to_move
 
     def uncapture(self) -> None:
         """
@@ -160,14 +160,13 @@ class Piece(ABC):
         pass
 
     @property
-    @abstractmethod
     def attacking_squares(self) -> Set[int]:
         """
         generate all squares the piece threatens
         only considers moves that could threaten the king
         :return: set of all squares the piece threatens
         """
-        pass
+        return {move[1] for move in self.pseudo_legal_moves}
 
     def _generate_sliding_moves(self, diffs: Optional[List[int]] = None, max_moves: Optional[List[int]] = None) \
             -> Set[MOVE]:  
@@ -323,10 +322,6 @@ class Knight(Piece):
                 moves.add((self._pos, new_pos))
         return moves
 
-    @property
-    def attacking_squares(self) -> Set[int]:  
-        return {move[1] for move in self.pseudo_legal_moves}
-
 
 class Bishop(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
@@ -336,10 +331,6 @@ class Bishop(Piece):
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_sliding_moves(self._all_diffs[4:], self._max_moves[4:])
-
-    @property
-    def attacking_squares(self) -> Set[int]:
-        return {move[1] for move in self.pseudo_legal_moves}
 
 
 class Rook(Piece):
@@ -351,10 +342,6 @@ class Rook(Piece):
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_sliding_moves(self._all_diffs[:4], self._max_moves[:4])
 
-    @property
-    def attacking_squares(self) -> Set[int]:
-        return {move[1] for move in self.pseudo_legal_moves}
-
 
 class Queen(Piece):
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
@@ -364,10 +351,6 @@ class Queen(Piece):
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_sliding_moves()
-
-    @property
-    def attacking_squares(self) -> Set[int]:
-        return {move[1] for move in self.pseudo_legal_moves}
 
 
 class King(Piece):
@@ -381,7 +364,7 @@ class King(Piece):
 
     @property
     def attacking_squares(self) -> Set[int]:
-        return {move[1] for move in self._generate_one_square_sliding_moves()}
+        return {move[1] for move in self._generate_one_square_sliding_moves()}  # eliminate double call
 
     def _generate_one_square_sliding_moves(self) -> Set[MOVE]:  
         moves = set()
