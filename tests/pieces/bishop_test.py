@@ -10,7 +10,7 @@ bishop2 = Bishop(21, False, board)
 class ConstructionTestCase(unittest.TestCase):
     def test_is_subclass_of_piece(self):
         self.assertTrue(issubclass(Bishop, Piece))
-    
+
     def test_pos_is_given_value(self):
         self.assertEqual(35, bishop1._pos)
 
@@ -217,5 +217,9 @@ class MoveGenerationTestCase(unittest.TestCase):
         self.assertEqual({(9, 16)}, bishop.pseudo_legal_moves)
 
 
-if __name__ == '__main__':
+def main() -> None:
     unittest.main()
+
+
+if __name__ == '__main__':
+    main()

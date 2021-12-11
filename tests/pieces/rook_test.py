@@ -209,5 +209,9 @@ class MoveGenerationTestCase(unittest.TestCase):
         self.assertEqual(set(), rook.pseudo_legal_moves)
 
 
-if __name__ == '__main__':
+def main() -> None:
     unittest.main()
+
+
+if __name__ == '__main__':
+    main()

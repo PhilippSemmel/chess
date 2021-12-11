@@ -6,9 +6,17 @@ tests can only be run when all abstract methods are commented out
 """
 
 
+class TestPiece(Piece):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+    def pseudo_legal_moves(self, *args):
+        pass
+
+
 board = Board()
-piece1 = Piece(35, True, 0, board, '♟', 'P')
-piece2 = Piece(21, False, 1, board, '♘', 'n')
+piece1 = TestPiece(35, True, 0, board, '♟', 'P')
+piece2 = TestPiece(21, False, 1, board, '♘', 'n')
 
 
 class ConstructionTestCase(unittest.TestCase):
@@ -49,16 +57,16 @@ class ConstructionTestCase(unittest.TestCase):
         self.assertEqual('n', piece2._fen_symbol)
 
     def test_raises_value_error_if_pos_value_is_too_high(self):
-        self.assertRaises(ValueError, Piece, 64, True, 1, board, '♞', 'N')
+        self.assertRaises(ValueError, TestPiece, 64, True, 1, board, '♞', 'N')
 
     def test_raises_value_error_is_pos_value_is_too_low(self):
-        self.assertRaises(ValueError, Piece, -1, True, 1, board, '♞', 'N')
+        self.assertRaises(ValueError, TestPiece, -1, True, 1, board, '♞', 'N')
 
     def test_raises_value_error_if_type_value_is_too_high(self):
-        self.assertRaises(ValueError, Piece, 63, True, -1, board, '♞', 'N')
+        self.assertRaises(ValueError, TestPiece, 63, True, -1, board, '♞', 'N')
 
     def test_raises_value_error_is_type_value_is_too_low(self):
-        self.assertRaises(ValueError, Piece, 0, True, 6, board, '♞', 'N')
+        self.assertRaises(ValueError, TestPiece, 0, True, 6, board, '♞', 'N')
 
 
 class AttributeGetterTestCase(unittest.TestCase):
@@ -96,7 +104,7 @@ class AttributeGetterTestCase(unittest.TestCase):
         self.assertIsNone(piece1.capture_data)
 
     def test_can_get_any_capture_data(self):
-        piece = Piece(35, True, 0, board, '♟', 'P')
+        piece = TestPiece(35, True, 0, board, '♟', 'P')
         piece.capture(1, True)
         self.assertEqual((1, True), piece.capture_data)
 
@@ -149,11 +157,15 @@ class SetterTestCase(unittest.TestCase):
         self.assertEqual((2, True), piece2._capture_data)
 
     def test_can_reset_capture_data(self):
-        piece = Piece(35, True, 0, board, '♟', 'P')
+        piece = TestPiece(35, True, 0, board, '♟', 'P')
         piece.capture(1, True)
         piece.uncapture()
         self.assertIsNone(piece.capture_data)
 
 
-if __name__ == '__main__':
+def main() -> None:
     unittest.main()
+
+
+if __name__ == '__main__':
+    main()
