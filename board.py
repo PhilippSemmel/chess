@@ -1,4 +1,5 @@
 from __future__ import annotations
+from functools import *
 import contextlib
 from pieces import Piece, Pawn, Knight, Bishop, Rook, Queen, King
 from typing import Tuple, Optional, Union, Set, List, TYPE_CHECKING
@@ -104,7 +105,8 @@ class Board:
         test whether the current board constellation is checkmate
         :return: whether its checkmate
         """
-        return len(self.legal_moves) == 0 and self.is_square_attacked(self._get_king(True).pos, True)
+        return len(self.legal_moves()) == 0 and \
+            self.is_square_attacked(self._get_king(self._white_to_move).pos, self._white_to_move)
 
     @property
     def stalemate(self) -> bool:
@@ -112,166 +114,211 @@ class Board:
         test whether the current board constellation is stalemate
         :return: whether its stalemate
         """
-        return len(self.legal_moves) == 0 and not self.is_square_attacked(self._get_king(True).pos, True)
+        return len(self.legal_moves()) == 0 and \
+            not self.is_square_attacked(self._get_king(self._white_to_move).pos, self._white_to_move)
 
     """
-    moves
+    legal moves
     """
-    @property
-    def legal_moves(self) -> Set[MOVE]:  
+    @lru_cache(maxsize=1)  # test
+    def legal_moves(self) -> Set[MOVE]:
         """
         generate all legal moves
         :return: set of all legal moves
         """
         moves = set()
         king = self._get_king(self._white_to_move)
-        for piece in self._pieces:
+        for piece in self._active_pieces:
             if not piece.white_piece == self._white_to_move:
                 continue
             for move in piece.pseudo_legal_moves:
-                self.make_move(move)
-                if not self.is_square_attacked(king.pos, king.white_piece):
-                    moves.add(move)
-                self._undo_move()
+                with self._test_move(move):
+                    if not self.is_square_attacked(king.pos, king.white_piece):
+                        moves.add(move)
         return moves
 
-    def make_move(self, move: MOVE) -> None:  
+    @contextlib.contextmanager
+    def _test_move(self, move: MOVE):
+        self.make_move(move)
+        try:
+            yield
+        finally:
+            self._undo_move()
+
+    """
+    make move
+    """
+    def make_move(self, move: MOVE) -> None:
         """
         make a given move
-        :param move: tuple of the starting position and the final position
+        :param move: the move to make
         """
-        def move_pieces() -> None:
-            def capture_piece() -> None:
-                with contextlib.suppress(ValueError):
-                    self._get_piece(move[1]).capture(self._turn_number, self._white_to_move)
-
-            def move_castling_rook() -> None:
-                if piece.type == 5 and abs(move[0] - move[1]) == 2:
-                    # castles queenside
-                    if (move[0] - move[1]) == abs(move[0] - move[1]):
-                        # move queenside rook
-                        self._get_piece(move[0] - 4).move_to(move[1] + 1)
-                    # castles kingside
-                    else:
-                        # move queenside rook
-                        self._get_piece(move[0] + 3).move_to(move[1] - 1)
-
-            def capture_pawn_en_passant() -> None:
-                if move[1] == self._ep_target_square and piece.type == 0:
-                    # remove piece from piece set
-                    self._get_piece(move[0] - ((move[0] % 8) - (move[1] % 8))).capture(self._turn_number,
-                                                                                       self._white_to_move)
-
-            def move_piece() -> None:
-                piece.move_to(move[1])
-
-            def promote_pawn() -> None:
-                nonlocal piece
-                if piece.type == 0 and (move[1] // 8 == 7 or move[1] // 8 == 0):
-                    piece.promote(self._turn_number, self._white_to_move)
-                    self._pieces.add(self._create_piece(piece.pos, piece.white_piece, 4))
-
-            capture_piece()
-            move_castling_rook()
-            capture_pawn_en_passant()
-            move_piece()
-            promote_pawn()
-
-        def alternate_color_to_move() -> None:
-            self._white_to_move = not self._white_to_move
-
-        def adjust_castling_rights() -> None:
-            if self.is_square_empty(4) or not (self._get_piece(4).type == 5 and self._get_piece(4).white_piece):
-                self._castling_rights[0] = False
-                self._castling_rights[1] = False
-            if self.is_square_empty(7) or not (self._get_piece(7).type == 3 and self._get_piece(7).white_piece):
-                self._castling_rights[0] = False
-            if self.is_square_empty(0) or not (self._get_piece(0).type == 3 and self._get_piece(0).white_piece):
-                self._castling_rights[1] = False
-            if self.is_square_empty(60) or not (self._get_piece(60).type == 5 and not self._get_piece(60).white_piece):
-                self._castling_rights[2] = False
-                self._castling_rights[3] = False
-            if self.is_square_empty(63) or not (self._get_piece(63).type == 3 and not self._get_piece(63).white_piece):
-                self._castling_rights[2] = False
-            if self.is_square_empty(56) or not (self._get_piece(56).type == 3 and not self._get_piece(56).white_piece):
-                self._castling_rights[3] = False
-
-        def set_en_passant_target_square() -> None:
-            if piece.type == 0 and abs(move[0] - move[1]) == 16:
-                self._ep_target_square = move[0] + 8 if self._white_to_move else move[0] - 8
-            else:
-                self._ep_target_square = None
-
-        def adjust_half_move_clock() -> None:
-            if piece.type == 0 or not self.is_square_empty(move[1]):  # pawn move or capture move
-                self._half_move_clock = 0
-            else:
-                self._half_move_clock += 1
-
-        def increase_turn_number() -> None:
-            if not self._white_to_move:
-                self._turn_number += 1
-
-        piece = self._get_piece(move[0])
+        moving_piece = self._get_piece(move[0])
         self._log_position()
         self._log_move(move)
-        adjust_half_move_clock()
-        move_pieces()
-        adjust_castling_rights()
-        set_en_passant_target_square()
-        increase_turn_number()
-        alternate_color_to_move()
+        self._adjust_half_move_clock(moving_piece, move)
+        self._move_pieces(moving_piece, move)
+        self._adjust_castling_rights()
+        self._set_en_passant_target_square(moving_piece, move)
+        self._increase_turn_number()
+        self._alternate_color_to_move()
+        self.legal_moves.cache_clear()
 
+    def _adjust_half_move_clock(self, moving_piece: Piece, move: MOVE) -> None:
+        """
+        adjust the half move clock according to the move
+        :param moving_piece: piece to move
+        :param move: move to make
+        """
+        if moving_piece.type == 0 or not self.is_square_empty(move[1]):  # pawn move or capture move
+            self._half_move_clock = 0
+        else:
+            self._half_move_clock += 1
+
+    def _move_pieces(self, moving_piece: Piece, move: MOVE) -> None:
+        """
+        move all pieces according the move
+        :param moving_piece: piece to move
+        :param move: move to make
+        """
+        def capture_piece() -> None:
+            with contextlib.suppress(ValueError):
+                self._get_piece(move[1]).capture(self._turn_number, self._white_to_move)
+
+        def move_castling_rook() -> None:
+            if moving_piece.type == 5 and abs(move[0] - move[1]) == 2:
+                # castles queenside
+                if (move[0] - move[1]) == abs(move[0] - move[1]):
+                    # move queenside rook
+                    self._get_piece(move[0] - 4).move_to(move[1] + 1)
+                # castles kingside
+                else:
+                    # move queenside rook
+                    self._get_piece(move[0] + 3).move_to(move[1] - 1)
+
+        def capture_pawn_en_passant() -> None:
+            if move[1] == self._ep_target_square and moving_piece.type == 0:
+                # remove piece from piece set
+                self._get_piece(move[0] - ((move[0] % 8) - (move[1] % 8))).capture(self._turn_number,
+                                                                                   self._white_to_move)
+
+        def move_piece() -> None:
+            moving_piece.move_to(move[1])
+
+        def promote_pawn() -> None:
+            nonlocal moving_piece
+            if moving_piece.type == 0 and (move[1] // 8 == 7 or move[1] // 8 == 0):
+                moving_piece.promote(self._turn_number, self._white_to_move)
+                self._pieces.add(self._create_piece(moving_piece.pos, moving_piece.white_piece, 4))
+
+        capture_piece()
+        move_castling_rook()
+        capture_pawn_en_passant()
+        move_piece()
+        promote_pawn()
+
+    def _adjust_castling_rights(self) -> None:
+        """
+        adjust the castling rights according to the move
+        """
+        if self.is_square_empty(4) or not (self._get_piece(4).type == 5 and self._get_piece(4).white_piece):
+            self._castling_rights[0] = False
+            self._castling_rights[1] = False
+        if self.is_square_empty(7) or not (self._get_piece(7).type == 3 and self._get_piece(7).white_piece):
+            self._castling_rights[0] = False
+        if self.is_square_empty(0) or not (self._get_piece(0).type == 3 and self._get_piece(0).white_piece):
+            self._castling_rights[1] = False
+        if self.is_square_empty(60) or not (self._get_piece(60).type == 5 and not self._get_piece(60).white_piece):
+            self._castling_rights[2] = False
+            self._castling_rights[3] = False
+        if self.is_square_empty(63) or not (self._get_piece(63).type == 3 and not self._get_piece(63).white_piece):
+            self._castling_rights[2] = False
+        if self.is_square_empty(56) or not (self._get_piece(56).type == 3 and not self._get_piece(56).white_piece):
+            self._castling_rights[3] = False
+
+    def _set_en_passant_target_square(self, moving_piece: Piece, move: MOVE) -> None:
+        """
+        set the en passant target square according to the move
+        :param moving_piece: piece to move
+        :param move: move to make
+        """
+        if moving_piece.type == 0 and abs(move[0] - move[1]) == 16:
+            self._ep_target_square = move[0] + 8 if self._white_to_move else move[0] - 8
+        else:
+            self._ep_target_square = None
+
+    def _increase_turn_number(self) -> None:
+        """
+        increase the turn number according to the move
+        """
+        if not self._white_to_move:
+            self._turn_number += 1
+
+    def _alternate_color_to_move(self) -> None:
+        """
+        alternate the color to move
+        """
+        self._white_to_move = not self._white_to_move
+
+    """
+    undo move
+    """
     def _undo_move(self) -> None:
         """
         restore the last board constellation
         """
-        def move_pieces() -> None:
-            def uncastle() -> None:
-                if not moved_piece.type == 5 or not abs(move[0] - move[1]) == 2:
-                    return
-                # castles queenside
-                if (move[0] - move[1]) == abs(move[0] - move[1]):
-                    # move queenside rook
-                    self._get_piece(move[1] + 1).move_to(move[1] - 2)
-                # castles kingside
-                else:
-                    # move queenside rook
-                    self._get_piece(move[1] - 1).move_to(move[1] + 1)
-
-            def unpromote() -> None:
-                nonlocal moved_piece
-                for piece in self._pieces:
-                    with contextlib.suppress(AttributeError):
-                        if piece.promotion_data == (self._turn_number, self._white_to_move):
-                            self._pieces.discard(moved_piece)
-                            piece.unpromote()
-                            moved_piece = piece
-                            return
-
-            def move_piece() -> None:
-                moved_piece.move_to(move[0])
-
-            def uncapture() -> None:
-                for piece in self._pieces:
-                    if piece.capture_data == (self._turn_number, self._white_to_move):
-                        piece.uncapture()
-                        return
-
-            uncastle()
-            unpromote()
-            move_piece()
-            uncapture()
-
         move = self._moves.pop()
         moved_piece = self._get_piece(move[1])
         fen = self._positions.pop().split(' ')
         self._white_to_move = self._color_to_move_to_board(fen[1])
         self._turn_number = self._turn_number_to_board(fen[5])
-        move_pieces()
+        self._undo_piece_moves(move, moved_piece)
         self._castling_rights = self._castling_rights_to_board(fen[2])
         self._ep_target_square = self._ep_target_square_to_board(fen[3])
         self._half_move_clock = self._half_move_clock_to_board(fen[4])
+        self.legal_moves.cache_clear()
+
+    def _undo_piece_moves(self, move: MOVE, moved_piece: Piece) -> None:
+        """
+        restore the last piece positions
+        :param move: move to undo
+        :param moved_piece: piece to move back
+        """
+        def uncastle() -> None:
+            if not moved_piece.type == 5 or not abs(move[0] - move[1]) == 2:
+                return
+            # castles queenside
+            if (move[0] - move[1]) == abs(move[0] - move[1]):
+                # move queenside rook
+                self._get_piece(move[1] + 1).move_to(move[1] - 2)
+            # castles kingside
+            else:
+                # move queenside rook
+                self._get_piece(move[1] - 1).move_to(move[1] + 1)
+
+        def unpromote() -> None:
+            nonlocal moved_piece
+            for piece in self._pieces:
+                with contextlib.suppress(AttributeError):
+                    if piece.promotion_data == (self._turn_number, self._white_to_move):
+                        self._pieces.discard(moved_piece)
+                        piece.unpromote()
+                        moved_piece = piece
+                        return
+
+        def move_piece() -> None:
+            moved_piece.move_to(move[0])
+
+        def uncapture() -> None:
+            for piece in self._pieces:
+                if piece.capture_data == (self._turn_number, self._white_to_move):
+                    piece.uncapture()
+                    return
+
+        uncastle()
+        unpromote()
+        move_piece()
+        uncapture()
 
     """
     position state getter
@@ -352,7 +399,7 @@ class Board:
         :param white_piece: color of the king
         :return: king with given color
         """
-        for piece in self._pieces:
+        for piece in self._active_pieces:
             if piece.type == 5 and piece.white_piece == white_piece:
                 return piece
         raise ValueError('No king found.')
