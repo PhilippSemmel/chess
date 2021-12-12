@@ -54,3 +54,12 @@ class UIConversionTestCase(unittest.TestCase):
 
     def test_converts_any_str_move_to_ints(self):
         self.assertEqual((63, 34), w_player._move_to_ints('h8c5'))
+
+
+def main() -> None:
+    unittest.main()
+
+
+if __name__ == '__main__':
+    main()
+

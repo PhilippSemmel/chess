@@ -11,6 +11,18 @@ class ConstructionTestCase(unittest.TestCase):
     def test_is_subclass_of_piece(self):
         self.assertTrue(issubclass(Rook, Piece))
 
+    def test_type_is_correct(self):
+        self.assertEqual(3, rook1.type)
+
+    def test_type_is_always_correct(self):
+        self.assertEqual(3, rook2.type)
+
+    def test_value_is_correct(self):
+        self.assertEqual(500, rook1.value)
+
+    def test_value_is_always_correct(self):
+        self.assertEqual(500, rook2.value)
+
     def test_pos_is_given_value(self):
         self.assertEqual(35, rook1._pos)
 
@@ -28,7 +40,7 @@ class ConstructionTestCase(unittest.TestCase):
 
     def test_capture_data_is_always_none(self):
         self.assertIsNone(rook2._capture_data)
-    
+
     
 class MoveGenerationTestCase(unittest.TestCase):
     # general

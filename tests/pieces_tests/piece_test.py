@@ -7,16 +7,24 @@ tests can only be run when all abstract methods are commented out
 
 
 class TestPiece(Piece):
-    def __init__(self, *args):
+    def __init__(self, *args, type_: int):
         super().__init__(*args)
+        self._type: int = type_
 
     def pseudo_legal_moves(self, *args):
         pass
 
+    def value(self, *args):
+        pass
+
+    @property
+    def type(self) -> int:
+        return self._type
+
 
 board = Board()
-piece1 = TestPiece(35, True, 0, board, '♟', 'P')
-piece2 = TestPiece(21, False, 1, board, '♘', 'n')
+piece1 = TestPiece(35, True, board, '♟', 'P', type_=0)
+piece2 = TestPiece(21, False, board, '♘', 'n', type_=1)
 
 
 class ConstructionTestCase(unittest.TestCase):
@@ -31,12 +39,6 @@ class ConstructionTestCase(unittest.TestCase):
 
     def test_color_is_any_given_value(self):
         self.assertFalse(piece2._white_piece)
-
-    def test_type_is_given_value(self):
-        self.assertEqual(0, piece1._type)
-
-    def test_type_is_any_given_value(self):
-        self.assertEqual(1, piece2._type)
 
     def test_capture_data_is_none(self):
         self.assertIsNone(piece1._capture_data)
@@ -57,16 +59,15 @@ class ConstructionTestCase(unittest.TestCase):
         self.assertEqual('n', piece2._fen_symbol)
 
     def test_raises_value_error_if_pos_value_is_too_high(self):
-        self.assertRaises(ValueError, TestPiece, 64, True, 1, board, '♞', 'N')
+        self.assertRaises(ValueError, TestPiece, 64, True, board, '♞', 'N', type_=1)
 
     def test_raises_value_error_is_pos_value_is_too_low(self):
-        self.assertRaises(ValueError, TestPiece, -1, True, 1, board, '♞', 'N')
+        self.assertRaises(ValueError, TestPiece, -1, True, board, '♞', 'N', type_=1)
 
-    def test_raises_value_error_if_type_value_is_too_high(self):
-        self.assertRaises(ValueError, TestPiece, 63, True, -1, board, '♞', 'N')
 
-    def test_raises_value_error_is_type_value_is_too_low(self):
-        self.assertRaises(ValueError, TestPiece, 0, True, 6, board, '♞', 'N')
+# class DunderMethodsTestCase(unittest.TestCase):
+#     def test_type_equals_int(self):
+#         self.assertEqual(piece1.type, Pawn)
 
 
 class AttributeGetterTestCase(unittest.TestCase):
@@ -81,12 +82,6 @@ class AttributeGetterTestCase(unittest.TestCase):
 
     def test_can_get_any_queen_color(self):
         self.assertFalse(piece2.white_piece)
-
-    def test_can_get_piece_type(self):
-        self.assertEqual(0, piece1.type)
-
-    def test_can_get_any_piece_type(self):
-        self.assertEqual(1, piece2.type)
 
     def test_can_get_symbol(self):
         self.assertEqual('♟', piece1.symbol)
@@ -104,7 +99,7 @@ class AttributeGetterTestCase(unittest.TestCase):
         self.assertIsNone(piece1.capture_data)
 
     def test_can_get_any_capture_data(self):
-        piece = TestPiece(35, True, 0, board, '♟', 'P')
+        piece = TestPiece(35, True, board, '♟', 'P', type_=0)
         piece.capture(1, True)
         self.assertEqual((1, True), piece.capture_data)
 
@@ -157,7 +152,7 @@ class SetterTestCase(unittest.TestCase):
         self.assertEqual((2, True), piece2._capture_data)
 
     def test_can_reset_capture_data(self):
-        piece = TestPiece(35, True, 0, board, '♟', 'P')
+        piece = TestPiece(35, True, board, '♟', 'P', type_=0)
         piece.capture(1, True)
         piece.uncapture()
         self.assertIsNone(piece.capture_data)

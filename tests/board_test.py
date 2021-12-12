@@ -748,13 +748,13 @@ class MakeMoveTestCase(unittest.TestCase):
     def test_pawn_will_be_promoted_to_a_queen_when_moving_to_the_last_row_as_white(self):
         board = Board('8/P7/8/8/8/8/8/8 w - - 0 1')
         board.make_move((48, 56))
-        self.assertEqual(4, board._get_piece(56)._type)
+        self.assertEqual(4, board._get_piece(56).type)
         self.assertTrue(board._get_piece(56)._white_piece)
 
     def test_pawn_will_be_promoted_to_a_queen_when_moving_to_the_last_row_as_black(self):
         board = Board('8/8/8/8/8/8/p7/8 b - - 0 1')
         board.make_move((8, 0))
-        self.assertEqual(4, board._get_piece(0)._type)
+        self.assertEqual(4, board._get_piece(0).type)
         self.assertFalse(board._get_piece(0)._white_piece)
 
     def test_pawn_remains_in_pieces_set(self):
@@ -987,7 +987,7 @@ class UndoMoveTestCase(unittest.TestCase):
         piece = board._get_piece(8)
         board.make_move((8, 16))
         board._undo_move()
-        self.assertEqual(0, piece._type)
+        self.assertEqual(0, piece.type)
         self.assertEqual(8, piece._pos)
         self.assertTrue(piece._white_piece)
 
@@ -1162,7 +1162,7 @@ class UndoMoveTestCase(unittest.TestCase):
         board = Board('8/P7/8/8/8/8/8/8 w - - 0 1')
         w_pawn = board._get_piece(48)
         board.make_move((48, 56))
-        self.assertEqual(4, board._get_piece(56)._type)
+        self.assertEqual(4, board._get_piece(56).type)
         board._undo_move()
         self.assertIs(w_pawn, board._get_piece(48))
 
@@ -1170,24 +1170,23 @@ class UndoMoveTestCase(unittest.TestCase):
         board = Board('8/8/8/8/8/8/p7/8 b - - 0 1')
         b_pawn = board._get_piece(8)
         board.make_move((8, 0))
-        self.assertEqual(4, board._get_piece(0)._type)
+        self.assertEqual(4, board._get_piece(0).type)
         board._undo_move()
         self.assertIs(b_pawn, board._get_piece(8))
 
     # board info except pieces
     # color to move
     def test_can_recover_white_to_move(self):
-        board = Board()  # board1
-        board.make_move((1, 16))
-        board._undo_move()
-        self.assertTrue(board._white_to_move)
+        board1.make_move((1, 16))
+        board1._undo_move()
+        self.assertTrue(board1._white_to_move)
 
     def test_can_recover_black_to_move(self):
-        board = Board()  # board1
-        board.make_move((1, 16))
-        board.make_move((57, 48))
-        board._undo_move()
-        self.assertFalse(board._white_to_move)
+        board1.make_move((1, 16))
+        board1.make_move((57, 48))
+        board1._undo_move()
+        self.assertFalse(board1._white_to_move)
+        board1._undo_move()
 
     # castling rights
     def test_changes_nothing_if_no_rights_were_lost(self):

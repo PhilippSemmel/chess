@@ -30,3 +30,11 @@ class RandomMoveSelectionTestCase(unittest.TestCase):
         moves = set(zip(list(range(63, -1, -1)), list(range(64))))
         for i in range(1000):
             self.assertTrue(w_player._get_random_move(moves) in moves)
+
+
+def main() -> None:
+    unittest.main()
+
+
+if __name__ == '__main__':
+    main()

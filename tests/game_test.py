@@ -7,14 +7,16 @@ b_player = HumanPlayer(False, 'b')
 
 
 class ConstructionTestCase(unittest.TestCase):
+    game = Game()
+
     def test_board_attr_is_board_instance(self):
-        self.assertTrue(isinstance(game._board, Board))
+        self.assertTrue(isinstance(self.game._board, Board))
 
     def test_w_player_is_none(self):
-        self.assertIsNone(game._w_player)
+        self.assertIsNone(self.game._w_player)
 
     def test_b_player_is_none(self):
-        self.assertIsNone(game._b_player)
+        self.assertIsNone(self.game._b_player)
 
 
 class GetterTestCase(unittest.TestCase):
