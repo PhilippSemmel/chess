@@ -1,18 +1,18 @@
 from __future__ import annotations
+import random as r
 from typing import TYPE_CHECKING, Set
+from abc import ABC, abstractmethod
 if TYPE_CHECKING:
     from chess import MOVE
 
 
-class Player:
+class Player(ABC):
     def __init__(self, white: bool, name: str) -> None:
         self._white: bool = white
         self._name: str = name
 
-    def __repr__(self):
-        output = 'White' if self._white else 'Black'
-        output += ' Player ' + self._name
-        return output
+    def __repr__(self) -> str:
+        return f'{"White" if self._white else "Black"} Player {self._name}'
 
     """
     Attribute getters
@@ -35,31 +35,19 @@ class Player:
 
     """
     move selection
-    user interface
     """
-    def get_move(self, moves: Set[MOVE]):
+    @abstractmethod
+    def get_move(self, moves: Set[MOVE]) -> MOVE:
         """
         let the player select a move
         :param moves: legal moves
         :return: selected move
         """
-        moves_str = [self._move_to_str(move) for move in moves]
-        while True:
-            print('> Available moves:', moves_str)
-            move = input('> Enter your move (e.g.: "e2e4"): ')
-            if not self._input_correct(move):
-                print('> Entry not correct.')
-                continue
-            move = self._move_to_ints(move)
-            if move not in moves:
-                print('> Move not available.')
-                continue
-            return move
+        pass
 
-    @staticmethod
-    def _input_correct(move: str) -> bool:
-        return len(move) == 4 and move[0] in 'abcdefgh' and move[1] in '12345678' and \
-               move[2] in 'abcdefgh' and move[3] in '12345678'
+    """
+    user interface
+    """
 
     def _move_to_ints(self, move: str) -> MOVE:
         """
@@ -94,3 +82,64 @@ class Player:
         :return: pos as str
         """
         return chr((pos % 8) + 97) + (str((pos // 8) + 1))
+
+
+class HumanPlayer(Player):
+    def __init__(self, color: bool, name: str) -> None:
+        super().__init__(color, name)
+
+    def get_move(self, moves: Set[MOVE]) -> MOVE:
+        moves_str = [self._move_to_str(move) for move in moves]
+        while True:
+            print('> Available moves:', moves_str)
+            try:
+                move = input('> Enter your move (e.g.: "e2e4"): ')
+                self._verify_input(move)
+                move = self._move_to_ints(move)
+                self._verify_move(move, moves)
+            except ValueError:
+                continue
+            print(f'> {self.name} selected the move: {self._move_to_str(move)}\n')
+            return move
+
+    @staticmethod
+    def _verify_input(move: str) -> None:
+        """
+        verify that the player input is correct
+        :param move: player input
+        :raises ValueError if input is incorrect
+        """
+        if not (len(move) == 4 and move[0] in 'abcdefgh' and move[1] in '12345678' and move[2] in 'abcdefgh' and
+                move[3] in '12345678'):
+            raise ValueError
+
+    @staticmethod
+    def _verify_move(move: MOVE, moves: Set[MOVE]) -> None:
+        """
+        verify that the move is legal
+        :param move: move
+        :param moves: legal moves
+        :raises ValueError if move is not legal
+        """
+        if move not in moves:
+            print('> Move not available.')
+            raise ValueError
+
+
+class ComPlayer(Player):
+    def __init__(self, color: bool, name: str) -> None:
+        super().__init__(color, name)
+
+    def get_move(self, moves: Set[MOVE]) -> MOVE:
+        move = self._get_random_move(moves)
+        print(f'> {self.name} selected the move: {self._move_to_str(move)}\n')
+        return move
+
+    @staticmethod
+    def _get_random_move(moves: Set[MOVE]) -> MOVE:
+        """
+        let the com player select a random move
+        :param moves: legal moves
+        :return: random move
+        """
+        return r.sample(moves, 1)[0]
