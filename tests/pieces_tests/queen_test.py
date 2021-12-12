@@ -11,17 +11,27 @@ class ConstructionTestCase(unittest.TestCase):
     def test_is_subclass_of_piece(self):
         self.assertTrue(issubclass(Queen, Piece))
 
+    def test_base_val_is_correct(self):
+        self.assertEqual(900, queen1._base_val)
+
+    def test_base_val_is_always_correct(self):
+        self.assertEqual(900, queen2._base_val)
+
+    def test_pos_val_mod_is_correct_as_white(self):
+        self.assertEqual((-20, -10, -10, -5, -5, -10, -10, -20, -10, 0, 5, 0, 0, 0, 0, -10, -10, 5, 5, 5, 5, 5, 0, -10,
+                          0, 0, 5, 5, 5, 5, 0, -5, -5, 0, 5, 5, 5, 5, 0, -5, -10, 0, 5, 5, 5, 5, 0, -10, -10, 0, 0, 0,
+                          0, 0, 0, -10, -20, -10, -10, -5, -5, -10, -10, -20), queen1._pos_val_mod[True])
+
+    def test_pos_val_mod_is_correct_as_black(self):
+        self.assertEqual((-20, -10, -10, -5, -5, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 5, 5, 5, 0, -10,
+                          -5, 0, 5, 5, 5, 5, 0, -5, 0, 0, 5, 5, 5, 5, 0, -5, -10, 5, 5, 5, 5, 5, 0, -10, -10, 0, 5, 0,
+                          0,  0,  0, -10, -20, -10, -10, -5, -5, -10, -10, -20), queen2._pos_val_mod[False])
+
     def test_type_is_correct(self):
         self.assertEqual(4, queen1.type)
 
     def test_type_is_always_correct(self):
         self.assertEqual(4, queen2.type)
-
-    def test_value_is_correct(self):
-        self.assertEqual(900, queen1.value)
-
-    def test_value_is_always_correct(self):
-        self.assertEqual(900, queen2.value)
 
     def test_pos_is_given_value(self):
         self.assertEqual(35, queen1._pos)
@@ -317,6 +327,22 @@ class MoveGenerationTestCase(unittest.TestCase):
     def test_cannot_capture_beyond_the_board_left_up(self):
         queen = Board('8/8/8/8/8/1PP4p/PQP5/PPP5 w - - 0 1')._get_piece(9)
         self.assertEqual({(9, 16)}, queen.pseudo_legal_moves)
+
+
+class PositionValueTestCase(unittest.TestCase):
+    def test_can_generate_pos_value_as_white(self):
+        for n, mod in enumerate((-20, -10, -10, -5, -5, -10, -10, -20, -10, 0, 5, 0, 0, 0, 0, -10, -10, 5, 5, 5, 5, 5,
+                                 0, -10, 0, 0, 5, 5, 5, 5, 0, -5, -5, 0, 5, 5, 5, 5, 0, -5, -10, 0, 5, 5, 5, 5, 0, -10,
+                                 -10, 0, 0, 0, 0, 0, 0, -10, -20, -10, -10, -5, -5, -10, -10, -20)):
+            queen1.move_to(n)
+            self.assertEqual(Queen._base_val + mod, queen1.pos_val)
+
+    def test_can_generate_pos_value_as_black(self):
+        for n, mod in enumerate((-20, -10, -10, -5, -5, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 5, 5, 5,
+                                 0, -10, -5, 0, 5, 5, 5, 5, 0, -5, 0, 0, 5, 5, 5, 5, 0, -5, -10, 5, 5, 5, 5, 5, 0, -10,
+                                 -10, 0, 5, 0, 0,  0,  0, -10, -20, -10, -10, -5, -5, -10, -10, -20)):
+            queen2.move_to(n)
+            self.assertEqual(Queen._base_val + mod, queen2.pos_val)
 
 
 def main() -> None:

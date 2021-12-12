@@ -1,8 +1,14 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List, Set, TYPE_CHECKING, Optional, Union, Tuple
+from typing import List, Set, TYPE_CHECKING, Optional, Union, Tuple, Dict
 if TYPE_CHECKING:
     from board import Board, MOVE
+
+
+"""
+base and position values from:
+https://www.chessprogramming.org/Simplified_Evaluation_Function
+"""
 
 
 class Piece(ABC):
@@ -33,7 +39,12 @@ class Piece(ABC):
     """
     @property
     @abstractmethod
-    def value(self) -> int:
+    def _base_val(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def _pos_val_mod(self) -> int:
         pass
 
     @property
@@ -96,6 +107,15 @@ class Piece(ABC):
         return self._capture_data is None
 
     @property
+    @abstractmethod
+    def pos_val(self) -> int:
+        """
+        get the position value of the piece
+        :return: position value
+        """
+        pass
+
+    @property
     def _rank(self) -> int:
         """
         get the rank the piece stands on
@@ -112,7 +132,7 @@ class Piece(ABC):
         return self._pos % 8
 
     @property
-    def _max_moves(self) -> List[int]:  
+    def _max_moves(self) -> List[int]:
         """
         get the number of squares in each direction starting from the pieces position
         :return:list of numbers of squares in each direction starting from the pieces position
@@ -175,7 +195,7 @@ class Piece(ABC):
         return {move[1] for move in self.pseudo_legal_moves}
 
     def _generate_sliding_moves(self, diffs: Optional[List[int]] = None, max_moves: Optional[List[int]] = None) \
-            -> Set[MOVE]:  
+            -> Set[MOVE]:
         """
         generate all long range sliding moves of a piece
         :param diffs: the square index value differences of every direction the piece can move to
@@ -201,7 +221,23 @@ class Piece(ABC):
 
 
 class Pawn(Piece):
-    value: int = 100
+    _base_val: int = 100
+    _pos_val_mod: Dict[bool, Tuple[int]] = {True:  ( 0,  0,  0,  0,  0,  0,  0,  0,
+                                                     5, 10, 10,-20,-20, 10, 10,  5,
+                                                     5, -5,-10,  0,  0,-10, -5,  5,
+                                                     0,  0,  0, 20, 20,  0,  0,  0,
+                                                     5,  5, 10, 25, 25, 10,  5,  5,
+                                                    10, 10, 20, 30, 30, 20, 10, 10,
+                                                    50, 50, 50, 50, 50, 50, 50, 50,
+                                                     0,  0,  0,  0,  0,  0,  0,  0),
+                                            False: ( 0,  0,  0,  0,  0,  0,  0,  0,
+                                                    50, 50, 50, 50, 50, 50, 50, 50,
+                                                    10, 10, 20, 30, 30, 20, 10, 10,
+                                                     5,  5, 10, 25, 25, 10,  5,  5,
+                                                     0,  0,  0, 20, 20,  0,  0,  0,
+                                                     5, -5,-10,  0,  0,-10, -5,  5,
+                                                     5, 10, 10,-20,-20, 10, 10,  5,
+                                                     0,  0,  0,  0,  0,  0,  0,  0)}
     type: int = 0
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
@@ -231,6 +267,10 @@ class Pawn(Piece):
         """
         return self._capture_data is None and self._promotion_data is None
 
+    @property
+    def pos_val(self) -> int:
+        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
+
     """
     attribute setters
     """
@@ -252,14 +292,14 @@ class Pawn(Piece):
     move generation
     """
     @property
-    def pseudo_legal_moves(self) -> Set[MOVE]:  
+    def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_advances() | self._generate_diagonal_capturing_moves() | self._generate_en_passant_move()
 
     @property
-    def attacking_squares(self) -> Set[int]:  
+    def attacking_squares(self) -> Set[int]:
         return {move[1] for move in self._generate_diagonal_capturing_moves()}
 
-    def _generate_advances(self) -> Set[MOVE]:  
+    def _generate_advances(self) -> Set[MOVE]:
         pos_limit = 2 if (self._white_piece and self._rank == 1) or (not self._white_piece and self._rank == 6) else 1
         limits, diffs = min(pos_limit, self._limits[0][0]), self._diffs[0][0]
         _moves = set()
@@ -269,7 +309,7 @@ class Pawn(Piece):
             _moves.add((self._pos, self._pos + ((n + 1) * diffs)))
         return _moves
 
-    def _generate_diagonal_capturing_moves(self) -> Set[MOVE]:  
+    def _generate_diagonal_capturing_moves(self) -> Set[MOVE]:
         limits, diffs = self._limits[1], self._diffs[1]
         _moves = set()
         for n in range(2):
@@ -277,7 +317,7 @@ class Pawn(Piece):
                 _moves.add((self._pos, self._pos + diffs[n]))
         return _moves
 
-    def _generate_en_passant_move(self) -> Set[MOVE]:  
+    def _generate_en_passant_move(self) -> Set[MOVE]:
         limits, diffs = self._limits[1], self._diffs[1]
         for n in range(2):
             if limits[n] > 0 and self._pos + diffs[n] == self._board.ep_target_square:
@@ -285,26 +325,53 @@ class Pawn(Piece):
         return set()
 
     @property
-    def _limits(self) -> List[List[int]]:  
+    def _limits(self) -> List[List[int]]:
         return [self._max_moves[2:3], self._max_moves[4:6]] if self._white_piece else \
             [self._max_moves[3:4], self._max_moves[6:]]
 
     @property
-    def _diffs(self) -> List[List[int]]:  
+    def _diffs(self) -> List[List[int]]:
         return [self._all_diffs[2:3], self._all_diffs[4:6]] if self._white_piece else \
             [self._all_diffs[3:4], self._all_diffs[6:]]
 
 
 class Knight(Piece):
-    value: int = 320
+    _base_val: int = 320
+    _pos_val_mod: Dict[bool, Tuple[int]] = {True: (-50,-40,-30,-30,-30,-30,-40,-50,
+                                                   -40,-20,  0,  5,  5,  0,-20,-40,
+                                                   -30,  5, 10, 15, 15, 10,  5,-30,
+                                                   -30,  0, 15, 20, 20, 15,  0,-30,
+                                                   -30,  5, 15, 20, 20, 15,  5,-30,
+                                                   -30,  0, 10, 15, 15, 10,  0,-30,
+                                                   -40,-20,  0,  0,  0,  0,-20,-40,
+                                                   -50,-40,-30,-30,-30,-30,-40,-50),
+                                            False: (-50,-40,-30,-30,-30,-30,-40,-50,
+                                                    -40,-20,  0,  0,  0,  0,-20,-40,
+                                                    -30,  0, 10, 15, 15, 10,  0,-30,
+                                                    -30,  5, 15, 20, 20, 15,  5,-30,
+                                                    -30,  0, 15, 20, 20, 15,  0,-30,
+                                                    -30,  5, 10, 15, 15, 10,  5,-30,
+                                                    -40,-20,  0,  5,  5,  0,-20,-40,
+                                                    -50,-40,-30,-30,-30,-30,-40,-50)}
     type: int = 1
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♞', 'N') if white_piece else ('♘', 'n')
         super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
+    """
+    other getters
+    """
     @property
-    def pseudo_legal_moves(self) -> Set[MOVE]:  
+    def pos_val(self) -> int:
+        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
+
+    """
+    moves generation
+    """
+
+    @property
+    def pseudo_legal_moves(self) -> Set[MOVE]:
         moves = set()
         for diff, off_set in zip([17, 10, -6, -15, -17, -10, 6, 15], [(1, 2), (2, 1), (2, -1), (1, -2), (-1, -2),
                                                                       (-2, -1), (-2, 1), (-1, 2)]):
@@ -319,52 +386,156 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
-    value: int = 330
+    _base_val: int = 330
+    _pos_val_mod: Dict[bool, Tuple[int]] = {True:  (-20,-10,-10,-10,-10,-10,-10,-20,
+                                                    -10,  5,  0,  0,  0,  0,  5,-10,
+                                                    -10, 10, 10, 10, 10, 10, 10,-10,
+                                                    -10,  0, 10, 10, 10, 10,  0,-10,
+                                                    -10,  5,  5, 10, 10,  5,  5,-10,
+                                                    -10,  0,  5, 10, 10,  5,  0,-10,
+                                                    -10,  0,  0,  0,  0,  0,  0,-10,
+                                                    -20,-10,-10,-10,-10,-10,-10,-20),
+                                            False: (-20,-10,-10,-10,-10,-10,-10,-20,
+                                                    -10,  0,  0,  0,  0,  0,  0,-10,
+                                                    -10,  0,  5, 10, 10,  5,  0,-10,
+                                                    -10,  5,  5, 10, 10,  5,  5,-10,
+                                                    -10,  0, 10, 10, 10, 10,  0,-10,
+                                                    -10, 10, 10, 10, 10, 10, 10,-10,
+                                                    -10,  5,  0,  0,  0,  0,  5,-10,
+                                                    -20,-10,-10,-10,-10,-10,-10,-20)}
     type: int = 2
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♝', 'B') if white_piece else ('♗', 'b')
         super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
+    """
+    other getters
+    """
+    @property
+    def pos_val(self) -> int:
+        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
+
+    """
+    moves generation
+    """
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_sliding_moves(self._all_diffs[4:], self._max_moves[4:])
 
 
 class Rook(Piece):
-    value: int = 500
+    _base_val: int = 500
+    _pos_val_mod: Dict[bool, Tuple[int]] = {True:  ( 0,  0,  0,  5,  5,  0,  0,  0,
+                                                    -5,  0,  0,  0,  0,  0,  0, -5,
+                                                    -5,  0,  0,  0,  0,  0,  0, -5,
+                                                    -5,  0,  0,  0,  0,  0,  0, -5,
+                                                    -5,  0,  0,  0,  0,  0,  0, -5,
+                                                    -5,  0,  0,  0,  0,  0,  0, -5,
+                                                     5, 10, 10, 10, 10, 10, 10,  5,
+                                                     0,  0,  0,  0,  0,  0,  0,  0),
+                                            False: ( 0,  0,  0,  0,  0,  0,  0,  0,
+                                                     5, 10, 10, 10, 10, 10, 10,  5,
+                                                    -5,  0,  0,  0,  0,  0,  0, -5,
+                                                    -5,  0,  0,  0,  0,  0,  0, -5,
+                                                    -5,  0,  0,  0,  0,  0,  0, -5,
+                                                    -5,  0,  0,  0,  0,  0,  0, -5,
+                                                    -5,  0,  0,  0,  0,  0,  0, -5,
+                                                     0,  0,  0,  5,  5,  0,  0,  0)}
     type: int = 3
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♜', 'R') if white_piece else ('♖', 'r')
         super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
+    """
+    other getters
+    """
+    @property
+    def pos_val(self) -> int:
+        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
+
+    """
+    moves generation
+    """
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_sliding_moves(self._all_diffs[:4], self._max_moves[:4])
 
 
 class Queen(Piece):
-    value: int = 900
+    _base_val: int = 900
+    _pos_val_mod: Dict[bool, Tuple[int]] = {True: (-20,-10,-10, -5, -5,-10,-10,-20,
+                                                   -10,  0,  5,  0,  0,  0,  0,-10,
+                                                   -10,  5,  5,  5,  5,  5,  0,-10,
+                                                     0,  0,  5,  5,  5,  5,  0, -5,
+                                                    -5,  0,  5,  5,  5,  5,  0, -5,
+                                                   -10,  0,  5,  5,  5,  5,  0,-10,
+                                                   -10,  0,  0,  0,  0,  0,  0,-10,
+                                                   -20,-10,-10, -5, -5,-10,-10,-20),
+                                            False: (-20,-10,-10, -5, -5,-10,-10,-20,
+                                                    -10,  0,  0,  0,  0,  0,  0,-10,
+                                                    -10,  0,  5,  5,  5,  5,  0,-10,
+                                                     -5,  0,  5,  5,  5,  5,  0, -5,
+                                                      0,  0,  5,  5,  5,  5,  0, -5,
+                                                    -10,  5,  5,  5,  5,  5,  0,-10,
+                                                    -10,  0,  5,  0,  0,  0,  0,-10,
+                                                    -20,-10,-10, -5, -5,-10,-10,-20)}
     type: int = 4
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♛', 'Q') if white_piece else ('♕', 'q')
         super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
+    """
+    other getters
+    """
+    @property
+    def pos_val(self) -> int:
+        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
+
+    """
+    moves generation
+    """
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_sliding_moves()
 
 
 class King(Piece):
-    value: int = 20_000
+    _base_val: int = 20_000
+    _pos_val_mod: Dict[bool, Tuple[int]] = {True:  ( 20, 30, 10,  0,  0, 10, 30, 20,
+                                                     20, 20,  0,  0,  0,  0, 20, 20,
+                                                    -10,-20,-20,-20,-20,-20,-20,-10,
+                                                    -20,-30,-30,-40,-40,-30,-30,-20,
+                                                    -30,-40,-40,-50,-50,-40,-40,-30,
+                                                    -30,-40,-40,-50,-50,-40,-40,-30,
+                                                    -30,-40,-40,-50,-50,-40,-40,-30,
+                                                    -30,-40,-40,-50,-50,-40,-40,-30),
+                                            False: (-30,-40,-40,-50,-50,-40,-40,-30,
+                                                    -30,-40,-40,-50,-50,-40,-40,-30,
+                                                    -30,-40,-40,-50,-50,-40,-40,-30,
+                                                    -30,-40,-40,-50,-50,-40,-40,-30,
+                                                    -20,-30,-30,-40,-40,-30,-30,-20,
+                                                    -10,-20,-20,-20,-20,-20,-20,-10,
+                                                     20, 20,  0,  0,  0,  0, 20, 20,
+                                                     20, 30, 10,  0,  0, 10, 30, 20)}
     type: int = 5
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♚', 'K') if white_piece else ('♔', 'k')
         super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
+    """
+    other getters
+    """
+    @property
+    def pos_val(self) -> int:
+        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
+
+    """
+    moves generation
+    """
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_one_square_sliding_moves() | self._generate_castling_moves()
@@ -373,7 +544,7 @@ class King(Piece):
     def attacking_squares(self) -> Set[int]:
         return {move[1] for move in self._generate_one_square_sliding_moves()}  # eliminate double call
 
-    def _generate_one_square_sliding_moves(self) -> Set[MOVE]:  
+    def _generate_one_square_sliding_moves(self) -> Set[MOVE]:
         moves = set()
         for diff, m in zip(self._all_diffs, self._max_moves):
             if m == 0:
@@ -383,7 +554,7 @@ class King(Piece):
             moves.add((self._pos, self._pos + diff))
         return moves
 
-    def _generate_castling_moves(self) -> Set[MOVE]:  
+    def _generate_castling_moves(self) -> Set[MOVE]:
         def generate_castling_move_for_one_side(dir_: int, n: int) -> Set[MOVE]:
             # testing castling right
             if not self._board.castling_rights[n if self._white_piece else n + 2]:

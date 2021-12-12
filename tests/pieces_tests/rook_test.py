@@ -11,17 +11,27 @@ class ConstructionTestCase(unittest.TestCase):
     def test_is_subclass_of_piece(self):
         self.assertTrue(issubclass(Rook, Piece))
 
+    def test_base_val_is_correct(self):
+        self.assertEqual(500, rook1._base_val)
+
+    def test_base_val_is_always_correct(self):
+        self.assertEqual(500, rook2._base_val)
+
+    def test_pos_val_mod_is_correct_as_white(self):
+        self.assertEqual((0, 0, 0, 5, 5, 0, 0, 0, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0,
+                          0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, 5, 10, 10, 10, 10, 10, 10, 5, 0, 0,
+                          0, 0, 0, 0, 0, 0), rook1._pos_val_mod[True])
+
+    def test_pos_val_mod_is_correct_as_black(self):
+        self.assertEqual((0, 0, 0, 0, 0, 0, 0, 0, 5, 10, 10, 10, 10, 10, 10, 5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0,
+                          0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, 0,
+                          0, 0, 5, 5, 0, 0, 0), rook2._pos_val_mod[False])
+
     def test_type_is_correct(self):
         self.assertEqual(3, rook1.type)
 
     def test_type_is_always_correct(self):
         self.assertEqual(3, rook2.type)
-
-    def test_value_is_correct(self):
-        self.assertEqual(500, rook1.value)
-
-    def test_value_is_always_correct(self):
-        self.assertEqual(500, rook2.value)
 
     def test_pos_is_given_value(self):
         self.assertEqual(35, rook1._pos)
@@ -219,6 +229,22 @@ class MoveGenerationTestCase(unittest.TestCase):
     def test_can_capture_one_step_left_up(self):
         rook = Board('8/8/8/8/8/5pPP/5PRP/5PPP w - - 0 1')._get_piece(14)
         self.assertEqual(set(), rook.pseudo_legal_moves)
+
+
+class PositionValueTestCase(unittest.TestCase):
+    def test_can_generate_pos_value_as_white(self):
+        for n, mod in enumerate((0, 0, 0, 5, 5, 0, 0, 0, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0,
+                                 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, 5, 10, 10, 10, 10,
+                                 10, 10, 5, 0, 0, 0, 0, 0, 0, 0, 0)):
+            rook1.move_to(n)
+            self.assertEqual(Rook._base_val + mod, rook1.pos_val)
+
+    def test_can_generate_pos_value_as_black(self):
+        for n, mod in enumerate((0, 0, 0, 0, 0, 0, 0, 0, 5, 10, 10, 10, 10, 10, 10, 5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0,
+                                 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0,
+                                 0, 0, -5, 0, 0, 0, 5, 5, 0, 0, 0)):
+            rook2.move_to(n)
+            self.assertEqual(Rook._base_val + mod, rook2.pos_val)
 
 
 def main() -> None:

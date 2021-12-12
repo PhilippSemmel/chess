@@ -11,17 +11,29 @@ class ConstructionTestCase(unittest.TestCase):
     def test_is_subclass_of_piece(self):
         self.assertTrue(issubclass(Bishop, Piece))
 
+    def test_base_val_is_correct(self):
+        self.assertEqual(330, bishop1._base_val)
+
+    def test_base_val_is_always_correct(self):
+        self.assertEqual(330, bishop2._base_val)
+
+    def test_pos_val_mod_is_correct_as_white(self):
+        self.assertEqual((-20, -10, -10, -10, -10, -10, -10, -20, -10, 5, 0, 0, 0, 0, 5, -10, -10, 10, 10, 10, 10, 10,
+                          10, -10, -10, 0, 10, 10, 10, 10,  0, -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 5, 10, 10, 5,
+                          0, -10, -10, 0, 0, 0, 0, 0, 0, -10, -20, -10, -10, -10, -10, -10, -10, -20),
+                         bishop1._pos_val_mod[True])
+
+    def test_pos_val_mod_is_correct_as_black(self):
+        self.assertEqual((-20, -10, -10, -10, -10, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 10, 10, 5, 0,
+                          -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 10, 10, 10, 10, 0, -10, -10, 10, 10, 10, 10, 10,
+                          10, -10, -10,  5,  0,  0,  0,  0,  5, -10, -20, -10, -10, -10, -10, -10, -10, -20),
+                         bishop2._pos_val_mod[False])
+
     def test_type_is_correct(self):
         self.assertEqual(2, bishop1.type)
 
     def test_type_is_always_correct(self):
         self.assertEqual(2, bishop2.type)
-
-    def test_value_is_correct(self):
-        self.assertEqual(330, bishop1.value)
-
-    def test_value_is_always_correct(self):
-        self.assertEqual(330, bishop2.value)
 
     def test_pos_is_given_value(self):
         self.assertEqual(35, bishop1._pos)
@@ -227,6 +239,24 @@ class MoveGenerationTestCase(unittest.TestCase):
     def test_cannot_capture_beyond_the_board_left_up(self):
         bishop = Board('8/8/8/8/8/1PP4p/PBP5/PPP5 w - - 0 1')._get_piece(9)
         self.assertEqual({(9, 16)}, bishop.pseudo_legal_moves)
+
+
+class PositionValueTestCase(unittest.TestCase):
+    def test_can_generate_pos_value_as_white(self):
+        for n, mod in enumerate((-20, -10, -10, -10, -10, -10, -10, -20, -10, 5, 0, 0, 0, 0, 5, -10, -10, 10, 10, 10,
+                                 10, 10, 10, -10, -10, 0, 10, 10, 10, 10,  0, -10, -10, 5, 5, 10, 10, 5, 5, -10, -10,
+                                 0, 5, 10, 10, 5, 0, -10, -10, 0, 0, 0, 0, 0, 0, -10, -20, -10, -10, -10, -10, -10, -10,
+                                 -20)):
+            bishop1.move_to(n)
+            self.assertEqual(Bishop._base_val + mod, bishop1.pos_val)
+
+    def test_can_generate_pos_value_as_black(self):
+        for n, mod in enumerate((-20, -10, -10, -10, -10, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 10, 10,
+                                 5, 0, -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 10, 10, 10, 10, 0, -10, -10, 10, 10,
+                                 10, 10, 10, 10, -10, -10,  5,  0,  0,  0,  0,  5, -10, -20, -10, -10, -10, -10, -10,
+                                 -10, -20)):
+            bishop2.move_to(n)
+            self.assertEqual(Bishop._base_val + mod, bishop2.pos_val)
 
 
 def main() -> None:

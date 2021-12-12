@@ -11,17 +11,29 @@ class ConstructionTestCase(unittest.TestCase):
     def test_is_subclass_of_piece(self):
         self.assertTrue(issubclass(Knight, Piece))
 
+    def test_base_val_is_correct(self):
+        self.assertEqual(320, knight1._base_val)
+
+    def test_base_val_is_always_correct(self):
+        self.assertEqual(320, knight2._base_val)
+
+    def test_pos_val_mod_is_correct_as_white(self):
+        self.assertEqual((-50, -40, -30, -30, -30, -30, -40, -50, -40, -20, 0, 5, 5, 0, -20, -40, -30, 5, 10, 15, 15,
+                          10, 5, -30, -30, 0, 15, 20, 20, 15, 0, -30, -30, 5, 15, 20, 20, 15, 5, -30, -30, 0, 10, 15,
+                          15, 10, 0, -30, -40, -20, 0, 0, 0, 0, -20, -40, -50, -40,- 30, -30, -30, -30, -40, -50),
+                         knight1._pos_val_mod[True])
+
+    def test_pos_val_mod_is_correct_as_black(self):
+        self.assertEqual((-20, -10, -10, -10, -10, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 10, 10, 5, 0,
+                          -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 10, 10, 10, 10, 0, -10, -10, 10, 10, 10, 10, 10,
+                          10, -10, -10,  5,  0,  0,  0,  0,  5, -10, -20, -10, -10, -10, -10, -10, -10, -20),
+                         knight2._pos_val_mod[False])
+
     def test_type_is_correct(self):
         self.assertEqual(1, knight1.type)
 
     def test_type_is_always_correct(self):
         self.assertEqual(1, knight2.type)
-
-    def test_value_is_correct(self):
-        self.assertEqual(320, knight1.value)
-
-    def test_value_is_always_correct(self):
-        self.assertEqual(320, knight2.value)
 
     def test_pos_is_given_value(self):
         self.assertEqual(35, knight1._pos)
@@ -154,6 +166,24 @@ class MoveGenerationTestCase(unittest.TestCase):
     def test_cannot_jump_beyond_the_board_right_down(self):
         knight = Board('8/8/5P1P/4P3/6N1/4P3/5P1P/8 w - - 0 1')._get_piece(30)
         self.assertEqual(set(), knight.pseudo_legal_moves)
+
+
+class PositionValueTestCase(unittest.TestCase):
+    def test_can_generate_pos_value_as_white(self):
+        for n, mod in enumerate((-50, -40, -30, -30, -30, -30, -40, -50, -40, -20, 0, 5, 5, 0, -20, -40, -30, 5, 10, 15,
+                                 15, 10, 5, -30, -30, 0, 15, 20, 20, 15, 0, -30, -30, 5, 15, 20, 20, 15, 5, -30, -30, 0,
+                                 10, 15, 15, 10, 0, -30, -40, -20, 0, 0, 0, 0, -20, -40, -50, -40,- 30, -30, -30, -30,
+                                 -40, -50)):
+            knight1.move_to(n)
+            self.assertEqual(Knight._base_val + mod, knight1.pos_val)
+
+    def test_can_generate_pos_value_as_black(self):
+        for n, mod in enumerate((-20, -10, -10, -10, -10, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 10, 10,
+                                 5, 0, -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 10, 10, 10, 10, 0, -10, -10, 10, 10,
+                                 10, 10, 10, 10, -10, -10,  5,  0,  0,  0,  0,  5, -10, -20, -10, -10, -10, -10, -10,
+                                 -10, -20)):
+            knight2.move_to(n)
+            self.assertEqual(Knight._base_val + mod, knight2.pos_val)
 
 
 def main() -> None:

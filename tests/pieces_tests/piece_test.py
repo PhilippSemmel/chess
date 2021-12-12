@@ -14,7 +14,13 @@ class TestPiece(Piece):
     def pseudo_legal_moves(self, *args):
         pass
 
-    def value(self, *args):
+    def _base_val(self, *args):
+        pass
+
+    def _pos_val_mod(self, *args):
+        pass
+
+    def pos_val(self, *args):
         pass
 
     @property
@@ -57,12 +63,6 @@ class ConstructionTestCase(unittest.TestCase):
 
     def test_fen_symbol_is_any_given_value(self):
         self.assertEqual('n', piece2._fen_symbol)
-
-    def test_raises_value_error_if_pos_value_is_too_high(self):
-        self.assertRaises(ValueError, TestPiece, 64, True, board, '♞', 'N', type_=1)
-
-    def test_raises_value_error_is_pos_value_is_too_low(self):
-        self.assertRaises(ValueError, TestPiece, -1, True, board, '♞', 'N', type_=1)
 
 
 # class DunderMethodsTestCase(unittest.TestCase):
