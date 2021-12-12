@@ -123,24 +123,32 @@ class OtherGetterTestCase(unittest.TestCase):
         board = Board('8/8/8/8/8/8/8/K7 w - - 0 1')
         self.assertFalse(board.checkmate)
 
-    def test_checkmate_if_not_move_available_and_king_in_check(self):
+    def test_checkmate_if_no_move_available_and_king_in_check(self):
         board = Board('8/8/8/8/8/2b5/1q6/K7 w - - 0 1')
         self.assertTrue(board.checkmate)
 
-    def test_no_checkmate_if_not_move_available_and_king_not_in_check(self):
+    def test_no_checkmate_if_no_move_available_and_king_not_in_check(self):
         board = Board('8/8/8/8/8/2b5/1r6/K7 w - - 0 1')
         self.assertFalse(board.checkmate)
+
+    def test_black_can_be_in_checkmate_as_well(self):
+        board = Board('8/8/8/8/8/2B5/1Q6/k7 b - - 0 1')
+        self.assertTrue(board.checkmate)
 
     def test_no_stalemate_if_more_than_one_move_available(self):
         board = Board('8/8/8/8/8/8/8/K7 w - - 0 1')
         self.assertFalse(board.stalemate)
 
-    def test_no_stalemate_if_not_move_available_and_king_in_check(self):
+    def test_no_stalemate_if_no_move_available_and_king_in_check(self):
         board = Board('8/8/8/8/8/2b5/1q6/K7 w - - 0 1')
         self.assertFalse(board.stalemate)
 
-    def test_stalemate_if_not_move_available_and_king_not_in_check(self):
+    def test_stalemate_if_no_move_available_and_king_not_in_check(self):
         board = Board('8/8/8/8/8/2b5/1r6/K7 w - - 0 1')
+        self.assertTrue(board.stalemate)
+
+    def test_black_can_be_in_stalemate_as_well(self):
+        board = Board('8/8/8/8/8/2B5/1R6/k7 b - - 0 1')
         self.assertTrue(board.stalemate)
 
 
@@ -209,6 +217,11 @@ class GetPieceTestCase(unittest.TestCase):
     def test_can_get_black_king_on_busy_board(self):
         king = board1._get_piece(60)
         self.assertIs(king, board1._get_king(False))
+
+    def test_only_considers_active_pieces(self):
+        board = Board('8/8/8/8/8/8/8/Kr6 b - - 0 1')
+        board.make_move((1, 0))
+        self.assertRaises(ValueError, board._get_king, True)
 
 
 class CreatePieceTestCase(unittest.TestCase):
@@ -339,195 +352,200 @@ class PositionsStateTestCase(unittest.TestCase):
 
 class MoveGenerationTestCase(unittest.TestCase):
     # general
-    def test_generates_no_moves_if_board_is_emtpy(self):
-        board = Board('8/8/8/8/8/8/8/8 w - - 0 1')
-        self.assertEqual(set(), board.legal_moves)
+    # def test_raises_value_error_if_there_is_no_king_of_the_active_player_is_on_the_board(self):
+    #     board = Board('8/8/8/8/8/8/8/8 w - - 0 1')
+    #     self.assertRaises(ValueError, board.legal_moves())
 
     def test_cannot_generate_black_moves_when_white_to_move(self):
-        board = Board('8/p7/8/8/8/8/8/8 w - - 0 1')
-        self.assertEqual(set(), board.legal_moves)
+        board = Board('k7/8/8/8/8/8/8/K7 w - - 0 1')
+        self.assertEqual({(0, 1), (0, 8), (0, 9)}, board.legal_moves())
 
     # white pieces
-    def test_can_generate_multiple_white_moves(self):
-        board = Board('8/8/8/8/1P1PP3/8/KQB5/N1RN4 w - - 0 1')
-        self.assertEqual({(0, 17), (2, 1), (3, 18), (3, 20), (3, 13), (8, 1), (8, 16), (8, 17), (9, 16), (9, 17),
-                          (9, 18), (9, 1), (10, 1), (10, 17), (10, 19), (10, 24), (25, 33), (27, 35), (28, 36)},
-                         board.legal_moves)
-
-    def test_can_generate_white_pawn_moves(self):
-        board = Board('8/8/8/8/8/8/P7/8 w - - 0 1')
-        self.assertEqual({(8, 16), (8, 24)}, board.legal_moves)
-
-    def test_can_generate_any_white_pawn_moves(self):
-        board = Board('8/8/8/8/4P3/8/8/8 w - - 0 1')
-        self.assertEqual({(28, 36)}, board.legal_moves)
-
-    def test_can_generate_white_knight_moves(self):
-        board = Board('8/8/8/8/8/8/8/N7 w - - 0 1')
-        self.assertEqual({(0, 10), (0, 17)}, board.legal_moves)
-
-    def test_can_generate_any_white_knight_moves(self):
-        board = Board('8/8/8/8/8/8/8/7N w - - 0 1')
-        self.assertEqual({(7, 13), (7, 22)}, board.legal_moves)
-
-    def test_can_generate_white_bishop_moves(self):
-        board = Board('8/8/8/8/8/8/1B6/8 w - - 0 1')
-        self.assertEqual({(9, 0), (9, 18), (9, 27), (9, 36), (9, 45), (9, 54), (9, 63), (9, 2), (9, 16)},
-                         board.legal_moves)
-
-    def test_can_generate_any_white_bishop_moves(self):
-        board = Board('8/8/8/8/8/8/6B1/8 w - - 0 1')
-        self.assertEqual({(14, 7), (14, 21), (14, 28), (14, 35), (14, 42), (14, 49), (14, 56), (14, 23), (14, 5)},
-                         board.legal_moves)
-
-    def test_can_generate_white_rook_moves(self):
-        board = Board('8/8/8/8/8/8/1R6/8 w - - 0 1')
-        self.assertEqual({(9, 1), (9, 8), (9, 10), (9, 11), (9, 12), (9, 13), (9, 14), (9, 15), (9, 17), (9, 25),
-                          (9, 33), (9, 41), (9, 49), (9, 57)}, board.legal_moves)
-
-    def test_can_generate_any_white_rook_moves(self):
-        board = Board('8/8/8/8/8/8/6R1/8 w - - 0 1')
-        self.assertEqual({(14, 15), (14, 6), (14, 13), (14, 12), (14, 11), (14, 10), (14, 9), (14, 8), (14, 22),
-                          (14, 30), (14, 38), (14, 46), (14, 54), (14, 62)}, board.legal_moves)
-
-    def test_can_generate_white_queen_moves(self):
-        board = Board('8/8/8/8/8/8/1Q6/8 w - - 0 1')
-        self.assertEqual({(9, 1), (9, 8), (9, 10), (9, 11), (9, 12), (9, 13), (9, 14), (9, 15), (9, 17), (9, 25),
-                          (9, 33), (9, 41), (9, 49), (9, 57), (9, 0), (9, 18), (9, 27), (9, 36), (9, 45), (9, 54),
-                          (9, 63), (9, 2), (9, 16)}, board.legal_moves)
-
-    def test_can_generate_any_white_queen_moves(self):
-        board = Board('8/8/8/8/8/8/6Q1/8 w - - 0 1')
-        self.assertEqual({(14, 15), (14, 6), (14, 13), (14, 12), (14, 11), (14, 10), (14, 9), (14, 8), (14, 22),
-                          (14, 30), (14, 38), (14, 46), (14, 54), (14, 62), (14, 7), (14, 21), (14, 28), (14, 35),
-                          (14, 42), (14, 49), (14, 56), (14, 23), (14, 5)}, board.legal_moves)
-
     def test_can_generate_white_king_moves(self):
         board = Board('8/8/8/8/8/8/1K6/8 w - - 0 1')
-        self.assertEqual({(9, 0), (9, 1), (9, 2), (9, 8), (9, 10), (9, 16), (9, 17), (9, 18)}, board.legal_moves)
+        self.assertEqual({(9, 0), (9, 1), (9, 2), (9, 8), (9, 10), (9, 16), (9, 17), (9, 18)}, board.legal_moves())
 
     def test_can_generate_any_white_king_moves(self):
         board = Board('8/8/8/8/8/8/6K1/8 w - - 0 1')
         self.assertEqual({(14, 5), (14, 6), (14, 7), (14, 13), (14, 15), (14, 21), (14, 22), (14, 23)},
-                         board.legal_moves)
+                         board.legal_moves())
 
-    # black pieces
-    def test_can_generate_multiple_black_moves(self):
-        board = Board('8/8/8/8/1p1pp3/8/kqb5/n1rn4 b - - 0 1')
-        self.assertEqual({(0, 17), (2, 1), (3, 18), (3, 20), (3, 13), (8, 1), (8, 16), (8, 17), (9, 16), (9, 17),
-                          (9, 18), (9, 1), (10, 1), (10, 17), (10, 19), (10, 24), (25, 17), (27, 19), (28, 20)},
-                         board.legal_moves)
+    def test_can_generate_white_pawn_moves(self):
+        board = Board('8/8/8/8/8/8/P7/K7 w - - 0 1')
+        self.assertEqual({(8, 16), (8, 24)} | {(0, 1), (0, 9)}, board.legal_moves())
 
-    def test_can_generate_black_pawn_moves(self):
-        board = Board('8/p7/8/8/8/8/8/8 b - - 0 1')
-        self.assertEqual({(48, 40), (48, 32)}, board.legal_moves)
+    def test_can_generate_any_white_pawn_moves(self):
+        board = Board('8/8/8/8/4P3/8/8/K7 w - - 0 1')
+        self.assertEqual({(28, 36)} | {(0, 1), (0, 8), (0, 9)}, board.legal_moves())
 
-    def test_can_generate_any_black_pawn_moves(self):
-        board = Board('8/8/2p5/8/8/8/8/8 b - - 0 1')
-        self.assertEqual({(42, 34)}, board.legal_moves)
+    def test_can_generate_white_knight_moves(self):
+        board = Board('8/8/8/8/8/8/8/KN6 w - - 0 1')
+        self.assertEqual({(1, 11), (1, 16), (1, 18)} | {(0, 8), (0, 9)}, board.legal_moves())
 
-    def test_can_generate_black_knight_moves(self):
-        board = Board('8/8/8/8/8/8/8/n7 b - - 0 1')
-        self.assertEqual({(0, 10), (0, 17)}, board.legal_moves)
+    def test_can_generate_any_white_knight_moves(self):
+        board = Board('8/8/8/8/8/8/8/6NK w - - 0 1')
+        self.assertEqual({(6, 12), (6, 21), (6, 23)} | {(7, 14), (7, 15)}, board.legal_moves())
 
-    def test_can_generate_any_black_knight_moves(self):
-        board = Board('8/8/8/8/8/8/8/7n b - - 0 1')
-        self.assertEqual({(7, 13), (7, 22)}, board.legal_moves)
+    def test_can_generate_white_bishop_moves(self):
+        board = Board('8/8/8/8/8/8/1B6/1K6 w - - 0 1')
+        self.assertEqual({(9, 0), (9, 18), (9, 27), (9, 36), (9, 45), (9, 54), (9, 63), (9, 2), (9, 16)} |
+                         {(1, 0), (1, 8), (1, 2), (1, 10)}, board.legal_moves())
 
-    def test_can_generate_black_bishop_moves(self):
-        board = Board('8/8/8/8/8/8/1b6/8 b - - 0 1')
-        self.assertEqual({(9, 0), (9, 18), (9, 27), (9, 36), (9, 45), (9, 54), (9, 63), (9, 2), (9, 16)},
-                         board.legal_moves)
+    def test_can_generate_any_white_bishop_moves(self):
+        board = Board('8/8/8/8/8/8/6B1/6K1 w - - 0 1')
+        self.assertEqual({(14, 7), (14, 21), (14, 28), (14, 35), (14, 42), (14, 49), (14, 56), (14, 23), (14, 5)} |
+                         {(6, 5), (6, 7), (6, 13), (6, 15)}, board.legal_moves())
 
-    def test_can_generate_any_black_bishop_moves(self):
-        board = Board('8/8/8/8/8/8/6b1/8 b - - 0 1')
-        self.assertEqual({(14, 7), (14, 21), (14, 28), (14, 35), (14, 42), (14, 49), (14, 56), (14, 23), (14, 5)},
-                         board.legal_moves)
-
-    def test_can_generate_black_rook_moves(self):
-        board = Board('8/8/8/8/8/8/1r6/8 b - - 0 1')
+    def test_can_generate_white_rook_moves(self):
+        board = Board('8/8/8/8/8/8/1R6/K7 w - - 0 1')
         self.assertEqual({(9, 1), (9, 8), (9, 10), (9, 11), (9, 12), (9, 13), (9, 14), (9, 15), (9, 17), (9, 25),
-                          (9, 33), (9, 41), (9, 49), (9, 57)}, board.legal_moves)
+                          (9, 33), (9, 41), (9, 49), (9, 57)} | {(0, 1), (0, 8)}, board.legal_moves())
 
-    def test_can_generate_any_black_rook_moves(self):
-        board = Board('8/8/8/8/8/8/6r1/8 b - - 0 1')
+    def test_can_generate_any_white_rook_moves(self):
+        board = Board('8/8/8/8/8/8/6R1/7K w - - 0 1')
         self.assertEqual({(14, 15), (14, 6), (14, 13), (14, 12), (14, 11), (14, 10), (14, 9), (14, 8), (14, 22),
-                          (14, 30), (14, 38), (14, 46), (14, 54), (14, 62)}, board.legal_moves)
+                          (14, 30), (14, 38), (14, 46), (14, 54), (14, 62)} | {(7, 6), (7, 15)}, board.legal_moves())
 
-    def test_can_generate_black_queen_moves(self):
-        board = Board('8/8/8/8/8/8/1q6/8 b - - 0 1')
+    def test_can_generate_white_queen_moves(self):
+        board = Board('K7/8/8/8/8/8/1Q6/8 w - - 0 1')
         self.assertEqual({(9, 1), (9, 8), (9, 10), (9, 11), (9, 12), (9, 13), (9, 14), (9, 15), (9, 17), (9, 25),
                           (9, 33), (9, 41), (9, 49), (9, 57), (9, 0), (9, 18), (9, 27), (9, 36), (9, 45), (9, 54),
-                          (9, 63), (9, 2), (9, 16)}, board.legal_moves)
+                          (9, 63), (9, 2), (9, 16)} | {(56, 48), (56, 49), (56, 57)}, board.legal_moves())
 
-    def test_can_generate_any_black_queen_moves(self):
-        board = Board('8/8/8/8/8/8/6q1/8 b - - 0 1')
+    def test_can_generate_any_white_queen_moves(self):
+        board = Board('7K/8/8/8/8/8/6Q1/8 w - - 0 1')
         self.assertEqual({(14, 15), (14, 6), (14, 13), (14, 12), (14, 11), (14, 10), (14, 9), (14, 8), (14, 22),
                           (14, 30), (14, 38), (14, 46), (14, 54), (14, 62), (14, 7), (14, 21), (14, 28), (14, 35),
-                          (14, 42), (14, 49), (14, 56), (14, 23), (14, 5)}, board.legal_moves)
+                          (14, 42), (14, 49), (14, 56), (14, 23), (14, 5)} | {(63, 54), (63, 55), (63, 62)},
+                         board.legal_moves())
 
+    def test_can_generate_multiple_white_moves(self):
+        board = Board('8/8/8/8/1P1PP3/8/KQB5/N1RN4 w - - 0 1')
+        self.assertEqual({(0, 17), (2, 1), (3, 18), (3, 20), (3, 13), (8, 1), (8, 16), (8, 17), (9, 16), (9, 17),
+                          (9, 18), (9, 1), (10, 1), (10, 17), (10, 19), (10, 24), (25, 33), (27, 35), (28, 36)},
+                         board.legal_moves())
+
+    # black pieces
     def test_can_generate_black_king_moves(self):
         board = Board('8/8/8/8/8/8/1k6/8 b - - 0 1')
-        self.assertEqual({(9, 0), (9, 1), (9, 2), (9, 8), (9, 10), (9, 16), (9, 17), (9, 18)}, board.legal_moves)
+        self.assertEqual({(9, 0), (9, 1), (9, 2), (9, 8), (9, 10), (9, 16), (9, 17), (9, 18)}, board.legal_moves())
 
     def test_can_generate_any_black_king_moves(self):
         board = Board('8/8/8/8/8/8/6k1/8 b - - 0 1')
         self.assertEqual({(14, 5), (14, 6), (14, 7), (14, 13), (14, 15), (14, 21), (14, 22), (14, 23)},
-                         board.legal_moves)
+                         board.legal_moves())
+
+    def test_can_generate_black_pawn_moves(self):
+        board = Board('k7/p7/8/8/8/8/8/8 b - - 0 1')
+        self.assertEqual({(48, 40), (48, 32)} | {(56, 49), (56, 57)}, board.legal_moves())
+
+    def test_can_generate_any_black_pawn_moves(self):
+        board = Board('k7/8/2p5/8/8/8/8/8 b - - 0 1')
+        self.assertEqual({(42, 34)} | {(56, 48), (56, 49), (56, 57)}, board.legal_moves())
+
+    def test_can_generate_black_knight_moves(self):
+        board = Board('8/8/8/8/8/8/8/kn6 b - - 0 1')
+        self.assertEqual({(1, 11), (1, 16), (1, 18)} | {(0, 8), (0, 9)}, board.legal_moves())
+
+    def test_can_generate_any_black_knight_moves(self):
+        board = Board('8/8/8/8/8/8/8/6nk b - - 0 1')
+        self.assertEqual({(6, 12), (6, 21), (6, 23)} | {(7, 14), (7, 15)}, board.legal_moves())
+
+    def test_can_generate_black_bishop_moves(self):
+        board = Board('8/8/8/8/8/8/1b6/1k6 b - - 0 1')
+        self.assertEqual({(9, 0), (9, 18), (9, 27), (9, 36), (9, 45), (9, 54), (9, 63), (9, 2), (9, 16)} |
+                         {(1, 0), (1, 8), (1, 2), (1, 10)}, board.legal_moves())
+
+    def test_can_generate_any_black_bishop_moves(self):
+        board = Board('8/8/8/8/8/8/6b1/6k1 b - - 0 1')
+        self.assertEqual({(14, 7), (14, 21), (14, 28), (14, 35), (14, 42), (14, 49), (14, 56), (14, 23), (14, 5)} |
+                         {(6, 5), (6, 7), (6, 13), (6, 15)}, board.legal_moves())
+
+    def test_can_generate_black_rook_moves(self):
+        board = Board('8/8/8/8/8/8/1r6/k7 b - - 0 1')
+        self.assertEqual({(9, 1), (9, 8), (9, 10), (9, 11), (9, 12), (9, 13), (9, 14), (9, 15), (9, 17), (9, 25),
+                          (9, 33), (9, 41), (9, 49), (9, 57)} | {(0, 1), (0, 8)}, board.legal_moves())
+
+    def test_can_generate_any_black_rook_moves(self):
+        board = Board('8/8/8/8/8/8/6r1/7k b - - 0 1')
+        self.assertEqual({(14, 15), (14, 6), (14, 13), (14, 12), (14, 11), (14, 10), (14, 9), (14, 8), (14, 22),
+                          (14, 30), (14, 38), (14, 46), (14, 54), (14, 62)} | {(7, 6), (7, 15)}, board.legal_moves())
+
+    def test_can_generate_black_queen_moves(self):
+        board = Board('k7/8/8/8/8/8/1q6/8 b - - 0 1')
+        self.assertEqual({(9, 1), (9, 8), (9, 10), (9, 11), (9, 12), (9, 13), (9, 14), (9, 15), (9, 17), (9, 25),
+                          (9, 33), (9, 41), (9, 49), (9, 57), (9, 0), (9, 18), (9, 27), (9, 36), (9, 45), (9, 54),
+                          (9, 63), (9, 2), (9, 16)} | {(56, 48), (56, 49), (56, 57)}, board.legal_moves())
+
+    def test_can_generate_any_black_queen_moves(self):
+        board = Board('7k/8/8/8/8/8/6q1/8 b - - 0 1')
+        self.assertEqual({(14, 15), (14, 6), (14, 13), (14, 12), (14, 11), (14, 10), (14, 9), (14, 8), (14, 22),
+                          (14, 30), (14, 38), (14, 46), (14, 54), (14, 62), (14, 7), (14, 21), (14, 28), (14, 35),
+                          (14, 42), (14, 49), (14, 56), (14, 23), (14, 5)} | {(63, 54), (63, 55), (63, 62)},
+                         board.legal_moves())
+
+    def test_can_generate_multiple_black_moves(self):
+        board = Board('8/8/8/8/1p1pp3/8/kqb5/n1rn4 b - - 0 1')
+        self.assertEqual({(0, 17), (2, 1), (3, 18), (3, 20), (3, 13), (8, 1), (8, 16), (8, 17), (9, 16), (9, 17),
+                          (9, 18), (9, 1), (10, 1), (10, 17), (10, 19), (10, 24), (25, 17), (27, 19), (28, 20)},
+                         board.legal_moves())
 
 
 class LegalMoveGenerationTextCase(unittest.TestCase):
     def test_king_can_not_move_into_check(self):
         board = Board('8/8/8/8/8/8/7r/K7 w - - 0 1')
-        self.assertEqual({(0, 1)}, board.legal_moves)
+        self.assertEqual({(0, 1)}, board.legal_moves())
 
     def test_king_can_capture_checking_piece(self):
         board = Board('8/8/8/8/8/8/7r/7K w - - 0 1')
-        self.assertEqual({(7, 15), (7, 6)}, board.legal_moves)
+        self.assertEqual({(7, 15), (7, 6)}, board.legal_moves())
 
     def test_king_can_not_capture_checking_piece_if_it_is_saved(self):
         board = Board('7r/8/8/8/8/8/7r/7K w - - 0 1')
-        self.assertEqual({(7, 6)}, board.legal_moves)
+        self.assertEqual({(7, 6)}, board.legal_moves())
 
     def test_king_can_move_out_of_check(self):
         board = Board('7r/8/8/8/8/8/7r/7K w - - 0 1')
-        self.assertEqual({(7, 6)}, board.legal_moves)
+        self.assertEqual({(7, 6)}, board.legal_moves())
 
     def test_other_piece_can_capture_checking_piece(self):
         board = Board('R6r/6r1/8/8/8/8/8/7K w - - 0 1')
-        self.assertEqual({(56, 63)}, board.legal_moves)
+        self.assertEqual({(56, 63)}, board.legal_moves())
 
     def test_other_piece_can_interpose_checking_piece(self):
         board = Board('7r/6r1/R7/8/8/8/8/7K w - - 0 1')
-        self.assertEqual({(40, 47)}, board.legal_moves)
+        self.assertEqual({(40, 47)}, board.legal_moves())
 
     def test_other_piece_can_not_expose_king_to_check(self):
         board = Board('7r/6r1/8/8/8/8/7R/7K w - - 0 1')
-        self.assertEqual({(15, 23), (15, 31), (15, 39), (15, 47), (15, 55), (15, 63)}, board.legal_moves)
+        self.assertEqual({(15, 23), (15, 31), (15, 39), (15, 47), (15, 55), (15, 63)}, board.legal_moves())
 
     def test_other_piece_cannot_capture_checking_piece_when_in_double_check(self):
         board = Board('r6R/8/8/8/8/8/1P6/K6r w - - 0 1')
-        self.assertEqual(set(), board.legal_moves)
+        self.assertEqual(set(), board.legal_moves())
 
     def test_other_piece_cannot_interpose_checking_piece_when_in_double_check(self):
         board = Board('r7/6R1/8/8/8/8/1P6/K6r w - - 0 1')
-        self.assertEqual(set(), board.legal_moves)
+        self.assertEqual(set(), board.legal_moves())
 
     def test_king_cannot_move_if_in_checkmate(self):
         board = Board('8/8/8/8/8/2b5/1q6/K7 w - - 0 1')
-        self.assertEqual(set(), board.legal_moves)
+        self.assertEqual(set(), board.legal_moves())
 
     def test_other_pieces_cannot_move_if_king_is_in_checkmate(self):
         board = Board('8/8/8/8/8/2b5/1q6/K6P w - - 0 1')
-        self.assertEqual(set(), board.legal_moves)
+        self.assertEqual(set(), board.legal_moves())
 
     def test_king_cannot_move_if_in_stalemate(self):
         board = Board('8/8/8/8/8/2b5/1r6/K7 w - - 0 1')
-        self.assertEqual(set(), board.legal_moves)
+        self.assertEqual(set(), board.legal_moves())
 
     def test_other_pieces_can_move_if_king_is_in_stalemate(self):
         board = Board('8/8/8/8/8/2b5/1r6/K6P w - - 0 1')
-        self.assertEqual({(7, 15)}, board.legal_moves)
+        self.assertEqual({(7, 15)}, board.legal_moves())
+    # def test_other_pieces_can_move_if_king_is_in_stalemate(self):
+    #     board = Board('r1bqkb1r/p1pppQpp/1pn2n2/8/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4')
+    #     self.assertTrue(board.checkmate)
 
 
 class MakeMoveTestCase(unittest.TestCase):
