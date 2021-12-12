@@ -1,8 +1,16 @@
 import unittest
 from player import HumanPlayer
 
-w_player = HumanPlayer(True, 'Hans-Wurst')
-b_player = HumanPlayer(False, 'Darth Vader')
+
+class TestHumanPlayer(HumanPlayer):
+    @staticmethod
+    def _verify_move(move, moves, *args):
+        if move not in moves:
+            raise ValueError
+
+
+w_player = TestHumanPlayer(True, 'Hans-Wurst')
+b_player = TestHumanPlayer(False, 'Darth Vader')
 
 
 class ConstructionTestCase(unittest.TestCase):
@@ -68,3 +76,12 @@ class MoveVerificationTestCase(unittest.TestCase):
 
     def test_raises_value_if_move_not_in_any_moves_set(self):
         self.assertRaises(ValueError, w_player._verify_move, (0, 1), {})
+
+
+def main() -> None:
+    unittest.main()
+
+
+if __name__ == '__main__':
+    main()
+

@@ -11,6 +11,18 @@ class ConstructionTestCase(unittest.TestCase):
     def test_is_subclass_of_piece(self):
         self.assertTrue(issubclass(King, Piece))
 
+    def test_type_is_correct(self):
+        self.assertEqual(5, king1.type)
+
+    def test_type_is_always_correct(self):
+        self.assertEqual(5, king2.type)
+
+    def test_value_is_correct(self):
+        self.assertEqual(20000, king1.value)
+
+    def test_value_is_always_correct(self):
+        self.assertEqual(20000, king2.value)
+
     def test_pos_is_given_value(self):
         self.assertEqual(35, king1._pos)
 

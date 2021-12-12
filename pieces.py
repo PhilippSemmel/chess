@@ -6,26 +6,40 @@ if TYPE_CHECKING:
 
 
 class Piece(ABC):
-    def __init__(self, pos: int, white_piece: bool, _type: int, board: Board, symbol: str, fen_symbol: str) -> None:
-        self._verify_params(pos, _type)
+    _all_diffs: List[int] = [1, -1, 8, -8, 9, 7, -7, -9]  # differences between the square values
+    # order of the differences :right, left, up, down, right up, left up, right down, left down
+
+    def __init__(self, pos: int, white_piece: bool, board: Board, symbol: str, fen_symbol: str) -> None:
         # piece info
         self._pos: int = pos
         self._white_piece: bool = white_piece
-        self._type: int = _type  # 0: Pawn, 1: Knight, 2: Bishop, 3: Rook, 4: Queen, 5: King
         self._symbol: str = symbol
         self._fen_symbol: str = fen_symbol
         self._capture_data: Union[None, Tuple[int, bool]] = None
         # objects
         self._board: Board = board
-        # misc data
-        self._all_diffs: List[int] = [1, -1, 8, -8, 9, 7, -7, -9]  # differences between the square values
-        # order of the differences :right, left, up, down, right up, left up, right down, left down
 
     def __repr__(self) -> str:
         """
         :return: {color} {type} {pos}
         """
         return f'{"w" if self._white_piece else "b"} {self._fen_symbol} {self._pos}'
+
+    # def __eq__(self, other):
+    #     return self.type == other
+
+    """
+    abstract class attributes
+    """
+    @property
+    @abstractmethod
+    def value(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def type(self) -> int:
+        pass
 
     """
     attribute getters
@@ -45,14 +59,6 @@ class Piece(ABC):
         :return: the piece's color
         """
         return self._white_piece
-
-    @property
-    def type(self) -> int:
-        """
-        get the piece's type
-        :return: the piece's type
-        """
-        return self._type
 
     @property
     def symbol(self) -> str:
@@ -193,28 +199,14 @@ class Piece(ABC):
                     break
         return moves
 
-    """
-    misc
-    """
-    @staticmethod
-    def _verify_params(pos: int, _type: int) -> None:
-        """
-        verify the validity of the values passed to the constructor
-        :param pos: pos value of the piece
-        :param _type: type value of the piece
-        :raises TypeError if any value has a wrong type
-        :raises ValueError if the pos or type value is wrong
-        """
-        if pos > 63 or pos < 0:
-            raise ValueError('The position reach from value 0 to value 63 only.')
-        if _type > 5 or _type < 0:
-            raise ValueError('The type codes reach from 0 to 5 only.')
-
 
 class Pawn(Piece):
+    value: int = 100
+    type: int = 0
+
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♟', 'P') if white_piece else ('♙', 'p')
-        super().__init__(pos, white_piece, 0, board, symbol, fen_symbol)
+        super().__init__(pos, white_piece, board, symbol, fen_symbol)
         self._promotion_data: Union[None, Tuple[int, bool]] = None
 
     """
@@ -304,9 +296,12 @@ class Pawn(Piece):
 
 
 class Knight(Piece):
+    value: int = 320
+    type: int = 1
+
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♞', 'N') if white_piece else ('♘', 'n')
-        super().__init__(pos, white_piece, 1, board, symbol, fen_symbol)
+        super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:  
@@ -324,9 +319,12 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
+    value: int = 330
+    type: int = 2
+
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♝', 'B') if white_piece else ('♗', 'b')
-        super().__init__(pos, white_piece, 2, board, symbol, fen_symbol)
+        super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
@@ -334,9 +332,12 @@ class Bishop(Piece):
 
 
 class Rook(Piece):
+    value: int = 500
+    type: int = 3
+
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♜', 'R') if white_piece else ('♖', 'r')
-        super().__init__(pos, white_piece, 3, board, symbol, fen_symbol)
+        super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
@@ -344,9 +345,12 @@ class Rook(Piece):
 
 
 class Queen(Piece):
+    value: int = 900
+    type: int = 4
+
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♛', 'Q') if white_piece else ('♕', 'q')
-        super().__init__(pos, white_piece, 4, board, symbol, fen_symbol)
+        super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
@@ -354,9 +358,12 @@ class Queen(Piece):
 
 
 class King(Piece):
+    value: int = 20_000
+    type: int = 5
+
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♚', 'K') if white_piece else ('♔', 'k')
-        super().__init__(pos, white_piece, 5, board, symbol, fen_symbol)
+        super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:

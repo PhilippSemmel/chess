@@ -43,15 +43,15 @@ class Board:
     @property
     def pieces(self) -> Set[Piece]:
         """
-        get the pieces on the board
-        :return: a set with all pieces on the board
+        get the pieces_tests on the board
+        :return: a set with all pieces_tests on the board
         """
         return self._pieces
 
     @property
     def white_to_move(self) -> bool:
         """
-        get the player to move
+        get the player_tests to move
         :return: whether white to move
         """
         return self._white_to_move
@@ -94,8 +94,8 @@ class Board:
     @property
     def _active_pieces(self) -> Set[Piece]:
         """
-        get all pieces that are on the board and active
-        :return: set of all active pieces
+        get all pieces_tests that are on the board and active
+        :return: set of all active pieces_tests
         """
         return {piece for piece in self._pieces if piece.on_board}
 
@@ -177,7 +177,7 @@ class Board:
 
     def _move_pieces(self, moving_piece: Piece, move: MOVE) -> None:
         """
-        move all pieces according the move
+        move all pieces_tests according the move
         :param moving_piece: piece to move
         :param move: move to make
         """
@@ -327,7 +327,7 @@ class Board:
         """
         test whether there is a piece on the given position
         :param pos: position of the square to test
-        :param pieces: pieces to reference
+        :param pieces: pieces_tests to reference
         :return: whether there is a piece at the given position
         """
         if pieces is None:
@@ -342,7 +342,7 @@ class Board:
         test whether there is a piece on the given position the same color as given
         :param pos: positions of the square to test
         :param white_piece: own color
-        :return: whether there is one of your own pieces at the given position
+        :return: whether there is one of your own pieces_tests at the given position
         """
         for piece in self._active_pieces:
             if piece.pos == pos and piece.white_piece == white_piece:
@@ -354,7 +354,7 @@ class Board:
         test whether there is a piece on the given position a different color as given
         :param pos: positions of the square to test
         :param white_piece: own color
-        :return: whether there is one of your opponent's own pieces at the given position
+        :return: whether there is one of your opponent's own pieces_tests at the given position
         """
         for piece in self._active_pieces:
             if piece.pos == pos and not piece.white_piece == white_piece:
@@ -363,11 +363,11 @@ class Board:
 
     def is_square_attacked(self, pos: int, white_piece: bool):  
         """
-        test is a square is being threatened by a player
+        test is a square is being threatened by a player_tests
         only considers moves that could threaten the king
         :param pos: position of the square
         :param white_piece: point of view of the test
-        :return: whether a square is being threatened by a player
+        :return: whether a square is being threatened by a player_tests
         """
         for piece in self._active_pieces:
             if not piece.white_piece == white_piece:
@@ -376,7 +376,7 @@ class Board:
         return False
 
     """
-    pieces
+    pieces_tests
     """
     def _get_piece(self, pos: int, pieces: Optional[Set[Piece]] = None) -> Piece:
         """
@@ -438,7 +438,7 @@ class Board:
         """
         load the data of a fen string into the object's attributes
         :param fen: fen string to load
-        only moves pieces back if piece set is not empty
+        only moves pieces_tests back if piece set is not empty
         """
         self._pieces, self._white_to_move, self._castling_rights, self._ep_target_square, self._half_move_clock, \
             self._turn_number = self._fen_to_board(fen)
@@ -469,7 +469,7 @@ class Board:
         """
         convert positions from fen data to board object data
         :param positions: fen positions
-        :return: set of pieces on the board
+        :return: set of pieces_tests on the board
         """
         symbols = 'pnbrqk'
         pieces = set()
