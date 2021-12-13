@@ -127,8 +127,8 @@ class HumanPlayer(Player):
 
 
 class ComPlayer(Player):
-    def __init__(self, color: bool, name: str) -> None:
-        super().__init__(color, name)
+    def __init__(self, color: bool) -> None:
+        super().__init__(color, 'Heil, Hubertus' if color else 'Darth Vader')
 
     def get_move(self, moves: Set[MOVE]) -> MOVE:
         move = self._get_random_move(moves)

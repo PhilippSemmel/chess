@@ -33,7 +33,7 @@ class Game:
             if input_ == 'y':
                 return HumanPlayer(color == 'white', input(f'> Enter the name of the {color} human player: '))
             elif input_ == 'n':
-                return ComPlayer(color == 'white', input(f'> Enter the name of the {color} com player: '))
+                return ComPlayer(color == 'white')
 
     """
     getters
@@ -66,12 +66,12 @@ class Game:
             self._board.make_move(move)
             print(self._board)
             if self._board.checkmate:
-                print(self._active_player.name + ' wins.')
+                print(self._inactive_player.name + ' wins.')
                 break
             if self._board.stalemate:
                 print('Stalemate.')
                 break
-            if self._board.half_move_clock > 50:
+            if self._board.half_move_clock >= 50:
                 print('Reicht jetzt auch.')
                 break
             if len(self._board.pieces) <= 2:

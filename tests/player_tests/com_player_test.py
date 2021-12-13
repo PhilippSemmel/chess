@@ -2,8 +2,8 @@ import unittest
 from player import ComPlayer
 
 
-w_player = ComPlayer(True, 'Hans-Wurst')
-b_player = ComPlayer(False, 'Darth Vader')
+w_player = ComPlayer(True)
+b_player = ComPlayer(False)
 
 
 class ConstructionTestCase(unittest.TestCase):
@@ -13,10 +13,10 @@ class ConstructionTestCase(unittest.TestCase):
     def test_white_is_any_given_value(self):
         self.assertFalse(b_player._white)
 
-    def test_name_is_given_value(self):
-        self.assertEqual('Hans-Wurst', w_player._name)
+    def test_name_of_white_is_standard_name(self):
+        self.assertEqual('Heil, Hubertus', w_player._name)
 
-    def test_name_is_any_given_value(self):
+    def test_name_of_black_is_standard_name(self):
         self.assertEqual('Darth Vader', b_player._name)
 
 
