@@ -1306,6 +1306,12 @@ class UndoMoveTestCase(unittest.TestCase):
         self.assertEqual(5, board._turn_number)
 
 
+class EvaluationTestCase(unittest.TestCase):
+    def test_empty_value_is_zero(self):
+        board = Board('8/8/8/8/8/8/8/8 w - - 0 1')
+        self.assertEqual(0, board.val)
+
+
 class BoardConversionTestCase(unittest.TestCase):
     # positions
     def test_can_convert_empty_board(self):

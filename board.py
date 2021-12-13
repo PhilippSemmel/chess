@@ -32,9 +32,9 @@ class Board:
                 output += ' ' + str(row + 1) + ' \n'
             return output
 
-        return f'    a  b  c  d  e  f  g  h\n{positions_to_str()}    a  b  c  d  e  f  g  h\n\ncolor to move: ' \
-               f'{self._color_to_move_to_fen()}\ncastling rights: {self._castling_rights_to_fen()}\nep target: ' \
-               f'{self._ep_target_square_to_fen()}\nhalf move clock: {self._half_move_clock_to_fen()}\nturn: ' \
+        return f'    a  b  c  d  e  f  g  h\n{positions_to_str()}    a  b  c  d  e  f  g  h\n\n> color to move: ' \
+               f'{self._color_to_move_to_fen()}\n> castling rights: {self._castling_rights_to_fen()}\n> ep target: ' \
+               f'{self._ep_target_square_to_fen()}\n> half move clock: {self._half_move_clock_to_fen()}\n> turn: ' \
                f'{self._turn_number_to_fen()}\n'
 
     """
@@ -116,6 +116,10 @@ class Board:
         """
         return len(self.legal_moves()) == 0 and \
             not self.is_square_attacked(self._get_king(self._white_to_move).pos, self._white_to_move)
+
+    @property
+    def val(self) -> int:
+        return 0
 
     """
     legal moves
