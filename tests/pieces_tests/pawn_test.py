@@ -27,12 +27,6 @@ class ConstructionTestCase(unittest.TestCase):
                           10, 25, 25, 10, 5, 5, 0, 0, 0, 20, 20, 0, 0, 0, 5, -5, -10, 0, 0, -10, -5, 5, 5, 10, 10, -20,
                           -20, 10, 10, 5, 0, 0, 0, 0, 0, 0, 0, 0), pawn1._pos_val_mod[False])
 
-    def test_type_is_correct(self):
-        self.assertEqual(0, pawn1.type)
-
-    def test_type_is_always_correct(self):
-        self.assertEqual(0, pawn2.type)
-
     def test_pos_is_given_value(self):
         self.assertEqual(35, pawn1._pos)
 

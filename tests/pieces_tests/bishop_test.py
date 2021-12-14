@@ -29,12 +29,6 @@ class ConstructionTestCase(unittest.TestCase):
                           10, -10, -10,  5,  0,  0,  0,  0,  5, -10, -20, -10, -10, -10, -10, -10, -10, -20),
                          bishop2._pos_val_mod[False])
 
-    def test_type_is_correct(self):
-        self.assertEqual(2, bishop1.type)
-
-    def test_type_is_always_correct(self):
-        self.assertEqual(2, bishop2.type)
-
     def test_pos_is_given_value(self):
         self.assertEqual(35, bishop1._pos)
 

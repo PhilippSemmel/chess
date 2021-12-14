@@ -29,12 +29,6 @@ class ConstructionTestCase(unittest.TestCase):
                           15, 10, 5, -30, -40, -20, 0, 5, 5, 0, -20, -40, -50, -40, -30, -30, -30, -30, -40, -50),
                          knight2._pos_val_mod[False])
 
-    def test_type_is_correct(self):
-        self.assertEqual(1, knight1.type)
-
-    def test_type_is_always_correct(self):
-        self.assertEqual(1, knight2.type)
-
     def test_pos_is_given_value(self):
         self.assertEqual(35, knight1._pos)
 

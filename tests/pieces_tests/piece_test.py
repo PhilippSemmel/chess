@@ -23,10 +23,6 @@ class TestPiece(Piece):
     def pos_val(self, *args):
         pass
 
-    @property
-    def type(self) -> int:
-        return self._type
-
 
 board = Board()
 piece1 = TestPiece(35, True, board, '♟', 'P', type_=0)
@@ -63,11 +59,6 @@ class ConstructionTestCase(unittest.TestCase):
 
     def test_fen_symbol_is_any_given_value(self):
         self.assertEqual('n', piece2._fen_symbol)
-
-
-# class DunderMethodsTestCase(unittest.TestCase):
-#     def test_type_equals_int(self):
-#         self.assertEqual(piece1.type, Pawn)
 
 
 class AttributeGetterTestCase(unittest.TestCase):

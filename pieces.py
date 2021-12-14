@@ -31,9 +31,6 @@ class Piece(ABC):
         """
         return f'{"w" if self._white_piece else "b"} {self._fen_symbol} {self._pos}'
 
-    # def __eq__(self, other):
-    #     return self.type == other
-
     """
     abstract class attributes
     """
@@ -45,11 +42,6 @@ class Piece(ABC):
     @property
     @abstractmethod
     def _pos_val_mod(self) -> int:
-        pass
-
-    @property
-    @abstractmethod
-    def type(self) -> int:
         pass
 
     """
@@ -238,7 +230,6 @@ class Pawn(Piece):
                                                      5, -5,-10,  0,  0,-10, -5,  5,
                                                      5, 10, 10,-20,-20, 10, 10,  5,
                                                      0,  0,  0,  0,  0,  0,  0,  0)}
-    type: int = 0
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♟', 'P') if white_piece else ('♙', 'p')
@@ -353,7 +344,6 @@ class Knight(Piece):
                                                     -30,  5, 10, 15, 15, 10,  5,-30,
                                                     -40,-20,  0,  5,  5,  0,-20,-40,
                                                     -50,-40,-30,-30,-30,-30,-40,-50)}
-    type: int = 1
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♞', 'N') if white_piece else ('♘', 'n')
@@ -403,7 +393,6 @@ class Bishop(Piece):
                                                     -10, 10, 10, 10, 10, 10, 10,-10,
                                                     -10,  5,  0,  0,  0,  0,  5,-10,
                                                     -20,-10,-10,-10,-10,-10,-10,-20)}
-    type: int = 2
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♝', 'B') if white_piece else ('♗', 'b')
@@ -442,7 +431,6 @@ class Rook(Piece):
                                                     -5,  0,  0,  0,  0,  0,  0, -5,
                                                     -5,  0,  0,  0,  0,  0,  0, -5,
                                                      0,  0,  0,  5,  5,  0,  0,  0)}
-    type: int = 3
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♜', 'R') if white_piece else ('♖', 'r')
@@ -481,7 +469,6 @@ class Queen(Piece):
                                                     -10,  5,  5,  5,  5,  5,  0,-10,
                                                     -10,  0,  5,  0,  0,  0,  0,-10,
                                                     -20,-10,-10, -5, -5,-10,-10,-20)}
-    type: int = 4
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♛', 'Q') if white_piece else ('♕', 'q')
@@ -520,7 +507,6 @@ class King(Piece):
                                                     -10,-20,-20,-20,-20,-20,-20,-10,
                                                      20, 20,  0,  0,  0,  0, 20, 20,
                                                      20, 30, 10,  0,  0, 10, 30, 20)}
-    type: int = 5
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♚', 'K') if white_piece else ('♔', 'k')

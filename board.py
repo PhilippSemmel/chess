@@ -174,7 +174,7 @@ class Board:
         :param moving_piece: piece to move
         :param move: move to make
         """
-        if moving_piece.type == 0 or not self.is_square_empty(move[1]):  # pawn move or capture move
+        if type(moving_piece) == Pawn or not self.is_square_empty(move[1]):  # pawn move or capture move
             self._half_move_clock = 0
         else:
             self._half_move_clock += 1
@@ -190,7 +190,7 @@ class Board:
                 self._get_piece(move[1]).capture(self._turn_number, self._white_to_move)
 
         def move_castling_rook() -> None:
-            if moving_piece.type == 5 and abs(move[0] - move[1]) == 2:
+            if type(moving_piece) == King and abs(move[0] - move[1]) == 2:
                 # castles queenside
                 if (move[0] - move[1]) == abs(move[0] - move[1]):
                     # move queenside rook
@@ -201,7 +201,7 @@ class Board:
                     self._get_piece(move[0] + 3).move_to(move[1] - 1)
 
         def capture_pawn_en_passant() -> None:
-            if move[1] == self._ep_target_square and moving_piece.type == 0:
+            if move[1] == self._ep_target_square and type(moving_piece) == Pawn:
                 # remove piece from piece set
                 self._get_piece(move[0] - ((move[0] % 8) - (move[1] % 8))).capture(self._turn_number,
                                                                                    self._white_to_move)
@@ -211,9 +211,9 @@ class Board:
 
         def promote_pawn() -> None:
             nonlocal moving_piece
-            if moving_piece.type == 0 and (move[1] // 8 == 7 or move[1] // 8 == 0):
+            if type(moving_piece) == Pawn and (move[1] // 8 == 7 or move[1] // 8 == 0):
                 moving_piece.promote(self._turn_number, self._white_to_move)
-                self._pieces.add(self._create_piece(moving_piece.pos, moving_piece.white_piece, 4))
+                self._pieces.add(self._create_piece(moving_piece.pos, 'Q' if moving_piece.white_piece else 'q'))
 
         capture_piece()
         move_castling_rook()
@@ -225,19 +225,19 @@ class Board:
         """
         adjust the castling rights according to the move
         """
-        if self.is_square_empty(4) or not (self._get_piece(4).type == 5 and self._get_piece(4).white_piece):
+        if self.is_square_empty(4) or not (type(self._get_piece(4)) == King and self._get_piece(4).white_piece):
             self._castling_rights[0] = False
             self._castling_rights[1] = False
-        if self.is_square_empty(7) or not (self._get_piece(7).type == 3 and self._get_piece(7).white_piece):
+        if self.is_square_empty(7) or not (type(self._get_piece(7)) == Rook and self._get_piece(7).white_piece):
             self._castling_rights[0] = False
-        if self.is_square_empty(0) or not (self._get_piece(0).type == 3 and self._get_piece(0).white_piece):
+        if self.is_square_empty(0) or not (type(self._get_piece(0)) == Rook and self._get_piece(0).white_piece):
             self._castling_rights[1] = False
-        if self.is_square_empty(60) or not (self._get_piece(60).type == 5 and not self._get_piece(60).white_piece):
+        if self.is_square_empty(60) or not (type(self._get_piece(60)) == King and not self._get_piece(60).white_piece):
             self._castling_rights[2] = False
             self._castling_rights[3] = False
-        if self.is_square_empty(63) or not (self._get_piece(63).type == 3 and not self._get_piece(63).white_piece):
+        if self.is_square_empty(63) or not (type(self._get_piece(63)) == Rook and not self._get_piece(63).white_piece):
             self._castling_rights[2] = False
-        if self.is_square_empty(56) or not (self._get_piece(56).type == 3 and not self._get_piece(56).white_piece):
+        if self.is_square_empty(56) or not (type(self._get_piece(56)) == Rook and not self._get_piece(56).white_piece):
             self._castling_rights[3] = False
 
     def _set_en_passant_target_square(self, moving_piece: Piece, move: MOVE) -> None:
@@ -246,7 +246,7 @@ class Board:
         :param moving_piece: piece to move
         :param move: move to make
         """
-        if moving_piece.type == 0 and abs(move[0] - move[1]) == 16:
+        if type(moving_piece) == Pawn and abs(move[0] - move[1]) == 16:
             self._ep_target_square = move[0] + 8 if self._white_to_move else move[0] - 8
         else:
             self._ep_target_square = None
@@ -289,7 +289,7 @@ class Board:
         :param moved_piece: piece to move back
         """
         def uncastle() -> None:
-            if not moved_piece.type == 5 or not abs(move[0] - move[1]) == 2:
+            if not type(moved_piece) == King or not abs(move[0] - move[1]) == 2:
                 return
             # castles queenside
             if (move[0] - move[1]) == abs(move[0] - move[1]):
@@ -404,29 +404,30 @@ class Board:
         :return: king with given color
         """
         for piece in self._active_pieces:
-            if piece.type == 5 and piece.white_piece == white_piece:
+            if type(piece) == King and piece.white_piece == white_piece:
                 return piece
         raise ValueError('No king found.')
 
-    def _create_piece(self, pos: int, white_piece: bool, _type: int) -> Piece:
+    def _create_piece(self, pos: int, symbol: str) -> Piece:
         """
         create a piece object
         :param pos: position of the piece
-        :param white_piece: whether the piece is white
-        :param _type: type of the piece
+        :param symbol: symbol of the piece type
         :return: piece object with given attributes
         """
-        if _type == 0:
+        white_piece = symbol.isupper()
+        symbol = symbol.lower()
+        if symbol == 'p':
             return Pawn(pos, white_piece, self)
-        elif _type == 1:
+        elif symbol == 'n':
             return Knight(pos, white_piece, self)
-        elif _type == 2:
+        elif symbol == 'b':
             return Bishop(pos, white_piece, self)
-        elif _type == 3:
+        elif symbol == 'r':
             return Rook(pos, white_piece, self)
-        elif _type == 4:
+        elif symbol == 'q':
             return Queen(pos, white_piece, self)
-        elif _type == 5:
+        elif symbol == 'k':
             return King(pos, white_piece, self)
 
     """
@@ -475,7 +476,6 @@ class Board:
         :param positions: fen positions
         :return: set of pieces_tests on the board
         """
-        symbols = 'pnbrqk'
         pieces = set()
         positions = positions.split('/')
         for r, rank in enumerate(positions):
@@ -484,7 +484,7 @@ class Board:
                 if symbol.isdigit():
                     f += int(symbol)
                     continue
-                pieces.add(self._create_piece((7 - r) * 8 + f, symbol.isupper(), symbols.find(symbol.lower())))
+                pieces.add(self._create_piece((7 - r) * 8 + f, symbol))
                 f += 1
         return pieces
 
