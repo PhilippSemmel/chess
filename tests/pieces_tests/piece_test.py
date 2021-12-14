@@ -1,5 +1,5 @@
 import unittest
-from board import Piece, Board
+from src.board import Piece, Board
 
 """
 tests can only be run when all abstract methods are commented out
