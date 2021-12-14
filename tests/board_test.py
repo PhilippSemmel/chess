@@ -1,5 +1,5 @@
 import unittest
-from src.board import Board, Pawn, Knight, Bishop, Rook, Queen, King
+from board import Board, Pawn, Knight, Bishop, Rook, Queen, King
 
 
 board1 = Board()

@@ -1,4 +1,4 @@
-from src.board import Board
+from board import Board
 from player import Player, HumanPlayer, ComPlayer
 from typing import Tuple, Union
 
