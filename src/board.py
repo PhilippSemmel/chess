@@ -1,8 +1,10 @@
 from __future__ import annotations
-from functools import *
+
+import cProfile
 import contextlib
 from pieces import Piece, Pawn, Knight, Bishop, Rook, Queen, King
 from typing import Tuple, Optional, Union, Set, List, TYPE_CHECKING
+from functools import *
 if TYPE_CHECKING:
     from chess import MOVE
 
@@ -16,8 +18,10 @@ class Board:
         self._half_move_clock: int
         self._turn_number: int
         self._load_position(fen)
-        self._positions: List[str] = []
+        # self._active_pieces = self._get_active_pieces()
+        self._data: List[Tuple[bool, List[bool], Union[None, int], int, int]] = []
         self._moves: List[MOVE] = []
+        self._legal_moves: Set[MOVE] = self._get_legal_moves()
 
     def __repr__(self) -> str:
         def positions_to_str() -> str:
@@ -88,11 +92,19 @@ class Board:
         """
         return self._turn_number
 
+    @property
+    def legal_moves(self) -> Set[MOVE]:
+        """
+        get the legal moves
+        :return: legal moves
+        """
+        return self._legal_moves
+
     """
     other getters
     """
     @property
-    def _active_pieces(self) -> Set[Piece]:
+    def _get_active_pieces(self) -> Set[Piece]:
         """
         get all pieces_tests that are on the board and active
         :return: set of all active pieces_tests
@@ -105,8 +117,8 @@ class Board:
         test whether the current board constellation is checkmate
         :return: whether its checkmate
         """
-        return len(self.legal_moves()) == 0 and \
-            self.is_square_attacked(self._get_king(self._white_to_move).pos, self._white_to_move)
+        return len(self._legal_moves) == 0 and \
+               self.is_square_attacked(self._get_king(self._white_to_move).pos, self._white_to_move)
 
     @property
     def stalemate(self) -> bool:
@@ -114,8 +126,8 @@ class Board:
         test whether the current board constellation is stalemate
         :return: whether its stalemate
         """
-        return len(self.legal_moves()) == 0 and \
-            not self.is_square_attacked(self._get_king(self._white_to_move).pos, self._white_to_move)
+        return len(self._legal_moves) == 0 and \
+               not self.is_square_attacked(self._get_king(self._white_to_move).pos, self._white_to_move)
 
     @property
     def val(self) -> int:
@@ -124,15 +136,14 @@ class Board:
     """
     legal moves
     """
-    @lru_cache(maxsize=1)  # test
-    def legal_moves(self) -> Set[MOVE]:
+    def _get_legal_moves(self) -> Set[MOVE]:
         """
         generate all legal moves
         :return: set of all legal moves
         """
         moves = set()
         king = self._get_king(self._white_to_move)
-        for piece in self._active_pieces:
+        for piece in self._get_active_pieces:
             if not piece.white_piece == self._white_to_move:
                 continue
             for move in piece.pseudo_legal_moves:
@@ -158,7 +169,7 @@ class Board:
         :param move: the move to make
         """
         moving_piece = self._get_piece(move[0])
-        self._log_position()
+        self._log_data()
         self._log_move(move)
         self._adjust_half_move_clock(moving_piece, move)
         self._move_pieces(moving_piece, move)
@@ -166,7 +177,7 @@ class Board:
         self._set_en_passant_target_square(moving_piece, move)
         self._increase_turn_number()
         self._alternate_color_to_move()
-        self.legal_moves.cache_clear()
+        self.is_square_empty.cache_clear()
 
     def _adjust_half_move_clock(self, moving_piece: Piece, move: MOVE) -> None:
         """
@@ -273,14 +284,14 @@ class Board:
         """
         move = self._moves.pop()
         moved_piece = self._get_piece(move[1])
-        fen = self._positions.pop().split(' ')
-        self._white_to_move = self._color_to_move_to_board(fen[1])
-        self._turn_number = self._turn_number_to_board(fen[5])
+        data = self._data.pop()
+        self._white_to_move = data[0]
+        self._turn_number = data[4]
         self._undo_piece_moves(move, moved_piece)
-        self._castling_rights = self._castling_rights_to_board(fen[2])
-        self._ep_target_square = self._ep_target_square_to_board(fen[3])
-        self._half_move_clock = self._half_move_clock_to_board(fen[4])
-        self.legal_moves.cache_clear()
+        self._castling_rights = data[1]
+        self._ep_target_square = data[2]
+        self._half_move_clock = data[3]
+        self.is_square_empty.cache_clear()
 
     def _undo_piece_moves(self, move: MOVE, moved_piece: Piece) -> None:
         """
@@ -327,16 +338,14 @@ class Board:
     """
     position state getter
     """
-    def is_square_empty(self, pos: int, pieces: Optional[Set[Piece]] = None) -> bool:
+    @lru_cache(maxsize=64)
+    def is_square_empty(self, pos: int) -> bool:
         """
         test whether there is a piece on the given position
         :param pos: position of the square to test
-        :param pieces: pieces_tests to reference
         :return: whether there is a piece at the given position
         """
-        if pieces is None:
-            pieces = self._active_pieces
-        for piece in pieces:
+        for piece in self._get_active_pieces:
             if piece.pos == pos:
                 return False
         return True
@@ -348,7 +357,7 @@ class Board:
         :param white_piece: own color
         :return: whether there is one of your own pieces_tests at the given position
         """
-        for piece in self._active_pieces:
+        for piece in self._get_active_pieces:
             if piece.pos == pos and piece.white_piece == white_piece:
                 return True
         return False
@@ -360,7 +369,7 @@ class Board:
         :param white_piece: own color
         :return: whether there is one of your opponent's own pieces_tests at the given position
         """
-        for piece in self._active_pieces:
+        for piece in self._get_active_pieces:
             if piece.pos == pos and not piece.white_piece == white_piece:
                 return True
         return False
@@ -373,7 +382,7 @@ class Board:
         :param white_piece: point of view of the test
         :return: whether a square is being threatened by a player_tests
         """
-        for piece in self._active_pieces:
+        for piece in self._get_active_pieces:
             if not piece.white_piece == white_piece:
                 if pos in piece.attacking_squares:
                     return True
@@ -391,7 +400,7 @@ class Board:
         :raises ValueError if there is no piece on the square
         """
         if pieces is None:
-            pieces = self._active_pieces
+            pieces = self._get_active_pieces
         for piece in pieces:
             if piece.pos == pos:
                 return piece
@@ -403,7 +412,7 @@ class Board:
         :param white_piece: color of the king
         :return: king with given color
         """
-        for piece in self._active_pieces:
+        for piece in self._get_active_pieces:
             if type(piece) == King and piece.white_piece == white_piece:
                 return piece
         raise ValueError('No king found.')
@@ -433,11 +442,12 @@ class Board:
     """
     logs
     """
-    def _log_position(self) -> None:
+    def _log_data(self) -> None:
         """
-        save a board state as fen string
+        save the board data
         """
-        self._positions.append(self._board_to_fen())
+        self._data.append((self._white_to_move, self._castling_rights.copy(), self._ep_target_square,
+                           self._half_move_clock, self._turn_number))
 
     def _load_position(self, fen: str) -> None:
         """
@@ -565,7 +575,7 @@ class Board:
         :return: fen positions
         """
         if pieces is None:
-            pieces = self._active_pieces
+            pieces = self._get_active_pieces
         positions = ''
         for rank in range(7, -1, -1):
             n_empty_squares = 0
@@ -645,3 +655,7 @@ class Board:
         if turn_number is None:
             turn_number = self._turn_number
         return str(turn_number)
+
+
+# board = Board()
+# cProfile.run('board._get_legal_moves()', sort=2)

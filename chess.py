@@ -1,4 +1,4 @@
-from board import Board
+from src.board import Board
 from player import Player, HumanPlayer, ComPlayer
 from typing import Tuple, Union
 
@@ -61,7 +61,7 @@ class Game:
         self._init_players()
         print(self._board)
         while True:
-            moves = self._board.legal_moves()
+            moves = self._board.legal_moves
             move = self._active_player.get_move(moves)
             self._board.make_move(move)
             print(self._board)

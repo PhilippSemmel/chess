@@ -2,7 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List, Set, TYPE_CHECKING, Optional, Union, Tuple, Dict
 if TYPE_CHECKING:
-    from board import Board, MOVE
+    from src.board import Board, MOVE
 
 
 """
