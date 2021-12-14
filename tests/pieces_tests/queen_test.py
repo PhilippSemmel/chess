@@ -27,12 +27,6 @@ class ConstructionTestCase(unittest.TestCase):
                           -5, 0, 5, 5, 5, 5, 0, -5, 0, 0, 5, 5, 5, 5, 0, -5, -10, 5, 5, 5, 5, 5, 0, -10, -10, 0, 5, 0,
                           0,  0,  0, -10, -20, -10, -10, -5, -5, -10, -10, -20), queen2._pos_val_mod[False])
 
-    def test_type_is_correct(self):
-        self.assertEqual(4, queen1.type)
-
-    def test_type_is_always_correct(self):
-        self.assertEqual(4, queen2.type)
-
     def test_pos_is_given_value(self):
         self.assertEqual(35, queen1._pos)
 
