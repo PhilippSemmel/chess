@@ -1,15 +1,32 @@
 from __future__ import annotations
-
-import cProfile
 import contextlib
 from pieces import Piece, Pawn, Knight, Bishop, Rook, Queen, King
 from typing import Tuple, Optional, Union, Set, List, TYPE_CHECKING
-from functools import *
 if TYPE_CHECKING:
     from chess import MOVE
 
 
 class Board:
+    class _DataCache:
+        def __init__(self, func: callable) -> None:
+            self._data: any = None
+            self._func: callable = func
+
+        def get(self) -> any:
+            """
+            get the data the function returns
+            :return data
+            """
+            if self._data is None:
+                self._data = self._func()
+            return self._data
+
+        def clear(self) -> None:
+            """
+            clear the data cache
+            """
+            self._data = None
+
     def __init__(self, fen: Optional[str] = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') -> None:
         self._pieces: Set[Piece]
         self._white_to_move: bool
@@ -18,10 +35,10 @@ class Board:
         self._half_move_clock: int
         self._turn_number: int
         self._load_position(fen)
-        # self._active_pieces = self._get_active_pieces()
         self._data: List[Tuple[bool, List[bool], Union[None, int], int, int]] = []
         self._moves: List[MOVE] = []
-        self._legal_moves: Set[MOVE] = self._get_legal_moves()
+        self._legal_moves = self._DataCache(self._get_legal_moves)
+        # self._legal_moves: Set[MOVE] = self._get_legal_moves()
 
     def __repr__(self) -> str:
         def positions_to_str() -> str:
@@ -103,7 +120,6 @@ class Board:
     """
     other getters
     """
-    @property
     def _get_active_pieces(self) -> Set[Piece]:
         """
         get all pieces_tests that are on the board and active
@@ -143,7 +159,7 @@ class Board:
         """
         moves = set()
         king = self._get_king(self._white_to_move)
-        for piece in self._get_active_pieces:
+        for piece in self._get_active_pieces():
             if not piece.white_piece == self._white_to_move:
                 continue
             for move in piece.pseudo_legal_moves:
@@ -177,7 +193,6 @@ class Board:
         self._set_en_passant_target_square(moving_piece, move)
         self._increase_turn_number()
         self._alternate_color_to_move()
-        self.is_square_empty.cache_clear()
 
     def _adjust_half_move_clock(self, moving_piece: Piece, move: MOVE) -> None:
         """
@@ -291,7 +306,6 @@ class Board:
         self._castling_rights = data[1]
         self._ep_target_square = data[2]
         self._half_move_clock = data[3]
-        self.is_square_empty.cache_clear()
 
     def _undo_piece_moves(self, move: MOVE, moved_piece: Piece) -> None:
         """
@@ -338,14 +352,13 @@ class Board:
     """
     position state getter
     """
-    @lru_cache(maxsize=64)
     def is_square_empty(self, pos: int) -> bool:
         """
         test whether there is a piece on the given position
         :param pos: position of the square to test
         :return: whether there is a piece at the given position
         """
-        for piece in self._get_active_pieces:
+        for piece in self._get_active_pieces():
             if piece.pos == pos:
                 return False
         return True
@@ -357,7 +370,7 @@ class Board:
         :param white_piece: own color
         :return: whether there is one of your own pieces_tests at the given position
         """
-        for piece in self._get_active_pieces:
+        for piece in self._get_active_pieces():
             if piece.pos == pos and piece.white_piece == white_piece:
                 return True
         return False
@@ -369,7 +382,7 @@ class Board:
         :param white_piece: own color
         :return: whether there is one of your opponent's own pieces_tests at the given position
         """
-        for piece in self._get_active_pieces:
+        for piece in self._get_active_pieces():
             if piece.pos == pos and not piece.white_piece == white_piece:
                 return True
         return False
@@ -382,7 +395,7 @@ class Board:
         :param white_piece: point of view of the test
         :return: whether a square is being threatened by a player_tests
         """
-        for piece in self._get_active_pieces:
+        for piece in self._get_active_pieces():
             if not piece.white_piece == white_piece:
                 if pos in piece.attacking_squares:
                     return True
@@ -400,7 +413,7 @@ class Board:
         :raises ValueError if there is no piece on the square
         """
         if pieces is None:
-            pieces = self._get_active_pieces
+            pieces = self._get_active_pieces()
         for piece in pieces:
             if piece.pos == pos:
                 return piece
@@ -412,7 +425,7 @@ class Board:
         :param white_piece: color of the king
         :return: king with given color
         """
-        for piece in self._get_active_pieces:
+        for piece in self._get_active_pieces():
             if type(piece) == King and piece.white_piece == white_piece:
                 return piece
         raise ValueError('No king found.')
