@@ -578,6 +578,12 @@ class MakeMoveTestCase(unittest.TestCase):
         board.make_move((8, 16))
         self.assertRaises(ValueError, board._get_piece, 8)
 
+    #def test_legal_moves_change(self):
+    #    board = Board('8/8/8/8/8/8/K7/8 w - - 0 1')
+    #    old_moves = board.legal_moves
+    #    board.make_move((8, 16))
+    #   self.assertNotEqual(old_moves, board.legal_moves)
+
     def test_piece_on_final_square(self):
         board = Board('8/8/8/8/8/8/K7/8 w - - 0 1')
         king = board._get_piece(8)
