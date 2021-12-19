@@ -528,7 +528,7 @@ class King(Piece):
 
     @property
     def attacking_squares(self) -> Set[int]:
-        return {move[1] for move in self._generate_one_square_sliding_moves()}  # eliminate double call
+        return {move[1] for move in self._generate_one_square_sliding_moves()}
 
     def _generate_one_square_sliding_moves(self) -> Set[MOVE]:
         moves = set()
