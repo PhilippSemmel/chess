@@ -35,6 +35,26 @@ class Game:
             elif input_ == 'n':
                 return ComPlayer(color == 'white')
 
+    def _init_board(self) -> None:
+        """
+        let the player change the starting position if wanted
+        """
+        while True:
+            input_ = input('> Do you want to change the starting positions? [y]es/[n]o: ')
+            if input_ == 'y':
+                self._set_board(input('> Enter the starting position as FEN-String: '))
+                return
+            elif input_ == 'n':
+                return
+
+    # def _set_board(self, fen: str) -> None:
+    def _set_board(self, fen: str) -> None:
+        """
+        set the starting position
+        :param fen: starting position as fen string
+        """
+        self._board = Board(fen)
+
     """
     getters
     """
@@ -55,16 +75,13 @@ class Game:
         return self._b_player if self._board.white_to_move else self._w_player
 
     """
-    game loop
+    game
     """
     def main(self) -> None:  # tests & doc & new method: game_over -> bool
         self._init_players()
+        self._init_board()
         print(self._board)
         while True:
-            moves = self._board.legal_moves
-            move = self._active_player.get_move(moves)
-            self._board.make_move(move)
-            print(self._board)
             if self._board.checkmate:
                 print(self._inactive_player.name + ' wins.')
                 break
@@ -77,6 +94,13 @@ class Game:
             if len(self._board.pieces) <= 2:
                 print('REMIS!')
                 break
+            moves = self._board.legal_moves
+            move = self._active_player.get_move(moves)
+            self._board.make_move(move)
+            print(self._board)
+
+    def game_over(self) -> bool:
+        return self._board.checkmate or self._board.stalemate
 
 
 if __name__ == '__main__':
