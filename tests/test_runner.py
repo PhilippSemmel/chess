@@ -13,7 +13,7 @@ import player_tests.com_player_test as com_player_test
 import player_tests.human_player_test as human_player_test
 import player_tests.player_test as player_test
 # board tests
-from tests.board_tests import board_test
+import board_tests.board_test as board_test
 # game tests
 import game_test
 
@@ -26,63 +26,60 @@ def main() -> None:
     run all tests
     """
     global failed_tests
-    failed_tests = 0
-    test_piece_classes()
-    test_player_classes()
-    test_board_classes()
-    test_game_classes()
-    print_final_message()
+    failed_tests = test_piece_classes()
+    failed_tests += test_player_classes()
+    failed_tests += test_board_classes()
+    failed_tests += test_game_classes()
 
 
-def test_piece_classes() -> None:
+def test_piece_classes() -> int:
     """
     run all piece tests
     """
-    global failed_tests
+    fails: int = 0
     for test_suite in [bishop_test, king_test, knight_test, pawn_test, piece_test, queen_test, rook_test]:
         test = unittest.TextTestRunner(verbosity=0).run(unittest.TestLoader().loadTestsFromModule(test_suite))
-        failed_tests += len(test.failures)
-        failed_tests += len(test.errors)
+        fails += len(test.failures)
+        fails += len(test.errors)
+    return fails
 
 
-def test_player_classes() -> None:
+def test_player_classes() -> int:
     """
     run all player tests
     """
-    global failed_tests
+    fails: int = 0
     for test_suite in [com_player_test, human_player_test, player_test]:
         test = unittest.TextTestRunner(verbosity=0).run(unittest.TestLoader().loadTestsFromModule(test_suite))
-        failed_tests += len(test.failures)
-        failed_tests += len(test.errors)
+        fails += len(test.failures)
+        fails += len(test.errors)
+    return fails
 
 
-def test_board_classes() -> None:
+def test_board_classes() -> int:
     """
     run all board tests
     """
-    global failed_tests
-    board_tests = unittest.TestLoader().loadTestsFromModule(board_test)
-    test = unittest.TextTestRunner(verbosity=0).run(board_tests)
-    failed_tests += len(test.failures)
-    failed_tests += len(test.errors)
+    fails: int = 0
+    for test_suite in [board_test]:
+        test = unittest.TextTestRunner(verbosity=0).run(unittest.TestLoader().loadTestsFromModule(test_suite))
+        fails += len(test.failures)
+        fails += len(test.errors)
+    return fails
 
 
-def test_game_classes() -> None:
+def test_game_classes() -> int:
     """
     run all game tests
     """
-    global failed_tests
-    game_construction_tests = unittest.TestLoader().loadTestsFromTestCase(game_test.ConstructionTestCase)
-    game_getter_tests = unittest.TestLoader().loadTestsFromTestCase(game_test.GetterTestCase)
-    # test is commented out due to required user input
+    # does not test player creation due to required user input
     # please run this test case in the game_test module
-    # game_tests = unittest.TestLoader().loadTestsFromTestCase(game_test.CreatePlayerTestCase)
-    test = unittest.TextTestRunner(verbosity=0).run(game_construction_tests)
-    failed_tests += len(test.failures)
-    failed_tests += len(test.errors)
-    test = unittest.TextTestRunner(verbosity=0).run(game_getter_tests)
-    failed_tests += len(test.failures)
-    failed_tests += len(test.errors)
+    fails: int = 0
+    for test_suite in [game_test.ConstructionTestCase, game_test.GetterTestCase]:
+        test = unittest.TextTestRunner(verbosity=0).run(unittest.TestLoader().loadTestsFromTestCase(test_suite))
+        fails += len(test.failures)
+        fails += len(test.errors)
+    return fails
 
 
 def print_final_message() -> None:
@@ -97,4 +94,5 @@ def print_final_message() -> None:
 
 if __name__ == '__main__':
     # cProfile.run('main()', sort=2)
-    main()
+    unittest.main()
+    print_final_message()

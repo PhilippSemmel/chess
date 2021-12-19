@@ -14,10 +14,10 @@ class ConstructionTestCase(unittest.TestCase):
         self.assertFalse(b_player._white)
 
     def test_name_of_white_is_standard_name(self):
-        self.assertEqual('Heil, Hubertus', w_player._name)
+        self.assertEqual('White Com', w_player._name)
 
     def test_name_of_black_is_standard_name(self):
-        self.assertEqual('Darth Vader', b_player._name)
+        self.assertEqual('Black Com', b_player._name)
 
 
 class RandomMoveSelectionTestCase(unittest.TestCase):
