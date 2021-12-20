@@ -95,17 +95,32 @@ class SetBoardTestCase(unittest.TestCase):
 
 class GameOverTestCase(unittest.TestCase):
     def test_game_is_not_over_when_it_is_not_over(self):
-        self.assertFalse(game.game_over())
+        self.assertFalse(game._game_over)
 
     def test_game_is_over_when_active_player_is_in_checkmate(self):
         _game = Game()
         _game._set_board('k7/8/8/8/8/2b5/1q6/K7 w - - 0 1')
-        self.assertTrue(_game.game_over())
+        self.assertTrue(_game._game_over)
 
     def test_game_is_over_when_active_player_is_in_stalemate(self):
         _game = Game()
         _game._set_board('k7/8/8/8/8/2b5/1r6/K7 w - - 0 1')
-        self.assertTrue(_game.game_over())
+        self.assertTrue(_game._game_over)
+
+    def test_game_is_over_when_half_clock_value_is_fifty(self):
+        _game = Game()
+        _game._set_board('p7/8/8/8/8/8/8/k6K w - - 50 1')
+        self.assertTrue(_game._game_over)
+
+    def test_game_is_over_when_half_clock_value_is_higher_than_fifty(self):
+        _game = Game()
+        _game._set_board('p7/8/8/8/8/8/8/k6K w - - 51 1')
+        self.assertTrue(_game._game_over)
+
+    def test_game_is_over_when_only_two_pieces_remain_on_the_board(self):
+        _game = Game()
+        _game._set_board('8/8/8/8/8/8/8/k6K w - - 0 1')
+        self.assertTrue(_game._game_over)
 
 
 if __name__ == '__main__':
