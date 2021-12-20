@@ -78,29 +78,35 @@ class Game:
     game
     """
     def main(self) -> None:  # tests & doc & new method: game_over -> bool
+        """
+        the main game loop
+        """
         self._init_players()
         self._init_board()
         print(self._board)
         while True:
-            if self._board.checkmate:
-                print(self._inactive_player.name + ' wins.')
-                break
-            if self._board.stalemate:
-                print('Stalemate.')
-                break
-            if self._board.half_move_clock >= 50:
-                print('Reicht jetzt auch.')
-                break
-            if len(self._board.pieces) <= 2:
-                print('REMIS!')
+            if self._game_over:
                 break
             moves = self._board.legal_moves
             move = self._active_player.get_move(moves)
             self._board.make_move(move)
             print(self._board)
 
-    def game_over(self) -> bool:
-        return self._board.checkmate or self._board.stalemate
+    @property
+    def _game_over(self) -> bool:
+        """
+        test if the game is over
+        :return: whether the game is over
+        game is over if one of the following situations is true:
+        1. active player is in checkmate
+        2. active player is in stalemate
+        3. 50 consecutive moves have been made without moving a pawn or capturing
+        4. only 2 pieces remain on the board
+        """
+        return self._board.checkmate \
+            or self._board.stalemate \
+            or self._board.half_move_clock >= 50 \
+            or len(self._board.pieces) == 2
 
 
 if __name__ == '__main__':
