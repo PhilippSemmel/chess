@@ -117,12 +117,6 @@ class ChessGameDataGetterTestCase(unittest.TestCase):
 
 
 class BoardStateGetterTestCase(unittest.TestCase):
-    def test_can_get_legal_moves(self):
-        self.assertEqual(board1._legal_moves, board1.legal_moves)
-
-    def test_can_get_any_legal_moves(self):
-        self.assertEqual(board2._legal_moves, board2.legal_moves)
-
     def test_no_checkmate_if_more_than_one_move_available(self):
         board = Board('k7/8/8/8/8/8/8/K7 w - - 0 1')
         self.assertFalse(board.checkmate)
@@ -154,6 +148,9 @@ class BoardStateGetterTestCase(unittest.TestCase):
     def test_black_can_be_in_stalemate_as_well(self):
         board = Board('K7/8/8/8/8/2B5/1R6/k7 b - - 0 1')
         self.assertTrue(board.stalemate)
+
+    def test_fifty_moves_rule_does_not_apply_when_half_clock_value_is_below_50
+
 
 
 class PieceTestCase(unittest.TestCase):
@@ -521,6 +518,12 @@ class MoveGenerationTestCase(unittest.TestCase):
 
 
 class LegalMoveGenerationTextCase(unittest.TestCase):
+    def test_can_get_legal_moves(self):
+        self.assertEqual(board1._legal_moves, board1.legal_moves)
+
+    def test_can_get_any_legal_moves(self):
+        self.assertEqual(board2._legal_moves, board2.legal_moves)
+
     def test_can_get_legal_moves(self):
         self.assertEqual(board1._get_legal_moves(), board1._legal_moves)
 
@@ -1367,12 +1370,159 @@ class UndoMoveTestCase(unittest.TestCase):
 
 
 class EvaluationTestCase(unittest.TestCase):
-    # def test_empty_value_is_zero(self):
-    #     board = Board('8/8/8/8/8/8/8/8 w - - 0 1')
-    #     self.assertEqual(0, board.val)
-    pass
+    def test_value_is_zero_if_bother_players_have_the_same_pieces_on_equally_good_positions_on_the_board(self):
+        board = Board('4k3/8/8/8/8/8/8/4K3 w - - 0 1')
+        self.assertEqual(0, board.val)
+
+    def test_only_considers_active_pieces(self):
+        board = Board('4k3/8/8/8/8/8/P7/4K3 w - - 0 1')
+        board._get_piece(8).capture(1, True)
+        board._clear_active_pieces_cache()
+        self.assertEqual(0, board.val)
+
+    # checkmate stalemate draws
+    # if white to move
+    def test_value_increases_correctly_if_white_pawn_is_added_with_white_to_move(self):
+        board = Board('4k3/8/8/8/8/8/P7/4K3 w - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(piece.pos_val, board.val)
+
+    def test_value_increases_correctly_if_white_pawn_is_added_on_any_position_white_to_move(self):
+        board = Board('4k3/P7/8/8/8/8/8/4K3 w - - 0 1')
+        piece = board._get_piece(48)
+        self.assertEqual(piece.pos_val, board.val)
+
+    def test_value_increases_correctly_if_white_knight_is_added_with_white_to_move(self):
+        board = Board('4k3/8/8/8/8/8/N7/4K3 w - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(piece.pos_val, board.val)
+        
+    def test_value_increases_correctly_if_white_bishop_is_added_with_white_to_move(self):
+        board = Board('4k3/8/8/8/8/8/B7/4K3 w - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(piece.pos_val, board.val)
+        
+    def test_value_increases_correctly_if_white_rook_is_added_with_white_to_move(self):
+        board = Board('4k3/8/8/8/8/8/R7/4K3 w - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(piece.pos_val, board.val)
+
+    def test_value_increases_correctly_if_white_queen_is_added_with_white_to_move(self):
+        board = Board('4k3/8/8/8/8/8/Q7/4K3 w - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(piece.pos_val, board.val)
+
+    def test_value_increases_if_white_king_is_on_better_position_white_to_move(self):
+        board = Board('4k3/8/8/8/8/8/8/1K6 w - - 0 1')
+        self.assertEqual(30, board.val)
+
+    def test_value_decreases_if_white_king_is_on_worse_position_white_to_move(self):
+        board = Board('4k2K/8/8/8/8/8/8/8 w - - 0 1')
+        self.assertEqual(-30, board.val)
+
+    def test_value_decreases_correctly_if_black_pawn_is_added_with_white_to_move(self):
+        board = Board('4k3/8/8/8/8/8/p7/4K3 w - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(-piece.pos_val, board.val)
+
+    def test_value_decreases_correctly_if_black_knight_is_added_with_white_to_move(self):
+        board = Board('4k3/8/8/8/8/8/n7/4K3 w - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(-piece.pos_val, board.val)
+        
+    def test_value_decreases_correctly_if_black_bishop_is_added_with_white_to_move(self):
+        board = Board('4k3/8/8/8/8/8/b7/4K3 w - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(-piece.pos_val, board.val)
+        
+    def test_value_decreases_correctly_if_black_rook_is_added_with_white_to_move(self):
+        board = Board('4k3/8/8/8/8/8/r7/4K3 w - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(-piece.pos_val, board.val)
+
+    def test_value_decreases_correctly_if_black_queen_is_added_with_white_to_move(self):
+        board = Board('4k3/8/8/8/8/8/q7/4K3 w - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(-piece.pos_val, board.val)
+
+    def test_value_decreases_if_black_king_is_on_better_position_white_to_move(self):
+        board = Board('1k6/8/8/8/8/8/8/4K3 w - - 0 1')
+        self.assertEqual(-30, board.val)
+
+    def test_value_increases_if_black_king_is_on_worse_position_white_to_move(self):
+        board = Board('8/8/8/8/8/8/8/k2K4 w - - 0 1')
+        self.assertEqual(30, board.val)
+
+    # if white to move
+    def test_value_increases_correctly_if_black_pawn_is_added_with_black_to_move(self):
+        board = Board('4k3/8/8/8/8/8/p7/4K3 b - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(piece.pos_val, board.val)
+
+    def test_value_increases_correctly_if_black_knight_is_added_with_black_to_move(self):
+        board = Board('4k3/8/8/8/8/8/n7/4K3 b - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(piece.pos_val, board.val)
+
+    def test_value_increases_correctly_if_black_bishop_is_added_with_black_to_move(self):
+        board = Board('4k3/8/8/8/8/8/b7/4K3 b - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(piece.pos_val, board.val)
+        
+    def test_value_increases_correctly_if_black_rook_is_added_with_black_to_move(self):
+        board = Board('4k3/8/8/8/8/8/r7/4K3 b - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(piece.pos_val, board.val)
+        
+    def test_value_increases_correctly_if_black_queen_is_added_with_black_to_move(self):
+        board = Board('4k3/8/8/8/8/8/q7/4K3 b - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(piece.pos_val, board.val)
+
+    def test_value_increases_if_black_king_is_on_better_position_black_to_move(self):
+        board = Board('1k6/8/8/8/8/8/8/4K3 b - - 0 1')
+        self.assertEqual(30, board.val)
+
+    def test_value_decreases_if_black_king_is_on_worse_position_black_to_move(self):
+        board = Board('8/8/8/8/8/8/8/k2K4 b - - 0 1')
+        self.assertEqual(-30, board.val)
+
+    def test_value_decreases_correctly_if_white_pawn_is_added_with_black_to_move(self):
+        board = Board('4k3/8/8/8/8/8/P7/4K3 b - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(-piece.pos_val, board.val)
+
+    def test_value_decreases_correctly_if_white_knight_is_added_with_black_to_move(self):
+        board = Board('4k3/8/8/8/8/8/N7/4K3 b - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(-piece.pos_val, board.val)
+        
+    def test_value_decreases_correctly_if_white_bishop_is_added_with_black_to_move(self):
+        board = Board('4k3/8/8/8/8/8/B7/4K3 b - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(-piece.pos_val, board.val)
+        
+    def test_value_decreases_correctly_if_white_rook_is_added_with_black_to_move(self):
+        board = Board('4k3/8/8/8/8/8/R7/4K3 b - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(-piece.pos_val, board.val)
+
+    def test_value_decreases_correctly_if_white_queen_is_added_with_black_to_move(self):
+        board = Board('4k3/8/8/8/8/8/Q7/4K3 b - - 0 1')
+        piece = board._get_piece(8)
+        self.assertEqual(-piece.pos_val, board.val)
+
+    def test_value_decreases_if_white_king_is_on_better_position_black_to_move(self):
+        board = Board('4k3/8/8/8/8/8/8/1K6 b - - 0 1')
+        self.assertEqual(-30, board.val)
+
+    def test_value_increases_if_white_king_is_on_worse_position_black_to_move(self):
+        board = Board('4k2K/8/8/8/8/8/8/8 b - - 0 1')
+        self.assertEqual(30, board.val)
 
 
+
+"""
 class BoardConversionTestCase(unittest.TestCase):
     # positions
     def test_can_convert_empty_board(self):
@@ -1668,7 +1818,7 @@ class FenConversionTestCase(unittest.TestCase):
 
     def test_converts_turn_number_of_board_object_if_no_param_given(self):
         self.assertEqual('1', board1._turn_number_to_fen())
-
+"""
 
 if __name__ == '__main__':
     unittest.main()

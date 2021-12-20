@@ -93,20 +93,12 @@ class Board:
     board state
     """
     @property
-    def legal_moves(self) -> Set[MOVE]:
-        """
-        get the legal moves
-        :return: legal moves
-        """
-        return self._legal_moves
-
-    @property
     def checkmate(self) -> bool:
         """
         test whether the current board constellation is checkmate
         :return: whether its checkmate
+        a board position is stalemate if no legal moves are available and the active king is in check
         """
-        # no legal move available and king in check
         return len(self._legal_moves) == 0 and \
                self.is_square_attacked(self._get_king(self._white_to_move).pos, self._white_to_move)
 
@@ -115,18 +107,29 @@ class Board:
         """
         test whether the current board constellation is stalemate
         :return: whether its stalemate
+        a board position is stalemate if no legal moves are available and the active king is not in check
         """
-        # no legal move available and king not in check
         return len(self._legal_moves) == 0 and \
                not self.is_square_attacked(self._get_king(self._white_to_move).pos, self._white_to_move)
 
     @property
     def val(self) -> int:
-        return 0
+        val = 0
+        for piece in self._active_pieces:
+            val = val + piece.pos_val if piece.white_piece == self.white_to_move else val - piece.pos_val
+        return val
 
     """
     legal moves
     """
+    @property
+    def legal_moves(self) -> Set[MOVE]:
+        """
+        get the legal moves
+        :return: legal moves
+        """
+        return self._legal_moves
+
     @property
     def _legal_moves(self) -> Set[MOVE]:
         """
