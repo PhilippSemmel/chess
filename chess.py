@@ -100,12 +100,14 @@ class Game:
         game is over if one of the following situations is true:
         1. active player is in checkmate
         2. active player is in stalemate
-        3. 50 consecutive moves have been made without moving a pawn or capturing
-        4. only 2 pieces remain on the board
+        3. 75 consecutive moves have been made without moving a pawn or capturing
+        4. fivefold repetition rule applies
+        5. only 2 pieces remain on the board
         """
         return self._board.checkmate \
             or self._board.stalemate \
-            or self._board.half_move_clock >= 50 \
+            or self._board.seventy_five_moves_rule_applies \
+            or self._board.fivefold_repetition_rule_applies \
             or len(self._board.pieces) == 2
 
 

@@ -107,14 +107,21 @@ class GameOverTestCase(unittest.TestCase):
         _game._set_board('k7/8/8/8/8/2b5/1r6/K7 w - - 0 1')
         self.assertTrue(_game._game_over)
 
-    def test_game_is_over_when_half_clock_value_is_fifty(self):
+    def test_game_is_over_if_seventy_five_moves_rule_applies(self):
         _game = Game()
-        _game._set_board('p7/8/8/8/8/8/8/k6K w - - 50 1')
+        _game._set_board('p7/8/8/8/8/8/8/k6K w - - 75 1')
         self.assertTrue(_game._game_over)
 
-    def test_game_is_over_when_half_clock_value_is_higher_than_fifty(self):
+    def test_game_is_over_if_fivefold_repetition_rule_applies(self):
+        def make_reoccurring_moves(board: Board) -> None:
+            board.make_move((1, 18))
+            board.make_move((57, 42))
+            board.make_move((18, 1))
+            board.make_move((42, 57))
+
         _game = Game()
-        _game._set_board('p7/8/8/8/8/8/8/k6K w - - 51 1')
+        for i in range(4):
+            make_reoccurring_moves(_game._board)
         self.assertTrue(_game._game_over)
 
     def test_game_is_over_when_only_two_pieces_remain_on_the_board(self):

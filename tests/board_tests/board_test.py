@@ -65,17 +65,31 @@ class ConstructionTestCase(unittest.TestCase):
     def test_turn_number_is_always_correct(self):
         self.assertEqual(2, board2._turn_number)
 
-    def test_data_is_empty_list(self):
-        self.assertEqual([], board1._data)
+    def test_data_log_is_empty_list(self):
+        self.assertEqual([], board1._data_log)
 
-    def test_data_is_always_empty_list(self):
-        self.assertEqual([], board2._data)
+    def test_data_log_is_always_empty_list(self):
+        self.assertEqual([], board2._data_log)
 
-    def test_moves_is_empty_list(self):
-        self.assertEqual([], board1._moves)
+    def test_moves_log_is_empty_list(self):
+        self.assertEqual([], board1._moves_log)
 
-    def test_moves_is_always_empty_list(self):
-        self.assertEqual([], board2._moves)
+    def test_moves_log_is_always_empty_list(self):
+        self.assertEqual([], board2._moves_log)
+    
+    def test_positions_log_is_list_with_all_piece_positions(self):
+        self.assertEqual([{('P', 8), ('P', 9), ('P', 10), ('P', 11), ('P', 12), ('P', 13), ('P', 14), ('P', 15),
+                           ('p', 48), ('p', 49), ('p', 50), ('p', 51), ('p', 52), ('p', 53), ('p', 54), ('p', 55),
+                           ('R', 0), ('N', 1), ('B', 2), ('Q', 3), ('K', 4), ('B', 5), ('N', 6), ('R', 7), ('r', 56),
+                           ('n', 57), ('b', 58), ('q', 59), ('k', 60), ('b', 61), ('n', 62), ('r', 63)}],
+                         board1._positions_log)
+
+    def test_positions_log_always_is_list_with_all_piece_positions(self):
+        self.assertEqual([{('P', 8), ('P', 9), ('P', 10), ('P', 11), ('P', 12), ('P', 29), ('P', 14), ('P', 15),
+                           ('p', 48), ('p', 49), ('p', 50), ('p', 51), ('p', 52), ('p', 37), ('p', 54), ('p', 55),
+                           ('R', 0), ('N', 1), ('B', 2), ('Q', 3), ('K', 4), ('B', 5), ('N', 6), ('R', 7), ('r', 56),
+                           ('n', 57), ('b', 58), ('q', 59), ('k', 60), ('b', 61), ('n', 62), ('r', 63)}],
+                         board2._positions_log)
 
 
 class ChessGameDataGetterTestCase(unittest.TestCase):
@@ -117,6 +131,13 @@ class ChessGameDataGetterTestCase(unittest.TestCase):
 
 
 class BoardStateGetterTestCase(unittest.TestCase):
+    @staticmethod
+    def make_reoccurring_moves(board: Board) -> None:
+        board.make_move((1, 18))
+        board.make_move((57, 42))
+        board.make_move((18, 1))
+        board.make_move((42, 57))
+
     def test_no_checkmate_if_more_than_one_move_available(self):
         board = Board('k7/8/8/8/8/8/8/K7 w - - 0 1')
         self.assertFalse(board.checkmate)
@@ -149,15 +170,109 @@ class BoardStateGetterTestCase(unittest.TestCase):
         board = Board('K7/8/8/8/8/2B5/1R6/k7 b - - 0 1')
         self.assertTrue(board.stalemate)
 
-    def test_fifty_moves_rule_does_not_apply_when_half_clock_value_is_below_50
+    def test_seventy_five_moves_rule_does_not_apply_when_half_clock_value_is_less_than_seventy_five(self):
+        self.assertFalse(board1.seventy_five_moves_rule_applies)
 
+    def test_seventy_five_moves_rule_does_not_apply_when_half_clock_value_is_seventy_four(self):
+        board = Board('8/8/8/8/8/8/8/kp5K w - - 74 1')
+        self.assertFalse(board.seventy_five_moves_rule_applies)
+
+    def test_seventy_five_moves_rule_does_apply_when_half_clock_value_is_seventy_five(self):
+        board = Board('8/8/8/8/8/8/8/kp5K w - - 75 1')
+        self.assertTrue(board.seventy_five_moves_rule_applies)
+
+    def test_seventy_five_moves_rule_does_apply_when_half_clock_value_is_more_than_seventy_five(self):
+        board = Board('8/8/8/8/8/8/8/kp5K w - - 76 1')
+        self.assertTrue(board.seventy_five_moves_rule_applies)
+
+    def test_seventy_five_moves_rule_does_not_apply_when_active_player_is_in_checkmate(self):
+        board = Board('k7/8/8/8/8/2b5/1q6/K7 w - - 75 1')
+        self.assertFalse(board.seventy_five_moves_rule_applies)
+
+    def test_fivefold_repetition_rule_does_not_apply_if_not_in_turn_nine_or_earlier(self):
+        self.assertFalse(board1.fivefold_repetition_rule_applies)
+
+    def test_fivefold_repetition_applies_if_needed_position_were_created(self):
+        board_ = Board()  # first
+        self.make_reoccurring_moves(board_)  # second
+        self.make_reoccurring_moves(board_)  # third
+        self.make_reoccurring_moves(board_)  # fourth
+        self.make_reoccurring_moves(board_)  # fifth
+        self.assertTrue(board_.fivefold_repetition_rule_applies)
+
+    def test_fivefold_repetition_applies_if_needed_position_were_created_in_any_turn(self):
+        board_ = Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 10 1')  # first
+        self.make_reoccurring_moves(board_)  # second
+        self.make_reoccurring_moves(board_)  # third
+        self.make_reoccurring_moves(board_)  # fourth
+        self.make_reoccurring_moves(board_)  # fifth
+        self.assertTrue(board_.fivefold_repetition_rule_applies)
+
+    def test_fivefold_repetition_applies_if_needed_position_were_created_no_matter_the_moves_leading_to_them(self):
+        board_ = Board()  # first
+        self.make_reoccurring_moves(board_)  # second
+        self.make_reoccurring_moves(board_)  # third
+        self.make_reoccurring_moves(board_)  # fourth
+        board_.make_move((1, 16))
+        board_.make_move((57, 40))
+        board_.make_move((16, 1))
+        board_.make_move((40, 57))  # fifth
+        self.assertTrue(board_.fivefold_repetition_rule_applies)
+
+    def test_fivefold_repetition_does_not_apply_if_castling_rights_change(self):
+        def make_reoccurring_move(board: Board):
+            board.make_move((0, 8))
+            board.make_move((57, 40))
+            board.make_move((8, 0))
+            board.make_move((40, 57))
+        board_ = Board('rnbqkbnr/pppppppp/8/8/8/8/1PPPPPPP/RNBQKBPR w KQkq - 0 1')  # first
+        make_reoccurring_move(board_)  # does not count due to the change of castling rights/second
+        make_reoccurring_move(board_)  # first/third
+        make_reoccurring_move(board_)  # second/forth
+        make_reoccurring_move(board_)  # third/fifth
+        self.assertFalse(board_.fivefold_repetition_rule_applies)
+
+    def test_fivefold_repetition_does_not_apply_if_castling_rights_change_in_any_turn(self):
+        def make_reoccurring_move(board: Board):
+            board.make_move((0, 8))
+            board.make_move((57, 40))
+            board.make_move((8, 0))
+            board.make_move((40, 57))
+        board_ = Board('rnbqkbnr/pppppppp/8/8/8/8/1PPPPPPP/RNBQKBPR w KQkq - 0 10')  # first
+        make_reoccurring_move(board_)  # does not count due to the change of castling rights/second
+        make_reoccurring_move(board_)  # first/third
+        make_reoccurring_move(board_)  # second/forth
+        make_reoccurring_move(board_)  # third/fifth
+        self.assertFalse(board_.fivefold_repetition_rule_applies)
+
+    def test_fivefold_repetition_does_not_apply_if_ep_target_square_changes(self):
+        def make_reoccurring_move(board: Board):
+            board.make_move((0, 8))
+            board.make_move((57, 40))
+            board.make_move((8, 0))
+            board.make_move((40, 57))
+        board_ = Board('rnbqkbnr/pppppppp/8/8/8/8/1PPPPPPP/RNBQKBPR w KQkq a3 0 1')  # first
+        make_reoccurring_move(board_)  # does not count due to the change of ep target square/second
+        make_reoccurring_move(board_)  # first/third
+        make_reoccurring_move(board_)  # second/forth
+        make_reoccurring_move(board_)  # third/fifth
+        self.assertFalse(board_.fivefold_repetition_rule_applies)
+
+    def test_fivefold_repetition_applies_if_needed_position_were_created_for_black_as_well(self):
+        board_ = Board()
+        self.make_reoccurring_moves(board_)  # first
+        self.make_reoccurring_moves(board_)  # second
+        self.make_reoccurring_moves(board_)  # third
+        self.make_reoccurring_moves(board_)  # fourth
+        board_.make_move((1, 18))  # fifth
+        self.assertTrue(board_.fivefold_repetition_rule_applies)
 
 
 class PieceTestCase(unittest.TestCase):
-    def test_can_get_active_pieces(self):
+    def test_can_get_active_pieces_publicly(self):
         self.assertEqual(board1._get_active_pieces(), board1._active_pieces)
 
-    def test_can_get_any_active_pieces(self):
+    def test_can_get_any_active_pieces_publicly(self):
         self.assertEqual(board2._get_active_pieces(), board2._active_pieces)
 
     def test_does_not_recalculate_active_pieces(self):
@@ -518,16 +633,16 @@ class MoveGenerationTestCase(unittest.TestCase):
 
 
 class LegalMoveGenerationTextCase(unittest.TestCase):
-    def test_can_get_legal_moves(self):
+    def test_can_get_legal_moves_publicly(self):
         self.assertEqual(board1._legal_moves, board1.legal_moves)
 
-    def test_can_get_any_legal_moves(self):
+    def test_can_get_any_legal_moves_publicly(self):
         self.assertEqual(board2._legal_moves, board2.legal_moves)
 
-    def test_can_get_legal_moves(self):
+    def test_can_get_legal_moves_privately(self):
         self.assertEqual(board1._get_legal_moves(), board1._legal_moves)
 
-    def test_can_get_any_legal_moves(self):
+    def test_can_get_any_legal_moves_privately(self):
         self.assertEqual(board2._get_legal_moves(), board2._legal_moves)
 
     def test_does_not_recalculate_legal_moves(self):
@@ -999,35 +1114,57 @@ class MakeMoveTestCase(unittest.TestCase):
     def test_adds_old_position_to_position_list(self):
         board = Board()
         board.make_move((8, 16))
-        self.assertEqual([(True, [True, True, True, True], None, 0, 1)], board._data)
+        self.assertEqual([(True, [True, True, True, True], None, 0, 1)], board._data_log)
 
     def test_adds_any_old_position_to_position_list(self):
         board = Board('PPPPPPPP/rKqqQRRP/BBKpQnRq/nBbpQQRQ/bbbpbQRN/nppbKKRP/npQrbPKk/NNNkkkkk w - - 0 1')
         board.make_move((0, 17))
-        self.assertEqual([(True, [False, False, False, False], None, 0, 1)], board._data)
+        self.assertEqual([(True, [False, False, False, False], None, 0, 1)], board._data_log)
 
     def test_two_positions_in_list_after_two_moves(self):
         board = Board()
         board.make_move((8, 16))
         board.make_move((48, 40))
         self.assertEqual([(True, [True, True, True, True], None, 0, 1), (False, [True, True, True, True], None, 0, 1)],
-                         board._data)
+                         board._data_log)
 
     def test_adds_move_to_move_list(self):
         board = Board()
         board.make_move((8, 16))
-        self.assertEqual([(8, 16)], board._moves)
+        self.assertEqual([(8, 16)], board._moves_log)
 
     def test_adds_any_move_to_move_list(self):
         board = Board()
         board.make_move((8, 24))
-        self.assertEqual([(8, 24)], board._moves)
+        self.assertEqual([(8, 24)], board._moves_log)
 
     def test_adds_two_move_to_move_list(self):
         board = Board()
         board.make_move((8, 16))
         board.make_move((48, 40))
-        self.assertEqual([(8, 16), (48, 40)], board._moves)
+        self.assertEqual([(8, 16), (48, 40)], board._moves_log)
+
+    def test_adds_positions_to_positions_log(self):
+        board = Board('k7/8/8/8/8/8/P7/K7 w - - 0 1')
+        board.make_move((8, 16))
+        self.assertEqual([{('K', 0), ('P', 8), ('k', 56)}, {('K', 0), ('P', 16), ('k', 56)}], board._positions_log)
+
+    def test_adds_any_positions_to_positions_log(self):
+        board = Board('k7/8/8/8/8/8/P7/K7 w - - 0 1')
+        board.make_move((0, 1))
+        self.assertEqual([{('K', 0), ('P', 8), ('k', 56)}, {('K', 1), ('P', 8), ('k', 56)}], board._positions_log)
+
+    def test_adds_multiple_positions_to_positions_log(self):
+        board = Board('k7/8/8/8/8/8/P7/K7 w - - 0 1')
+        board.make_move((0, 1))
+        board.make_move((56, 57))
+        self.assertEqual([{('K', 0), ('P', 8), ('k', 56)}, {('K', 1), ('P', 8), ('k', 56)},
+                          {('K', 1), ('P', 8), ('k', 57)}], board._positions_log)
+
+    def test_adds_only_positions_of_active_pieces_to_positions_log(self):
+        board = Board('k7/P7/8/8/8/8/8/K7 b - - 0 1')
+        board.make_move((56, 48))
+        self.assertEqual([{('K', 0), ('P', 48), ('k', 56)}, {('K', 0), ('k', 48)},], board._positions_log)
 
 
 class UndoMoveTestCase(unittest.TestCase):
@@ -1035,7 +1172,7 @@ class UndoMoveTestCase(unittest.TestCase):
         board = Board()
         board.make_move((1, 16))
         board._undo_move()
-        self.assertEqual([], board._data)
+        self.assertEqual([], board._data_log)
 
     def test_legal_moves_change(self):
         board = Board('k7/8/8/8/8/8/K7/8 w - - 0 1')
@@ -1368,6 +1505,18 @@ class UndoMoveTestCase(unittest.TestCase):
         board._undo_move()
         self.assertEqual(5, board._turn_number)
 
+    def test_removes_last_positions_from_positions_log(self):
+        board = Board('k7/8/8/8/8/8/8/K7 w - - 0 1')
+        board.make_move((0, 1))
+        board._undo_move()
+        self.assertEqual([{('k', 56), ('K', 0)}], board._positions_log)
+
+    def test_removes_any_last_positions_from_positions_log(self):
+        board = Board('k7/8/8/8/8/8/8/K7 w - - 0 1')
+        board.make_move((0, 8))
+        board._undo_move()
+        self.assertEqual([{('k', 56), ('K', 0)}], board._positions_log)
+
 
 class EvaluationTestCase(unittest.TestCase):
     def test_value_is_zero_if_bother_players_have_the_same_pieces_on_equally_good_positions_on_the_board(self):
@@ -1519,7 +1668,6 @@ class EvaluationTestCase(unittest.TestCase):
     def test_value_increases_if_white_king_is_on_worse_position_black_to_move(self):
         board = Board('4k2K/8/8/8/8/8/8/8 b - - 0 1')
         self.assertEqual(30, board.val)
-
 
 
 """
