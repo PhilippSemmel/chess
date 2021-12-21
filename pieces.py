@@ -550,7 +550,7 @@ class King(Piece):
                 if not self._board.is_square_empty(pos):
                     return set()
             # test if king in checking or squares the king moves over is threatened
-            if self._board.is_square_attacked(self._pos, self._white_piece) or \
+            if self._board.is_king_attacked(self._white_piece) or \
                     self._board.is_square_attacked(self._pos + dir_, self._white_piece):
                 return set()
             return {(self._pos, self._pos + (2 * dir_))}

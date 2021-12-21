@@ -492,6 +492,31 @@ class PositionsStateTestCase(unittest.TestCase):
         board._clear_active_pieces_cache()
         self.assertTrue(board.is_square_attacked(48, False))
 
+    def test_white_king_is_not_attacked_if_not_attacked(self):
+        self.assertFalse(board1.is_king_attacked(True))
+
+    def test_white_king_is_attacked_if_attacked(self):
+        board = Board('k7/r7/8/8/8/8/8/K7 w - - 0 1')
+        self.assertTrue(board.is_king_attacked(True))
+
+    def test_white_king_can_be_attacked_anywhere(self):
+        board = Board('K7/8/8/8/8/8/r7/k7 w - - 0 1')
+        self.assertTrue(board.is_king_attacked(True))
+
+    def test_white_king_is_not_attacked_by_own_pieces(self):
+        board = Board('Q7/8/8/8/8/8/8/K7 w - - 0 1')
+        self.assertFalse(board.is_king_attacked(True))
+
+    def test_black_king_can_be_attacked_as_well(self):
+        board = Board('k7/8/8/8/8/8/R7/K7 w - - 0 1')
+        self.assertTrue(board.is_king_attacked(False))
+
+    def test_is_square_attacked_uses_active_pieces_set(self):
+        board = Board('k7/r7/8/8/8/8/8/K7 w - - 0 1')
+        board._get_piece(48).capture(1, True)
+        board._clear_active_pieces_cache()
+        self.assertFalse(board.is_king_attacked(True))
+
 
 class MoveGenerationTestCase(unittest.TestCase):
     # general

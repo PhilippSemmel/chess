@@ -58,7 +58,7 @@ class Board:
     @property
     def white_to_move(self) -> bool:
         """
-        get the player_tests to move
+        get the color to move
         :return: whether white to move
         """
         return self._white_to_move
@@ -107,7 +107,7 @@ class Board:
         a board position is stalemate if no legal moves are available and the active king is in check
         """
         return len(self._legal_moves) == 0 and \
-               self.is_square_attacked(self._get_king(self._white_to_move).pos, self._white_to_move)
+               self.is_king_attacked(self._white_to_move)
 
     """
     general draw boolean function with the following
@@ -124,7 +124,7 @@ class Board:
         a board position is stalemate if no legal moves are available and the active king is not in check
         """
         return len(self._legal_moves) == 0 and \
-               not self.is_square_attacked(self._get_king(self._white_to_move).pos, self._white_to_move)
+               not self.is_king_attacked(self._white_to_move)
 
     @property
     def seventy_five_moves_rule_applies(self) -> bool:
@@ -195,27 +195,25 @@ class Board:
         NOT to be used inside the object except by _legal_moves property
         """
         moves = set()
-        king = self._get_king(self._white_to_move)
         for piece in self._active_pieces:
             if not piece.white_piece == self._white_to_move:
                 continue
             for move in piece.pseudo_legal_moves:
-                if self._is_move_legal(move, king):
+                if self._is_move_legal(move):
                     moves.add(move)
         return moves
 
-    def _is_move_legal(self, move: MOVE, king: Piece) -> bool:
+    def _is_move_legal(self, move: MOVE) -> bool:
         """
         test whether a move is legal
         :param move: move to test
-        :param king: king of player to move
         :return: whether the move is legal
         """
-        with self._test_move(move):  # makes move and undoes it after the test
-            return not self.is_square_attacked(king.pos, king.white_piece)
+        with self._make_move_and_undo_move_afterwards(move):
+            return not self.is_king_attacked(not self._white_to_move)  # color to move changed after move
 
     @contextlib.contextmanager
-    def _test_move(self, move: MOVE) -> None:
+    def _make_move_and_undo_move_afterwards(self, move: MOVE) -> None:
         """
         make and undo the given move
         :param move: move to make and undo
@@ -460,17 +458,25 @@ class Board:
 
     def is_square_attacked(self, pos: int, white_piece: bool):
         """
-        test is a square is being threatened by a player_tests
+        test if a square is being threatened by a player
         only considers moves that could threaten the king
         :param pos: position of the square
         :param white_piece: point of view of the test
-        :return: whether a square is being threatened by a player_tests
+        :return: whether a square is being threatened by a player
         """
         for piece in self._active_pieces:
             if not piece.white_piece == white_piece:
                 if pos in piece.attacking_squares:
                     return True
         return False
+
+    def is_king_attacked(self, white_piece: bool) -> bool:
+        """
+        test if the king of the given color is attacked
+        :param white_piece: point of view of the test
+        :return: whether the king of hte given color is attacked
+        """
+        return self.is_square_attacked(self._get_king(white_piece).pos, white_piece)
 
     """
     pieces
