@@ -13,7 +13,7 @@ import player_tests.com_player_test as com_player_test
 import player_tests.human_player_test as human_player_test
 import player_tests.player_test as player_test
 # board tests
-import board_tests.board_test as board_test
+import tests.board_test as board_test
 # game tests
 import game_test
 

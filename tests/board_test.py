@@ -269,6 +269,48 @@ class BoardStateGetterTestCase(unittest.TestCase):
         board_.make_move((1, 18, None))  # fifth
         self.assertTrue(board_.fivefold_repetition_rule_applies)
 
+    def test_is_no_dead_position_if_it_is_no_dead_position(self):
+        self.assertFalse(board1.is_dead_position)
+
+    def test_is_dead_position_if_only_two_king_are_on_the_board(self):
+        self.assertTrue(Board('8/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_dead_position_if_two_kings_and_a_white_knight_are_on_the_board(self):
+        self.assertTrue(Board('N7/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_dead_position_if_two_kings_and_a_black_knight_are_on_the_board(self):
+        self.assertTrue(Board('n7/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_dead_position_if_two_kings_and_a_white_bishop_are_on_the_board(self):
+        self.assertTrue(Board('B7/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_dead_position_if_two_kings_and_a_black_bishop_are_on_the_board(self):
+        self.assertTrue(Board('b7/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_no_dead_position_if_two_kings_and_a_white_rook_are_on_the_board(self):
+        self.assertFalse(Board('1R6/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_no_dead_position_if_two_kings_and_a_black_rook_are_on_the_board(self):
+        self.assertFalse(Board('1r6/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_no_dead_position_if_two_kings_and_a_white_queen_are_on_the_board(self):
+        self.assertFalse(Board('1Q6/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_no_dead_position_if_two_kings_and_a_black_queen_are_on_the_board(self):
+        self.assertFalse(Board('1q6/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_no_dead_position_if_two_kings_and_a_white_pawn_are_on_the_board(self):
+        self.assertFalse(Board('1P6/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_no_dead_position_if_two_kings_and_a_black_pawn_are_on_the_board(self):
+        self.assertFalse(Board('1p6/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_no_dead_position_if_two_kings_and_two_bishops_on_different_colored_squares_are_on_the_board(self):
+        self.assertFalse(Board('Bb6/8/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_dead_position_if_two_kings_and_two_bishops_on_square_with_same_color_are_on_the_board(self):
+        self.assertTrue(Board('B1b5/8/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
 
 class PieceTestCase(unittest.TestCase):
     def test_can_get_active_pieces_publicly(self):
@@ -1685,7 +1727,7 @@ class EvaluationTestCase(unittest.TestCase):
         board = Board('8/8/8/8/8/8/8/k2K4 w - - 0 1')
         self.assertEqual(30, board.val)
 
-    # if white to move
+    # if black to move
     def test_value_increases_correctly_if_black_pawn_is_added_with_black_to_move(self):
         board = Board('4k3/8/8/8/8/8/p7/4K3 b - - 0 1')
         piece = board._get_piece(8)

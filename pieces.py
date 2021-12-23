@@ -112,7 +112,7 @@ class Piece(ABC):
         pass
 
     @property
-    def _rank(self) -> int:
+    def rank(self) -> int:
         """
         get the rank the piece stands on
         :return: the rank the piece stands on
@@ -120,7 +120,7 @@ class Piece(ABC):
         return self._pos // 8
 
     @property
-    def _file(self) -> int:
+    def file(self) -> int:
         """
         get the file the piece stands on
         :return: the file the piece stands on
@@ -133,8 +133,8 @@ class Piece(ABC):
         get the number of squares in each direction starting from the pieces position
         :return:list of numbers of squares in each direction starting from the pieces position
         """
-        r = self._rank
-        f = self._file
+        r = self.rank
+        f = self.file
         right = 7 - f
         left = f
         up = 7 - r
@@ -301,7 +301,7 @@ class Pawn(Piece):
         return {move[1] for move in self._generate_diagonal_capturing_moves()}
 
     def _generate_advances(self) -> Set[MOVE]:
-        pos_limit = 2 if (self._white_piece and self._rank == 1) or (not self._white_piece and self._rank == 6) else 1
+        pos_limit = 2 if (self._white_piece and self.rank == 1) or (not self._white_piece and self.rank == 6) else 1
         limits, diffs = min(pos_limit, self._limits[0][0]), self._diffs[0][0]
         _moves = set()
         for n in range(limits):
@@ -406,8 +406,8 @@ class Knight(Piece):
                                                                       (-2, -1), (-2, 1), (-1, 2)]):
             new_pos = self._pos + diff
             # new pos is beyond board
-            if self._file + off_set[0] > 7 or self._file + off_set[0] < 0 or self._rank + off_set[1] > 7 or \
-                    self._rank + off_set[1] < 0:
+            if self.file + off_set[0] > 7 or self.file + off_set[0] < 0 or self.rank + off_set[1] > 7 or \
+                    self.rank + off_set[1] < 0:
                 continue
             if not self._board.own_piece_on_square(new_pos, self._white_piece):
                 moves.add((self._pos, new_pos, None))

@@ -96,16 +96,16 @@ class AttributeGetterTestCase(unittest.TestCase):
 
 class GetterTestCase(unittest.TestCase):
     def test_can_get_rank(self):
-        self.assertEqual(4, piece1._rank)
+        self.assertEqual(4, piece1.rank)
 
     def test_can_get_any_rank(self):
-        self.assertEqual(2, piece2._rank)
+        self.assertEqual(2, piece2.rank)
 
     def test_can_get_file(self):
-        self.assertEqual(3, piece1._file)
+        self.assertEqual(3, piece1.file)
 
     def test_can_get_any_file(self):
-        self.assertEqual(5, piece2._file)
+        self.assertEqual(5, piece2.file)
 
     def test_not_captured_if_capture_data_is_none(self):
         self.assertTrue(piece2.on_board)

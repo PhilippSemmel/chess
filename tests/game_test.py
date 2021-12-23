@@ -124,7 +124,7 @@ class GameOverTestCase(unittest.TestCase):
             make_reoccurring_moves(_game._board)
         self.assertTrue(_game._game_over)
 
-    def test_game_is_over_when_only_two_pieces_remain_on_the_board(self):
+    def test_game_is_over_when_there_is_a_dead_position(self):
         _game = Game()
         _game._set_board('8/8/8/8/8/8/8/k6K w - - 0 1')
         self.assertTrue(_game._game_over)

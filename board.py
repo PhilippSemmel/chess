@@ -156,6 +156,27 @@ class Board:
                last_five_positions_are_equal()
 
     @property
+    def is_dead_position(self) -> bool:
+        """
+        test if the current position is a dead position
+        :return: whether the current position is a dead position
+        a dead position is a position in which checkmate cannot be delivered and thus immediately
+        """
+        if len(self._active_pieces) == 2:
+            return True
+        elif len(self._active_pieces) == 3:
+            for piece in self._active_pieces:
+                if not type(piece) == King:
+                    return type(piece) == Knight or type(piece) == Bishop
+        elif len(self._active_pieces) == 4:
+            square_color: List[int] = []
+            for piece in self._active_pieces:
+                if type(piece) == Bishop:
+                    square_color.append((piece.file + piece.rank) % 2)  # 0: black square; 1: white square
+            return square_color[0] == square_color[1]
+        return False
+
+    @property
     def val(self) -> int:
         """
         get the value of the board for the color to move
