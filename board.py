@@ -296,9 +296,10 @@ class Board:
 
         def promote_pawn() -> None:
             nonlocal moving_piece
-            if type(moving_piece) == Pawn and (move[1] // 8 == 7 or move[1] // 8 == 0):
-                moving_piece.promote(self._turn_number, self._white_to_move)
-                self._pieces.add(self._create_piece(moving_piece.pos, 'Q' if moving_piece.white_piece else 'q'))
+            if move[2] is None:  # no promotion move
+                return
+            moving_piece.promote(self._turn_number, self._white_to_move)
+            self._pieces.add(self._create_piece(moving_piece.pos, move[2]))
 
         capture_piece()
         move_castling_rook()
@@ -607,7 +608,7 @@ class Board:
         only moves pieces back if piece set is not empty
         """
         self._pieces, self._white_to_move, self._castling_rights, self._ep_target_square, self._half_move_clock, \
-        self._turn_number = self._fen_to_board(fen)
+            self._turn_number = self._fen_to_board(fen)
 
     """
     board conversion

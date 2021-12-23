@@ -114,10 +114,10 @@ class GameOverTestCase(unittest.TestCase):
 
     def test_game_is_over_if_fivefold_repetition_rule_applies(self):
         def make_reoccurring_moves(board: Board) -> None:
-            board.make_move((1, 18))
-            board.make_move((57, 42))
-            board.make_move((18, 1))
-            board.make_move((42, 57))
+            board.make_move((1, 18, None))
+            board.make_move((57, 42, None))
+            board.make_move((18, 1, None))
+            board.make_move((42, 57, None))
 
         _game = Game()
         for i in range(4):

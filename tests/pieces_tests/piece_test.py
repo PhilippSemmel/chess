@@ -7,9 +7,8 @@ tests can only be run when all abstract methods are commented out
 
 
 class TestPiece(Piece):
-    def __init__(self, *args, type_: int):
+    def __init__(self, *args):
         super().__init__(*args)
-        self._type: int = type_
 
     def pseudo_legal_moves(self, *args):
         pass
@@ -25,8 +24,8 @@ class TestPiece(Piece):
 
 
 board = Board()
-piece1 = TestPiece(35, True, board, '♟', 'P', type_=0)
-piece2 = TestPiece(21, False, board, '♘', 'n', type_=1)
+piece1 = TestPiece(35, True, board, '♟', 'P')
+piece2 = TestPiece(21, False, board, '♘', 'n')
 
 
 class ConstructionTestCase(unittest.TestCase):
@@ -90,7 +89,7 @@ class AttributeGetterTestCase(unittest.TestCase):
         self.assertIsNone(piece1.capture_data)
 
     def test_can_get_any_capture_data(self):
-        piece = TestPiece(35, True, board, '♟', 'P', type_=0)
+        piece = TestPiece(35, True, board, '♟', 'P')
         piece.capture(1, True)
         self.assertEqual((1, True), piece.capture_data)
 
@@ -143,7 +142,7 @@ class SetterTestCase(unittest.TestCase):
         self.assertEqual((2, True), piece2._capture_data)
 
     def test_can_reset_capture_data(self):
-        piece = TestPiece(35, True, board, '♟', 'P', type_=0)
+        piece = TestPiece(35, True, board, '♟', 'P')
         piece.capture(1, True)
         piece.uncapture()
         self.assertIsNone(piece.capture_data)

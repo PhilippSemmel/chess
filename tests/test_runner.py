@@ -17,7 +17,6 @@ import board_tests.board_test as board_test
 # game tests
 import game_test
 
-
 failed_tests: int
 
 

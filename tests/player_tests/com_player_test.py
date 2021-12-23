@@ -1,7 +1,6 @@
 import unittest
 from player import ComPlayer
 
-
 w_player = ComPlayer(True)
 b_player = ComPlayer(False)
 
@@ -22,12 +21,12 @@ class ConstructionTestCase(unittest.TestCase):
 
 class RandomMoveSelectionTestCase(unittest.TestCase):
     def test_can_select_random_move_from_move_set(self):
-        moves = set(zip(list(range(64)), list(range(63, -1, -1))))
+        moves = set(zip(list(range(64)), list(range(63, -1, -1)), [None] * 64))
         for i in range(1000):
             self.assertTrue(w_player._get_random_move(moves) in moves)
 
     def test_can_select_random_move_from_any_move_set(self):
-        moves = set(zip(list(range(63, -1, -1)), list(range(64))))
+        moves = set(zip(list(range(63, -1, -1)), list(range(64)), [None] * 64))
         for i in range(1000):
             self.assertTrue(w_player._get_random_move(moves) in moves)
 

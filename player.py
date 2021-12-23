@@ -2,6 +2,7 @@ from __future__ import annotations
 import random as r
 from typing import TYPE_CHECKING, Set
 from abc import ABC, abstractmethod
+
 if TYPE_CHECKING:
     from chess import MOVE
 
@@ -17,6 +18,7 @@ class Player(ABC):
     """
     Attribute getters
     """
+
     @property
     def white(self) -> bool:
         """
@@ -36,6 +38,7 @@ class Player(ABC):
     """
     move selection
     """
+
     @abstractmethod
     def get_move(self, moves: Set[MOVE]) -> MOVE:
         """
@@ -49,13 +52,17 @@ class Player(ABC):
     user interface
     """
 
-    def _move_to_ints(self, move: str) -> MOVE:
+    def _move_to_ints(self, s: str) -> MOVE:
         """
         convert str move to two ints
-        :param move: move to convert
+        :param s: str move to convert
         :return: starting pos and final pos as int
         """
-        return self._pos_to_int(move[0:2]), self._pos_to_int(move[2:4])
+        if len(s) == 5:
+            move = (self._pos_to_int(s[0:2]), self._pos_to_int(s[2:4]), s[4])
+        else:
+            move = (self._pos_to_int(s[0:2]), self._pos_to_int(s[2:4]), None)
+        return move
 
     @staticmethod
     def _pos_to_int(pos: str) -> int:
@@ -72,7 +79,10 @@ class Player(ABC):
         :param move: move to convert
         :return: starting pos and final pos as str
         """
-        return self._pos_to_str(move[0]) + self._pos_to_str(move[1])
+        s = self._pos_to_str(move[0]) + self._pos_to_str(move[1])
+        if move[2] is not None:
+            s += move[2]
+        return s
 
     @staticmethod
     def _pos_to_str(pos: int) -> str:
@@ -98,6 +108,7 @@ class HumanPlayer(Player):
                 move = self._move_to_ints(move)
                 self._verify_move(move, moves)
             except ValueError:
+                print('Input or move invalid.')
                 continue
             print(f'> {self.name} selected the move: {self._move_to_str(move)}\n')
             return move
@@ -109,9 +120,14 @@ class HumanPlayer(Player):
         :param move: player input
         :raises ValueError if input is incorrect
         """
-        if not (len(move) == 4 and move[0] in 'abcdefgh' and move[1] in '12345678' and move[2] in 'abcdefgh' and
-                move[3] in '12345678'):
-            raise ValueError
+        if len(move) == 4:
+            if move[0] in 'abcdefgh' and move[1] in '12345678' and move[2] in 'abcdefgh' and move[3] in '12345678':
+                return
+        elif len(move) == 5:
+            if move[0] in 'abcdefgh' and move[1] in '12345678' and move[2] in 'abcdefgh' and move[3] in '12345678' \
+                    and move[4] in 'QRBNqrbn':
+                return
+        raise ValueError
 
     @staticmethod
     def _verify_move(move: MOVE, moves: Set[MOVE]) -> None:
@@ -122,7 +138,6 @@ class HumanPlayer(Player):
         :raises ValueError if move is not legal
         """
         if move not in moves:
-            print('> Move not available.')
             raise ValueError
 
 

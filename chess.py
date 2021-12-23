@@ -2,7 +2,7 @@ from board import Board
 from player import Player, HumanPlayer, ComPlayer
 from typing import Tuple, Union
 
-MOVE = Tuple[int, int]
+MOVE = Tuple[int, int, Union[str, None]]
 
 
 class Game:
@@ -14,6 +14,7 @@ class Game:
     """
     initialization
     """
+
     def _init_players(self) -> None:
         """
         initialize the player objects
@@ -47,7 +48,6 @@ class Game:
             elif input_ == 'n':
                 return
 
-    # def _set_board(self, fen: str) -> None:
     def _set_board(self, fen: str) -> None:
         """
         set the starting position
@@ -58,6 +58,7 @@ class Game:
     """
     getters
     """
+
     @property
     def _active_player(self) -> Player:
         """
@@ -77,7 +78,8 @@ class Game:
     """
     game
     """
-    def main(self) -> None:  # tests & doc & new method: game_over -> bool
+
+    def main(self) -> None:
         """
         the main game loop
         """
@@ -105,10 +107,10 @@ class Game:
         5. only 2 pieces remain on the board
         """
         return self._board.checkmate \
-            or self._board.stalemate \
-            or self._board.seventy_five_moves_rule_applies \
-            or self._board.fivefold_repetition_rule_applies \
-            or len(self._board.pieces) == 2
+               or self._board.stalemate \
+               or self._board.seventy_five_moves_rule_applies \
+               or self._board.fivefold_repetition_rule_applies \
+               or len(self._board.pieces) == 2
 
 
 if __name__ == '__main__':

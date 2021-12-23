@@ -39,4 +39,3 @@ class Display:
         size = self._SQ_SIZE
         x, y = pos
         pg.draw.rect(self._display, color, pg.Rect(x * size, y * size, size, size))
-

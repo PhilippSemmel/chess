@@ -1,9 +1,9 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List, Set, TYPE_CHECKING, Optional, Union, Tuple, Dict
+
 if TYPE_CHECKING:
     from board import Board, MOVE
-
 
 """
 base and position values from:
@@ -13,6 +13,7 @@ https://www.chessprogramming.org/Simplified_Evaluation_Function
 
 class Piece(ABC):
     _all_diffs: List[int] = [1, -1, 8, -8, 9, 7, -7, -9]  # differences between the square values
+
     # order of the differences :right, left, up, down, right up, left up, right down, left down
 
     def __init__(self, pos: int, white_piece: bool, board: Board, symbol: str, fen_symbol: str) -> None:
@@ -34,6 +35,7 @@ class Piece(ABC):
     """
     abstract class attributes
     """
+
     @property
     @abstractmethod
     def _base_val(self) -> int:
@@ -47,6 +49,7 @@ class Piece(ABC):
     """
     attribute getters
     """
+
     @property
     def pos(self) -> int:
         """
@@ -90,6 +93,7 @@ class Piece(ABC):
     """
     other getters
     """
+
     @property
     def on_board(self) -> bool:
         """
@@ -140,6 +144,7 @@ class Piece(ABC):
     """
     attribute setters
     """
+
     def move_to(self, new_pos: int) -> None:
         """
         set a new position for the piece
@@ -168,6 +173,7 @@ class Piece(ABC):
     """
     move generation
     """
+
     @property
     @abstractmethod
     def pseudo_legal_moves(self) -> Set[MOVE]:
@@ -205,7 +211,7 @@ class Piece(ABC):
                 # cannot move any further when blocked by own piece
                 if self._board.own_piece_on_square(new_pos, self._white_piece):
                     break
-                moves.add((self._pos, new_pos))
+                moves.add((self._pos, new_pos, None))
                 # cannot move any further after capturing an opponents piece
                 if self._board.opponent_piece_on_square(new_pos, self._white_piece):
                     break
@@ -239,6 +245,7 @@ class Pawn(Piece):
     """
     attribute getters
     """
+
     @property
     def promotion_data(self) -> Union[None, Tuple[int, bool]]:
         """
@@ -250,6 +257,7 @@ class Pawn(Piece):
     """
     other getters
     """
+
     @property
     def on_board(self) -> bool:
         """
@@ -265,6 +273,7 @@ class Pawn(Piece):
     """
     attribute setters
     """
+
     def promote(self, turn_number: int, white_to_move: bool) -> None:
         """
         set the promotion data to Tuple[turn_number, white_to_move]
@@ -282,6 +291,7 @@ class Pawn(Piece):
     """
     move generation
     """
+
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_advances() | self._generate_diagonal_capturing_moves() | self._generate_en_passant_move()
@@ -295,24 +305,32 @@ class Pawn(Piece):
         limits, diffs = min(pos_limit, self._limits[0][0]), self._diffs[0][0]
         _moves = set()
         for n in range(limits):
-            if not self._board.is_square_empty(self._pos + ((n + 1) * diffs)):
+            final_pos = self._pos + ((n + 1) * diffs)
+            if not self._board.is_square_empty(final_pos):
                 break
-            _moves.add((self._pos, self._pos + ((n + 1) * diffs)))
+            if self._is_promotion(final_pos):
+                self._add_promotion_moves(_moves, final_pos)
+                break
+            _moves.add((self._pos, final_pos, None))
         return _moves
 
     def _generate_diagonal_capturing_moves(self) -> Set[MOVE]:
         limits, diffs = self._limits[1], self._diffs[1]
         _moves = set()
         for n in range(2):
-            if limits[n] > 0 and self._board.opponent_piece_on_square(self._pos + diffs[n], self._white_piece):
-                _moves.add((self._pos, self._pos + diffs[n]))
+            final_pos = self._pos + diffs[n]
+            if limits[n] > 0 and self._board.opponent_piece_on_square(final_pos, self._white_piece):
+                if self._is_promotion(final_pos):
+                    self._add_promotion_moves(_moves, final_pos)
+                    continue
+                _moves.add((self._pos, final_pos, None))
         return _moves
 
     def _generate_en_passant_move(self) -> Set[MOVE]:
         limits, diffs = self._limits[1], self._diffs[1]
         for n in range(2):
             if limits[n] > 0 and self._pos + diffs[n] == self._board.ep_target_square:
-                return {(self._pos, self._pos + diffs[n])}
+                return {(self._pos, self._pos + diffs[n], None)}
         return set()
 
     @property
@@ -325,6 +343,26 @@ class Pawn(Piece):
         return [self._all_diffs[2:3], self._all_diffs[4:6]] if self._white_piece else \
             [self._all_diffs[3:4], self._all_diffs[6:]]
 
+    @staticmethod
+    def _is_promotion(final_pos: int) -> bool:
+        """
+        test if a pawn move ends on the first or last rank of the board
+        :param final_pos: final pos of the moving piece
+        :return: whether the move is a promotion
+        """
+        return (final_pos // 8) == 0 or (final_pos // 8) == 7
+    
+    def _add_promotion_moves(self, moves_set: Set[MOVE], final_pos: int) -> None:
+        """
+        add all promotion moves for a move
+        :param moves_set: move set to add move to
+        :param final_pos: final position of the move
+        """
+        moves_set.add((self._pos, final_pos, 'Q' if self._white_piece else 'q'))
+        moves_set.add((self._pos, final_pos, 'R' if self._white_piece else 'r'))
+        moves_set.add((self._pos, final_pos, 'B' if self._white_piece else 'b'))
+        moves_set.add((self._pos, final_pos, 'N' if self._white_piece else 'n'))
+            
 
 class Knight(Piece):
     _base_val: int = 320
@@ -352,6 +390,7 @@ class Knight(Piece):
     """
     other getters
     """
+
     @property
     def pos_val(self) -> int:
         return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
@@ -371,7 +410,7 @@ class Knight(Piece):
                     self._rank + off_set[1] < 0:
                 continue
             if not self._board.own_piece_on_square(new_pos, self._white_piece):
-                moves.add((self._pos, new_pos))
+                moves.add((self._pos, new_pos, None))
         return moves
 
 
@@ -401,6 +440,7 @@ class Bishop(Piece):
     """
     other getters
     """
+
     @property
     def pos_val(self) -> int:
         return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
@@ -408,6 +448,7 @@ class Bishop(Piece):
     """
     moves generation
     """
+
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_sliding_moves(self._all_diffs[4:], self._max_moves[4:])
@@ -439,6 +480,7 @@ class Rook(Piece):
     """
     other getters
     """
+
     @property
     def pos_val(self) -> int:
         return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
@@ -446,6 +488,7 @@ class Rook(Piece):
     """
     moves generation
     """
+
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_sliding_moves(self._all_diffs[:4], self._max_moves[:4])
@@ -477,6 +520,7 @@ class Queen(Piece):
     """
     other getters
     """
+
     @property
     def pos_val(self) -> int:
         return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
@@ -484,6 +528,7 @@ class Queen(Piece):
     """
     moves generation
     """
+
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_sliding_moves()
@@ -515,6 +560,7 @@ class King(Piece):
     """
     other getters
     """
+
     @property
     def pos_val(self) -> int:
         return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
@@ -522,6 +568,7 @@ class King(Piece):
     """
     moves generation
     """
+
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         return self._generate_one_square_sliding_moves() | self._generate_castling_moves()
@@ -537,7 +584,7 @@ class King(Piece):
                 continue
             if self._board.own_piece_on_square(self._pos + diff, self._white_piece):
                 continue
-            moves.add((self._pos, self._pos + diff))
+            moves.add((self._pos, self._pos + diff, None))
         return moves
 
     def _generate_castling_moves(self) -> Set[MOVE]:
@@ -553,6 +600,6 @@ class King(Piece):
             if self._board.is_king_attacked(self._white_piece) or \
                     self._board.is_square_attacked(self._pos + dir_, self._white_piece):
                 return set()
-            return {(self._pos, self._pos + (2 * dir_))}
+            return {(self._pos, self._pos + (2 * dir_), None)}
 
         return generate_castling_move_for_one_side(1, 0) | generate_castling_move_for_one_side(-1, 1)
