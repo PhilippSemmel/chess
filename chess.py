@@ -102,9 +102,27 @@ class Game:
         """
         return self._board.checkmate \
                or self._board.stalemate \
-               or self._board.seventy_five_moves_rule_applies \
+               or self._board.seventy_five_move_rule_applies \
                or self._board.fivefold_repetition_rule_applies \
                or self._board.is_dead_position
+
+    def _get_game_over_message(self) -> str:
+        """
+        get the game over message
+        :return: a message according to the end of the game
+        :raises ValueError if game is not over
+        """
+        if self._board.checkmate:
+            return f'Checkmate! {self._inactive_player.name} wins.'
+        elif self._board.stalemate:
+            return 'Draw due to stalemate.'
+        elif self._board.seventy_five_move_rule_applies:
+            return 'Draw due to the applying seventy-five-move rule.'
+        elif self._board.fivefold_repetition_rule_applies:
+            return 'Draw due to the applying fivefold repetition rule.'
+        elif self._board.is_dead_position:
+            return 'Draw due to dead position.'
+        raise ValueError('Game is not over.')
 
 
 if __name__ == '__main__':

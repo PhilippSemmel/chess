@@ -109,13 +109,6 @@ class Board:
         return len(self._legal_moves) == 0 and \
                self.is_king_attacked(self._white_to_move)
 
-    """
-    general draw boolean function with the following
-    - stalemate
-    - dead position
-    - seventy five moves rule applies
-    - five repetition rules applies"""
-
     @property
     def stalemate(self) -> bool:
         """
@@ -127,10 +120,10 @@ class Board:
                not self.is_king_attacked(self._white_to_move)
 
     @property
-    def seventy_five_moves_rule_applies(self) -> bool:
+    def seventy_five_move_rule_applies(self) -> bool:
         """
-        test if the seventy-five moves rule applies thus leading to a draw
-        :return: whether the seventy-five moves rules applies
+        test if the seventy-five-move rule applies thus leading to a draw
+        :return: whether the seventy-five-move rules applies
         note: does not apply when last move is checkmate
         """
         return self._half_move_clock >= 75 and not self.checkmate
@@ -162,19 +155,33 @@ class Board:
         :return: whether the current position is a dead position
         a dead position is a position in which checkmate cannot be delivered and thus immediately
         """
-        if len(self._active_pieces) == 2:
-            return True
-        elif len(self._active_pieces) == 3:
+        def only_two_kings() -> bool:
+            return len(self._active_pieces) == 2
+
+        def two_kings_and_a_knight_or_a_bishop() -> bool:
+            if not len(self._active_pieces) == 3:
+                return False
             for piece in self._active_pieces:
                 if not type(piece) == King:
                     return type(piece) == Knight or type(piece) == Bishop
-        elif len(self._active_pieces) == 4:
+
+        def two_kings_and_a_bishop_each_both_on_same_colored_squares() -> bool:
+            if not len(self._active_pieces) == 4:
+                return False
             square_color: List[int] = []
+            piece_color: List[bool] = []
             for piece in self._active_pieces:
-                if type(piece) == Bishop:
+                if type(piece) == King:
+                    continue
+                elif type(piece) == Bishop:
                     square_color.append((piece.file + piece.rank) % 2)  # 0: black square; 1: white square
-            return square_color[0] == square_color[1]
-        return False
+                    piece_color.append(piece.white_piece)
+                else:
+                    return False
+            return square_color[0] == square_color[1] and not piece_color[0] == piece_color[1]
+
+        return only_two_kings() or two_kings_and_a_knight_or_a_bishop() or \
+               two_kings_and_a_bishop_each_both_on_same_colored_squares()
 
     @property
     def val(self) -> int:

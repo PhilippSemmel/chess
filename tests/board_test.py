@@ -169,24 +169,24 @@ class BoardStateGetterTestCase(unittest.TestCase):
         board = Board('K7/8/8/8/8/2B5/1R6/k7 b - - 0 1')
         self.assertTrue(board.stalemate)
 
-    def test_seventy_five_moves_rule_does_not_apply_when_half_clock_value_is_less_than_seventy_five(self):
-        self.assertFalse(board1.seventy_five_moves_rule_applies)
+    def test_seventy_five_move_rule_does_not_apply_when_half_clock_value_is_less_than_seventy_five(self):
+        self.assertFalse(board1.seventy_five_move_rule_applies)
 
-    def test_seventy_five_moves_rule_does_not_apply_when_half_clock_value_is_seventy_four(self):
+    def test_seventy_five_move_rule_does_not_apply_when_half_clock_value_is_seventy_four(self):
         board = Board('8/8/8/8/8/8/8/kp5K w - - 74 1')
-        self.assertFalse(board.seventy_five_moves_rule_applies)
+        self.assertFalse(board.seventy_five_move_rule_applies)
 
-    def test_seventy_five_moves_rule_does_apply_when_half_clock_value_is_seventy_five(self):
+    def test_seventy_five_move_rule_does_apply_when_half_clock_value_is_seventy_five(self):
         board = Board('8/8/8/8/8/8/8/kp5K w - - 75 1')
-        self.assertTrue(board.seventy_five_moves_rule_applies)
+        self.assertTrue(board.seventy_five_move_rule_applies)
 
-    def test_seventy_five_moves_rule_does_apply_when_half_clock_value_is_more_than_seventy_five(self):
+    def test_seventy_five_move_rule_does_apply_when_half_clock_value_is_more_than_seventy_five(self):
         board = Board('8/8/8/8/8/8/8/kp5K w - - 76 1')
-        self.assertTrue(board.seventy_five_moves_rule_applies)
+        self.assertTrue(board.seventy_five_move_rule_applies)
 
-    def test_seventy_five_moves_rule_does_not_apply_when_active_player_is_in_checkmate(self):
+    def test_seventy_five_move_rule_does_not_apply_when_active_player_is_in_checkmate(self):
         board = Board('k7/8/8/8/8/2b5/1q6/K7 w - - 75 1')
-        self.assertFalse(board.seventy_five_moves_rule_applies)
+        self.assertFalse(board.seventy_five_move_rule_applies)
 
     def test_fivefold_repetition_rule_does_not_apply_if_not_in_turn_nine_or_earlier(self):
         self.assertFalse(board1.fivefold_repetition_rule_applies)
@@ -306,10 +306,16 @@ class BoardStateGetterTestCase(unittest.TestCase):
         self.assertFalse(Board('1p6/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
 
     def test_is_no_dead_position_if_two_kings_and_two_bishops_on_different_colored_squares_are_on_the_board(self):
-        self.assertFalse(Board('Bb6/8/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+        self.assertFalse(Board('Bb6/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
 
     def test_is_dead_position_if_two_kings_and_two_bishops_on_square_with_same_color_are_on_the_board(self):
-        self.assertTrue(Board('B1b5/8/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+        self.assertTrue(Board('B1b5/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_no_dead_position_if_two_kings_and_two_non_bishop_pieces_are_on_the_board(self):
+        self.assertFalse(Board('Q1b5/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
+
+    def test_is_no_dead_position_if_two_kings_and_two_bishops_of_the_same_color_remain(self):
+        self.assertFalse(Board('BB6/8/8/8/8/8/8/k6K w - - 0 1').is_dead_position)
 
 
 class PieceTestCase(unittest.TestCase):
