@@ -100,11 +100,7 @@ class Game:
         test if the game is over
         :return: whether the game is over
         """
-        return self._board.checkmate \
-               or self._board.stalemate \
-               or self._board.seventy_five_move_rule_applies \
-               or self._board.fivefold_repetition_rule_applies \
-               or self._board.is_dead_position
+        return self._board.checkmate or self._board.is_draw
 
     def _get_game_over_message(self) -> str:
         """

@@ -110,6 +110,20 @@ class Board:
                self.is_king_attacked(self._white_to_move)
 
     @property
+    def is_draw(self) -> bool:
+        """
+        test if the current position is draw
+        :return: whether the current position is draw
+        current position is draw when of the following is true:
+        1. position is stalemate
+        2. seventy-five-move rule applies
+        3. fivefold repetition rule applies
+        4. positions is a dead position
+        """
+        return self.stalemate or self.seventy_five_move_rule_applies or self.fivefold_repetition_rule_applies or \
+            self.is_dead_position
+
+    @property
     def stalemate(self) -> bool:
         """
         test whether the current board constellation is stalemate
@@ -184,11 +198,15 @@ class Board:
                two_kings_and_a_bishop_each_both_on_same_colored_squares()
 
     @property
-    def val(self) -> int:
+    def val(self) -> float:
         """
         get the value of the board for the color to move
         :return: value to the board
         """
+        if self.checkmate:
+            return float('-inf')
+        if self.is_draw:
+            return 0
         val = 0
         for piece in self._active_pieces:
             val = val + piece.pos_val if piece.white_piece == self.white_to_move else val - piece.pos_val
