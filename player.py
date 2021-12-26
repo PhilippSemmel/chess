@@ -1,10 +1,10 @@
 from __future__ import annotations
 import random as r
-from typing import TYPE_CHECKING, Set
+from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
 
 if TYPE_CHECKING:
-    from chess import MOVE
+    from chess import MOVE, Board
 
 
 class Player(ABC):
@@ -40,10 +40,10 @@ class Player(ABC):
     """
 
     @abstractmethod
-    def get_move(self, moves: Set[MOVE]) -> MOVE:
+    def get_move(self, board: Board) -> MOVE:
         """
         let the player select a move
-        :param moves: legal moves
+        :param board: board object
         :return: selected move
         """
         pass
@@ -98,15 +98,15 @@ class HumanPlayer(Player):
     def __init__(self, color: bool, name: str) -> None:
         super().__init__(color, name)
 
-    def get_move(self, moves: Set[MOVE]) -> MOVE:
-        moves_str = [self._move_to_str(move) for move in moves]
+    def get_move(self, board: Board) -> MOVE:
+        moves_str = [self._move_to_str(move) for move in board.legal_moves]
         while True:
             print('> Available moves:', moves_str)
             try:
                 move = input('> Enter your move (e.g.: "e2e4"): ')
                 self._verify_input(move)
                 move = self._move_to_ints(move)
-                self._verify_move(move, moves)
+                self._verify_move(move, board)
             except ValueError:
                 print('Input or move invalid.')
                 continue
@@ -130,14 +130,14 @@ class HumanPlayer(Player):
         raise ValueError
 
     @staticmethod
-    def _verify_move(move: MOVE, moves: Set[MOVE]) -> None:
+    def _verify_move(move: MOVE, board: Board) -> None:
         """
         verify that the move is legal
         :param move: move
-        :param moves: legal moves
+        :param board: board object
         :raises ValueError if move is not legal
         """
-        if move not in moves:
+        if move not in board.legal_moves:
             raise ValueError
 
 
@@ -145,16 +145,16 @@ class ComPlayer(Player):
     def __init__(self, color: bool) -> None:
         super().__init__(color, 'White Com' if color else 'Black Com')
 
-    def get_move(self, moves: Set[MOVE]) -> MOVE:
-        move = self._get_random_move(moves)
+    def get_move(self, board: Board) -> MOVE:
+        move = self._get_random_move(board)
         print(f'> {self.name} selected the move: {self._move_to_str(move)}\n')
         return move
 
     @staticmethod
-    def _get_random_move(moves: Set[MOVE]) -> MOVE:
+    def _get_random_move(board: Board) -> MOVE:
         """
         let the com player select a random move
-        :param moves: legal moves
+        :param board: board object
         :return: random move
         """
-        return r.sample(moves, 1)[0]
+        return r.sample(board.legal_moves, 1)[0]

@@ -92,6 +92,5 @@ def print_final_message() -> None:
 
 
 if __name__ == '__main__':
-    # cProfile.run('main()', sort=2)
     unittest.main()
     print_final_message()

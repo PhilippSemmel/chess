@@ -98,16 +98,14 @@ class Board:
     """
     board state
     """
-
     @property
-    def checkmate(self) -> bool:
+    def is_win(self) -> bool:
         """
-        test whether the current board constellation is checkmate
-        :return: whether its checkmate
-        a board position is stalemate if no legal moves are available and the active king is in check
+        test if the position is a win for a player
+        :return: whether the position is a win for a player
+        position is a win for a player if the active player is in checkmate
         """
-        return len(self._legal_moves) == 0 and \
-               self.is_king_attacked(self._white_to_move)
+        return self.checkmate
 
     @property
     def is_draw(self) -> bool:
@@ -122,6 +120,16 @@ class Board:
         """
         return self.stalemate or self.seventy_five_move_rule_applies or self.fivefold_repetition_rule_applies or \
             self.is_dead_position
+
+    @property
+    def checkmate(self) -> bool:
+        """
+        test whether the current board constellation is checkmate
+        :return: whether its checkmate
+        a board position is stalemate if no legal moves are available and the active king is in check
+        """
+        return len(self._legal_moves) == 0 and \
+               self.is_king_attacked(self._white_to_move)
 
     @property
     def stalemate(self) -> bool:
@@ -203,7 +211,7 @@ class Board:
         get the value of the board for the color to move
         :return: value to the board
         """
-        if self.checkmate:
+        if self.is_win:
             return float('-inf')
         if self.is_draw:
             return 0
@@ -255,11 +263,11 @@ class Board:
         :param move: move to test
         :return: whether the move is legal
         """
-        with self._make_move_and_undo_move_afterwards(move):
+        with self.make_move_and_undo_move_afterwards(move):
             return not self.is_king_attacked(not self._white_to_move)  # color to move changed after move
 
     @contextlib.contextmanager
-    def _make_move_and_undo_move_afterwards(self, move: MOVE) -> None:
+    def make_move_and_undo_move_afterwards(self, move: MOVE) -> None:
         """
         make and undo the given move
         :param move: move to make and undo

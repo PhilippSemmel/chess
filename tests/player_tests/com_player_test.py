@@ -1,5 +1,6 @@
 import unittest
 from player import ComPlayer
+from chess import Board
 
 w_player = ComPlayer(True)
 b_player = ComPlayer(False)
@@ -21,14 +22,14 @@ class ConstructionTestCase(unittest.TestCase):
 
 class RandomMoveSelectionTestCase(unittest.TestCase):
     def test_can_select_random_move_from_move_set(self):
-        moves = set(zip(list(range(64)), list(range(63, -1, -1)), [None] * 64))
+        board = Board('K7/8/8/8/8/8/1Q6/7k w - - 0 1')
         for i in range(1000):
-            self.assertTrue(w_player._get_random_move(moves) in moves)
+            self.assertTrue(w_player._get_random_move(board) in board.legal_moves)
 
     def test_can_select_random_move_from_any_move_set(self):
-        moves = set(zip(list(range(63, -1, -1)), list(range(64)), [None] * 64))
+        board = Board('k7/8/8/8/8/8/1q6/7K b - - 0 1')
         for i in range(1000):
-            self.assertTrue(w_player._get_random_move(moves) in moves)
+            self.assertTrue(w_player._get_random_move(board) in board.legal_moves)
 
 
 def main() -> None:

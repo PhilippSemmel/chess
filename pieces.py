@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List, Set, TYPE_CHECKING, Optional, Union, Tuple, Dict
+from functools import lru_cache
 
 if TYPE_CHECKING:
     from board import Board, MOVE
@@ -127,10 +128,11 @@ class Piece(ABC):
         """
         return self._pos % 8
 
-    @property
-    def _max_moves(self) -> List[int]:
+    @lru_cache(maxsize=64)
+    def _get_max_moves(self, pos: int) -> Tuple[int, int, int, int, int, int, int, int]:
         """
         get the number of squares in each direction starting from the pieces position
+        :param pos: position of the piece
         :return:list of numbers of squares in each direction starting from the pieces position
         """
         r = self.rank
@@ -139,7 +141,7 @@ class Piece(ABC):
         left = f
         up = 7 - r
         down = r
-        return [right, left, up, down, min(right, up), min(left, up), min(right, down), min(left, down)]
+        return right, left, up, down, min(right, up), min(left, up), min(right, down), min(left, down)
 
     """
     attribute setters
@@ -192,7 +194,7 @@ class Piece(ABC):
         """
         return {move[1] for move in self.pseudo_legal_moves}
 
-    def _generate_sliding_moves(self, diffs: Optional[List[int]] = None, max_moves: Optional[List[int]] = None) \
+    def _generate_sliding_moves(self, diffs: Optional[List[int]] = None, max_moves: Optional[Tuple[int]] = None) \
             -> Set[MOVE]:
         """
         generate all long range sliding moves of a piece
@@ -203,7 +205,7 @@ class Piece(ABC):
         if not diffs:
             diffs = self._all_diffs
         if not max_moves:
-            max_moves = self._max_moves
+            max_moves = self._get_max_moves(self._pos)
         moves = set()
 
         for diff, m in zip(diffs, max_moves):
@@ -334,9 +336,9 @@ class Pawn(Piece):
         return set()
 
     @property
-    def _limits(self) -> List[List[int]]:
-        return [self._max_moves[2:3], self._max_moves[4:6]] if self._white_piece else \
-            [self._max_moves[3:4], self._max_moves[6:]]
+    def _limits(self) -> List[Tuple[int, int, int, int]]:
+        return [self._get_max_moves(self._pos)[2:3], self._get_max_moves(self._pos)[4:6]] if self._white_piece else \
+            [self._get_max_moves(self._pos)[3:4], self._get_max_moves(self._pos)[6:]]
 
     @property
     def _diffs(self) -> List[List[int]]:
@@ -451,7 +453,7 @@ class Bishop(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        return self._generate_sliding_moves(self._all_diffs[4:], self._max_moves[4:])
+        return self._generate_sliding_moves(self._all_diffs[4:], self._get_max_moves(self._pos)[4:])
 
 
 class Rook(Piece):
@@ -491,7 +493,7 @@ class Rook(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        return self._generate_sliding_moves(self._all_diffs[:4], self._max_moves[:4])
+        return self._generate_sliding_moves(self._all_diffs[:4], self._get_max_moves(self._pos)[:4])
 
 
 class Queen(Piece):
@@ -579,7 +581,7 @@ class King(Piece):
 
     def _generate_one_square_sliding_moves(self) -> Set[MOVE]:
         moves = set()
-        for diff, m in zip(self._all_diffs, self._max_moves):
+        for diff, m in zip(self._all_diffs, self._get_max_moves(self._pos)):
             if m == 0:
                 continue
             if self._board.own_piece_on_square(self._pos + diff, self._white_piece):

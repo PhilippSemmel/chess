@@ -89,8 +89,7 @@ class Game:
         while True:
             if self._game_over:
                 break
-            moves = self._board.legal_moves
-            move = self._active_player.get_move(moves)
+            move = self._active_player.get_move(self._board)
             self._board.make_move(move)
             print(self._board)
 
@@ -100,7 +99,7 @@ class Game:
         test if the game is over
         :return: whether the game is over
         """
-        return self._board.checkmate or self._board.is_draw
+        return self._board.is_win or self._board.is_draw
 
     def _get_game_over_message(self) -> str:
         """
