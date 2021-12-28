@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 import contextlib
-from pieces import Piece, Pawn, Knight, Bishop, Rook, Queen, King
 from typing import Tuple, Optional, Union, Set, List, TYPE_CHECKING
+
+from pieces import Piece, Pawn, Knight, Bishop, Rook, Queen, King
 
 if TYPE_CHECKING:
     from chess import MOVE
@@ -119,7 +121,7 @@ class Board:
         4. positions is a dead position
         """
         return self.stalemate or self.seventy_five_move_rule_applies or self.fivefold_repetition_rule_applies or \
-            self.is_dead_position
+               self.is_dead_position
 
     @property
     def checkmate(self) -> bool:
@@ -202,6 +204,8 @@ class Board:
                     return False
             return square_color[0] == square_color[1] and not piece_color[0] == piece_color[1]
 
+        if len(self._active_pieces) > 5:
+            return False
         return only_two_kings() or two_kings_and_a_knight_or_a_bishop() or \
                two_kings_and_a_bishop_each_both_on_same_colored_squares()
 

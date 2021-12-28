@@ -1,4 +1,5 @@
 import unittest
+
 from board import Pawn, Piece, Board
 
 board = Board()

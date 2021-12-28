@@ -1,4 +1,5 @@
 import unittest
+
 from board import Knight, Piece, Board
 
 board = Board()

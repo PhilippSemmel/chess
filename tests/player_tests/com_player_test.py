@@ -1,6 +1,7 @@
 import unittest
-from player import ComPlayer
+
 from chess import Board
+from player import ComPlayer
 
 w_player = ComPlayer(True)
 b_player = ComPlayer(False)

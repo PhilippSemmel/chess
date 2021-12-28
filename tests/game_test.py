@@ -1,4 +1,5 @@
 import unittest
+
 from chess import Game, Board, HumanPlayer, ComPlayer
 
 game = Game()

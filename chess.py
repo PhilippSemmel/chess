@@ -1,6 +1,7 @@
+from typing import Tuple, Union
+
 from board import Board
 from player import Player, HumanPlayer, ComPlayer
-from typing import Tuple, Union
 
 MOVE = Tuple[int, int, Union[str, None]]
 

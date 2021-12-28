@@ -1,5 +1,8 @@
 import time
 import unittest
+
+# game tests
+import game_test
 # pieces tests
 import pieces_tests.bishop_test as bishop_test
 import pieces_tests.king_test as king_test
@@ -13,9 +16,7 @@ import player_tests.com_player_test as com_player_test
 import player_tests.human_player_test as human_player_test
 import player_tests.player_test as player_test
 # board tests
-import tests.board_test as board_test
-# game tests
-import game_test
+import tests.board_tests.board_test as board_test
 
 failed_tests: int
 

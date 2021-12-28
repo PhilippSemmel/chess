@@ -1,4 +1,5 @@
 import unittest
+
 from board import Rook, Piece, Board
 
 board = Board()

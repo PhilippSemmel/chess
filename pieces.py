@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import List, Set, TYPE_CHECKING, Optional, Union, Tuple, Dict
 from functools import lru_cache
+from typing import List, Set, TYPE_CHECKING, Optional, Union, Tuple, Dict
 
 if TYPE_CHECKING:
     from board import Board, MOVE
