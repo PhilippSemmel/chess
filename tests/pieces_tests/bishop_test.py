@@ -12,22 +12,22 @@ class ConstructionTestCase(unittest.TestCase):
         self.assertTrue(issubclass(Bishop, Piece))
 
     def test_base_val_is_correct(self):
-        self.assertEqual(330, bishop1._base_val)
+        self.assertEqual(330, bishop1._BASE_VAL)
 
     def test_base_val_is_always_correct(self):
-        self.assertEqual(330, bishop2._base_val)
+        self.assertEqual(330, bishop2._BASE_VAL)
 
     def test_pos_val_mod_is_correct_as_white(self):
         self.assertEqual((-20, -10, -10, -10, -10, -10, -10, -20, -10, 5, 0, 0, 0, 0, 5, -10, -10, 10, 10, 10, 10, 10,
                           10, -10, -10, 0, 10, 10, 10, 10, 0, -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 5, 10, 10, 5,
                           0, -10, -10, 0, 0, 0, 0, 0, 0, -10, -20, -10, -10, -10, -10, -10, -10, -20),
-                         bishop1._pos_val_mod[True])
+                         bishop1._POS_VAL_MOD[True])
 
     def test_pos_val_mod_is_correct_as_black(self):
         self.assertEqual((-20, -10, -10, -10, -10, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 10, 10, 5, 0,
                           -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 10, 10, 10, 10, 0, -10, -10, 10, 10, 10, 10, 10,
                           10, -10, -10, 5, 0, 0, 0, 0, 5, -10, -20, -10, -10, -10, -10, -10, -10, -20),
-                         bishop2._pos_val_mod[False])
+                         bishop2._POS_VAL_MOD[False])
 
     def test_pos_is_given_value(self):
         self.assertEqual(35, bishop1._pos)
@@ -42,10 +42,10 @@ class ConstructionTestCase(unittest.TestCase):
         self.assertFalse(bishop2._white_piece)
 
     def test_capture_data_is_none(self):
-        self.assertIsNone(bishop1._capture_data)
+        self.assertIsNone(bishop1._capture_info)
 
     def test_capture_data_is_always_none(self):
-        self.assertIsNone(bishop2._capture_data)
+        self.assertIsNone(bishop2._capture_info)
 
 
 class MoveGenerationTestCase(unittest.TestCase):
@@ -246,7 +246,7 @@ class PositionValueTestCase(unittest.TestCase):
                                  0, 5, 10, 10, 5, 0, -10, -10, 0, 0, 0, 0, 0, 0, -10, -20, -10, -10, -10, -10, -10, -10,
                                  -20)):
             bishop1.move_to(n)
-            self.assertEqual(Bishop._base_val + mod, bishop1.pos_val)
+            self.assertEqual(Bishop._BASE_VAL + mod, bishop1.pos_val)
 
     def test_can_generate_pos_value_as_black(self):
         for n, mod in enumerate((-20, -10, -10, -10, -10, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 10, 10,
@@ -254,7 +254,7 @@ class PositionValueTestCase(unittest.TestCase):
                                  10, 10, 10, 10, -10, -10, 5, 0, 0, 0, 0, 5, -10, -20, -10, -10, -10, -10, -10,
                                  -10, -20)):
             bishop2.move_to(n)
-            self.assertEqual(Bishop._base_val + mod, bishop2.pos_val)
+            self.assertEqual(Bishop._BASE_VAL + mod, bishop2.pos_val)
 
 
 def main() -> None:

@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from functools import lru_cache
-from typing import List, Set, TYPE_CHECKING, Optional, Union, Tuple, Dict
+from typing import Dict, Iterator, List, Optional, Set, Tuple, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from board import Board, MOVE
@@ -14,24 +13,36 @@ https://www.chessprogramming.org/Simplified_Evaluation_Function
 
 
 class Piece(ABC):
-    _all_diffs: List[int] = [1, -1, 8, -8, 9, 7, -7, -9]  # differences between the square values
-
-    # order of the differences :right, left, up, down, right up, left up, right down, left down
+    _POS_DIFFS: List[int] = [1, -1, 8, -8, 9, 7, -7, -9]
+    _MAX_MOVES: Dict[int, Dict[int, int]]
 
     def __init__(self, pos: int, white_piece: bool, board: Board, symbol: str, fen_symbol: str) -> None:
-        # piece info
         self._pos: int = pos
         self._white_piece: bool = white_piece
         self._symbol: str = symbol
         self._fen_symbol: str = fen_symbol
-        self._capture_data: Union[None, Tuple[int, bool]] = None
-        # objects
+        self._capture_info: Union[None, Tuple[int, bool]] = None
+        self._MAX_MOVES = self._get_max_moves()
         self._board: Board = board
 
+    def _get_max_moves(self) -> Dict[int, Dict[int, int]]:
+        """
+        :return: Dict[position, Dict[direction, max moves in direction]]
+        """
+        return {
+            i: {
+                j: k for j, k in zip(
+                    (1, -1, 8, -8, 9, -9, 7, -7),
+                    self._get_max_moves_on_position(i))
+                } for i in range(64)
+        }
+
+    @staticmethod
+    def _get_max_moves_on_position(pos) -> List[int]:
+        return [7 - (pos % 8), pos % 8, 7 - ( pos // 8), pos // 8, min(7 - (pos // 8), 7 - (pos % 8)),
+                min(pos // 8, pos % 8), min(7 - (pos // 8), pos % 8), min(pos // 8,7 - (pos % 8))]
+
     def __repr__(self) -> str:
-        """
-        :return: {color} {type} {pos}
-        """
         return f'{"w" if self._white_piece else "b"} {self._fen_symbol} {self._pos}'
 
     """
@@ -40,12 +51,12 @@ class Piece(ABC):
 
     @property
     @abstractmethod
-    def _base_val(self) -> int:
+    def _BASE_VAL(self) -> int:
         pass
 
     @property
     @abstractmethod
-    def _pos_val_mod(self) -> int:
+    def _POS_VAL_MOD(self) -> Dict[bool, List[int]]:
         pass
 
     """
@@ -54,43 +65,32 @@ class Piece(ABC):
 
     @property
     def pos(self) -> int:
-        """
-        get the piece's positions
-        :return: the piece's positions
-        """
         return self._pos
 
     @property
     def white_piece(self) -> bool:
         """
-        get the piece's color
-        :return: the piece's color
+        :return: whether the piece is white
         """
         return self._white_piece
 
     @property
     def symbol(self) -> str:
         """
-        get the symbol of the piece
-        :return: symbol of the piece
+        :return: symbol for console representation
         """
         return self._symbol
 
     @property
     def fen_symbol(self) -> str:
-        """
-        get the fen symbol of the piece
-        :return: fen symbol of the piece
-        """
         return self._fen_symbol
 
     @property
-    def capture_data(self) -> Union[None, Tuple[int, bool]]:
+    def capture_info(self) -> Union[None, Tuple[int, bool]]:
         """
-        data about the capture of the piece
-        :return: Tuple[capture turn, color of active player while capture]
+        :return: Tuple[turn number, white to move]
         """
-        return self._capture_data
+        return self._capture_info
 
     """
     other getters
@@ -98,65 +98,28 @@ class Piece(ABC):
 
     @property
     def on_board(self) -> bool:
-        """
-        test whether the piece is on the board
-        :return: whether the piece is on the board
-        """
-        return self._capture_data is None
+        return self._capture_info is None
 
     @property
-    @abstractmethod
     def pos_val(self) -> int:
         """
-        get the position value of the piece
-        :return: position value
+        :return: value of the piece on its position
         """
-        pass
+        return self._BASE_VAL + self._POS_VAL_MOD[self._white_piece][self._pos]
 
     @property
     def rank(self) -> int:
-        """
-        get the rank the piece stands on
-        :return: the rank the piece stands on
-        """
         return self._pos // 8
 
     @property
     def file(self) -> int:
-        """
-        get the file the piece stands on
-        :return: the file the piece stands on
-        """
         return self._pos % 8
-
-    @lru_cache(maxsize=64)
-    def _get_max_moves(self, pos: int) -> Tuple[int, int, int, int, int, int, int, int]:
-        """
-        get the number of squares in each direction starting from the pieces position
-        :param pos: position of the piece
-        :return:list of numbers of squares in each direction starting from the pieces position
-        """
-        r = self.rank
-        f = self.file
-        right = 7 - f
-        left = f
-        up = 7 - r
-        down = r
-        return right, left, up, down, min(right, up), min(left, up), min(right, down), min(left, down)
 
     """
     attribute setters
     """
 
     def move_to(self, new_pos: int) -> None:
-        """
-        set a new position for the piece
-        :param new_pos: new position of the piece
-        """
-        if new_pos > 63 or new_pos < 0:
-            raise ValueError('Position value must be between 0 and 63.')
-        if not type(new_pos) == int:
-            raise TypeError('Position value must be an int.')
         self._pos = new_pos
 
     def capture(self, turn_number: int, white_to_move: bool) -> None:
@@ -165,65 +128,61 @@ class Piece(ABC):
         :param turn_number: turn number when the capture occurred
         :param white_to_move: color to move when to capture occurred
         """
-        self._capture_data = turn_number, white_to_move
+        self._capture_info = turn_number, white_to_move
 
     def uncapture(self) -> None:
         """
-        set the capture data to None
+        set the capture info to None
         """
-        self._capture_data = None
+        self._capture_info = None
 
     """
     move generation
     """
 
     @property
-    @abstractmethod
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        """
-        generate all pseudo legal moves the piece can make
-        :return: set of all legal moves available
-        """
-        pass
+        return self._get_sliding_moves()
 
     @property
     def attacking_squares(self) -> Set[int]:
         """
-        generate all squares the piece threatens
-        only considers moves that could threaten the king
-        :return: set of all squares the piece threatens
+        only considers moves that could threaten the opponents king
         """
         return {move[1] for move in self.pseudo_legal_moves}
 
-    def _generate_sliding_moves(self, diffs: Optional[List[int]] = None, max_moves: Optional[Tuple[int]] = None) \
-            -> Set[MOVE]:
-        """
-        generate all long range sliding moves of a piece
-        :param diffs: the square index value differences of every direction the piece can move to
-        :param max_moves: list of squares in every direction the piece can move to
-        :return: all long range sliding moves of a piece
-        """
-        if not diffs:
-            diffs = self._all_diffs
-        if not max_moves:
-            max_moves = self._get_max_moves(self._pos)
+    def _get_sliding_moves(self) -> Set[MOVE]:
         moves = set()
-
-        for diff, m in zip(diffs, max_moves):
-            for new_pos in range(self._pos + diff, self._pos + ((m + 1) * diff), diff):
-                # cannot move any further when blocked by own piece
-                if self._board.own_piece_on_square(new_pos, self._white_piece):
-                    break
-                moves.add((self._pos, new_pos, None))
-                # cannot move any further after capturing an opponents piece
-                if self._board.opponent_piece_on_square(new_pos, self._white_piece):
-                    break
+        for diff in self._POS_DIFFS:
+            self._add_direction_moves(moves, diff)
         return moves
+
+    def _add_direction_moves(self, moves_set: Set[MOVE], diff: int) -> None:
+        for new_pos in self._possible_new_positions(diff):
+            if self._board.own_piece_on_square(new_pos, self._white_piece):
+                return
+            self._add_move(moves_set, new_pos)
+            if self._board.opponent_piece_on_square(new_pos, self._white_piece):
+                return
+
+    def _possible_new_positions(self, diff: int, limit: Optional[int] = 7) -> Iterator[int]:
+        """
+        generates all possible new positions for a direction
+        :param diff: square index difference of direction
+        :param limit: maximum moves in direction
+        """
+        return range(self._pos + diff, self._pos + ((min(self._MAX_MOVES[self._pos][diff], limit) + 1) * diff), diff)
+
+    def _add_move(self, moves_set: Set[MOVE], new_pos: int, promotion_type: Optional[str] = None) -> None:
+        moves_set.add((self._pos, new_pos, promotion_type))
+
+    def _moves_in_direction_available(self, diff: int) -> bool:
+        return self._MAX_MOVES[self._pos][diff] > 0
 
 
 class Pawn(Piece):
-    _base_val: int = 100
-    _pos_val_mod: Dict[bool, Tuple[int]] = {True:  ( 0,  0,  0,  0,  0,  0,  0,  0,
+    _BASE_VAL: int = 100
+    _POS_VAL_MOD: Dict[bool, Tuple[int]] = {True:  ( 0,  0,  0,  0,  0,  0,  0,  0,
                                                      5, 10, 10,-20,-20, 10, 10,  5,
                                                      5, -5,-10,  0,  0,-10, -5,  5,
                                                      0,  0,  0, 20, 20,  0,  0,  0,
@@ -239,11 +198,31 @@ class Pawn(Piece):
                                                      5, -5,-10,  0,  0,-10, -5,  5,
                                                      5, 10, 10,-20,-20, 10, 10,  5,
                                                      0,  0,  0,  0,  0,  0,  0,  0)}
+    _POS_DIFFS: List[int]
+    _MAX_MOVES: Dict[int, Dict[int, int]]
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♟', 'P') if white_piece else ('♙', 'p')
         super().__init__(pos, white_piece, board, symbol, fen_symbol)
+        self._POS_DIFFS = self._get_pos_diffs()
+        self._MAX_MOVES = self._get_max_moves()
         self._promotion_data: Union[None, Tuple[int, bool]] = None
+
+    def _get_pos_diffs(self):
+        return [8, 9, 7] if self._white_piece else [-8, -9, -7]
+
+    def _get_max_moves(self):
+        return {
+            i: {
+                j: k for j, k in zip(
+                    self._POS_DIFFS,
+                    self._get_max_moves_on_pos(i))
+                } for i in range(64)
+        }
+
+    def _get_max_moves_on_pos(self, pos) -> List[int]:
+        return [7 - (pos // 8), min(7 - (pos // 8), 7 - (pos % 8)), min(7 - (pos // 8), pos % 8)] if self._white_piece \
+            else [pos // 8, min(pos // 8, pos % 8), min(pos // 8, 7 - (pos % 8))]
 
     """
     attribute getters
@@ -252,8 +231,7 @@ class Pawn(Piece):
     @property
     def promotion_data(self) -> Union[None, Tuple[int, bool]]:
         """
-        get the promotion data
-        :return: Tuple[promotion turn, color of active player while promotion]
+        :return: Tuple[turn number, white to move]
         """
         return self._promotion_data
 
@@ -263,15 +241,7 @@ class Pawn(Piece):
 
     @property
     def on_board(self) -> bool:
-        """
-        test whether the piece is on the board
-        :return: whether the piece is on the board
-        """
-        return self._capture_data is None and self._promotion_data is None
-
-    @property
-    def pos_val(self) -> int:
-        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
+        return self._capture_info is None and self._promotion_data is None
 
     """
     attribute setters
@@ -297,79 +267,79 @@ class Pawn(Piece):
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        return self._generate_advances() | self._generate_diagonal_capturing_moves() | self._generate_en_passant_move()
+        return self._get_advances() | self._get_diagonal_capturing_moves() | self._get_en_passant_move()
 
     @property
     def attacking_squares(self) -> Set[int]:
-        return {move[1] for move in self._generate_diagonal_capturing_moves()}
+        return {move[1] for move in self._get_diagonal_capturing_moves()}
 
-    def _generate_advances(self) -> Set[MOVE]:
-        pos_limit = 2 if (self._white_piece and self.rank == 1) or (not self._white_piece and self.rank == 6) else 1
-        limits, diffs = min(pos_limit, self._limits[0][0]), self._diffs[0][0]
-        _moves = set()
-        for n in range(limits):
-            final_pos = self._pos + ((n + 1) * diffs)
-            if not self._board.is_square_empty(final_pos):
-                break
-            if self._is_promotion(final_pos):
-                self._add_promotion_moves(_moves, final_pos)
-                break
-            _moves.add((self._pos, final_pos, None))
-        return _moves
+    def _get_advances(self) -> Set[MOVE]:
+        moves = set()
+        move_limit = self._get_move_limit()
+        diff = self._POS_DIFFS[0]
+        self._add_advance_moves(moves, diff, move_limit)
+        return moves
 
-    def _generate_diagonal_capturing_moves(self) -> Set[MOVE]:
-        limits, diffs = self._limits[1], self._diffs[1]
-        _moves = set()
-        for n in range(2):
-            final_pos = self._pos + diffs[n]
-            if limits[n] > 0 and self._board.opponent_piece_on_square(final_pos, self._white_piece):
-                if self._is_promotion(final_pos):
-                    self._add_promotion_moves(_moves, final_pos)
-                    continue
-                _moves.add((self._pos, final_pos, None))
-        return _moves
+    def _get_diagonal_capturing_moves(self) -> Set[MOVE]:
+        moves = set()
+        for diff in self._POS_DIFFS[1:]:
+            self._add_diagonal_capture_move(moves, diff)
+        return moves
 
-    def _generate_en_passant_move(self) -> Set[MOVE]:
-        limits, diffs = self._limits[1], self._diffs[1]
-        for n in range(2):
-            if limits[n] > 0 and self._pos + diffs[n] == self._board.ep_target_square:
-                return {(self._pos, self._pos + diffs[n], None)}
-        return set()
+    def _get_en_passant_move(self) -> Set[MOVE]:
+        move = set()
+        for diff in self._POS_DIFFS[1:]:
+            self._add_en_passant_move(move, diff)
+        return move
 
-    @property
-    def _limits(self) -> List[Tuple[int, int, int, int]]:
-        return [self._get_max_moves(self._pos)[2:3], self._get_max_moves(self._pos)[4:6]] if self._white_piece else \
-            [self._get_max_moves(self._pos)[3:4], self._get_max_moves(self._pos)[6:]]
+    def _add_advance_moves(self, moves_set: Set[MOVE], diff: int, move_limit: int) -> None:
+        for new_pos in self._possible_new_positions(diff, move_limit):
+            if not self._board.is_square_empty(new_pos):
+                return
+            self._add_move(moves_set, new_pos)
 
-    @property
-    def _diffs(self) -> List[List[int]]:
-        return [self._all_diffs[2:3], self._all_diffs[4:6]] if self._white_piece else \
-            [self._all_diffs[3:4], self._all_diffs[6:]]
+    def _add_diagonal_capture_move(self, moves_set: Set[MOVE], diff) -> None:
+        new_pos = self._pos + diff
+        if not self._moves_in_direction_available(diff):
+            return
+        if self._board.opponent_piece_on_square(new_pos, self._white_piece):
+            self._add_move(moves_set, new_pos)
+
+    def _add_en_passant_move(self, moves_set, diff) -> None:
+        new_pos = self._pos + diff
+        if self._moves_in_direction_available(diff) and self._is_en_passant_move(new_pos):
+            self._add_move(moves_set, new_pos)
+
+    def _add_move(self, moves_set: Set[MOVE], new_pos: int, promotion_type: Optional[str] = None) -> None:
+        if self._is_promotion_move(new_pos):
+            self._add_promotion_moves(moves_set, new_pos)
+            return
+        super()._add_move(moves_set, new_pos)
 
     @staticmethod
-    def _is_promotion(final_pos: int) -> bool:
-        """
-        test if a pawn move ends on the first or last rank of the board
-        :param final_pos: final pos of the moving piece
-        :return: whether the move is a promotion
-        """
-        return (final_pos // 8) == 0 or (final_pos // 8) == 7
-    
-    def _add_promotion_moves(self, moves_set: Set[MOVE], final_pos: int) -> None:
-        """
-        add all promotion moves for a move
-        :param moves_set: move set to add move to
-        :param final_pos: final position of the move
-        """
-        moves_set.add((self._pos, final_pos, 'Q' if self._white_piece else 'q'))
-        moves_set.add((self._pos, final_pos, 'R' if self._white_piece else 'r'))
-        moves_set.add((self._pos, final_pos, 'B' if self._white_piece else 'b'))
-        moves_set.add((self._pos, final_pos, 'N' if self._white_piece else 'n'))
-            
+    def _is_promotion_move(new_pos: int) -> bool:
+        return (new_pos // 8) == 0 or (new_pos // 8) == 7
+
+    def _add_promotion_moves(self, moves_set: Set[MOVE], new_pos) -> None:
+        for type_ in self._get_promotion_types():
+            super()._add_move(moves_set, new_pos, type_)
+
+    def _get_promotion_types(self) -> str:
+        return 'QRBN' if self._white_piece else 'qrbn'
+
+    def _get_move_limit(self) -> int:
+        return 2 if self._on_starting_position() else 1
+
+    def _on_starting_position(self) -> bool:
+        return (self._white_piece and self.rank == 1) or (not self._white_piece and self.rank == 6)
+
+    def _is_en_passant_move(self, new_pos: int) -> bool:
+        return new_pos == self._board.ep_target_square
+
 
 class Knight(Piece):
-    _base_val: int = 320
-    _pos_val_mod: Dict[bool, Tuple[int]] = {True: (-50,-40,-30,-30,-30,-30,-40,-50,
+    _BASE_VAL: int = 320
+    _POS_VAL_MOD: Dict[bool, Tuple[int]] = {True: (-50,-40,-30,-30,-30,-30,-40,-50,
                                                    -40,-20,  0,  5,  5,  0,-20,-40,
                                                    -30,  5, 10, 15, 15, 10,  5,-30,
                                                    -30,  0, 15, 20, 20, 15,  0,-30,
@@ -385,18 +355,13 @@ class Knight(Piece):
                                                     -30,  5, 10, 15, 15, 10,  5,-30,
                                                     -40,-20,  0,  5,  5,  0,-20,-40,
                                                     -50,-40,-30,-30,-30,-30,-40,-50)}
+    _POS_DIFFS: List[int] = [17, 10, -6, -15, -17, -10, 6, 15]
+    _JUMP_OFFSETS: Dict[int, Tuple[int, int]] = {17: (1, 2), 10: (2, 1), -6: (2, -1), -15: (1, -2), -17: (-1, -2),
+                                                 -10: (-2, -1), 6: (-2, 1), 15: (-1, 2)}
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♞', 'N') if white_piece else ('♘', 'n')
         super().__init__(pos, white_piece, board, symbol, fen_symbol)
-
-    """
-    other getters
-    """
-
-    @property
-    def pos_val(self) -> int:
-        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
 
     """
     moves generation
@@ -405,21 +370,26 @@ class Knight(Piece):
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
         moves = set()
-        for diff, off_set in zip([17, 10, -6, -15, -17, -10, 6, 15], [(1, 2), (2, 1), (2, -1), (1, -2), (-1, -2),
-                                                                      (-2, -1), (-2, 1), (-1, 2)]):
-            new_pos = self._pos + diff
-            # new pos is beyond board
-            if self.file + off_set[0] > 7 or self.file + off_set[0] < 0 or self.rank + off_set[1] > 7 or \
-                    self.rank + off_set[1] < 0:
-                continue
-            if not self._board.own_piece_on_square(new_pos, self._white_piece):
-                moves.add((self._pos, new_pos, None))
+        for diff in self._POS_DIFFS:
+            self._add_direction_moves(moves, diff)
         return moves
+
+    def _add_direction_moves(self, moves_set: Set[MOVE], diff: int) -> None:
+        if self._moves_in_direction_available(diff):
+            return
+        new_pos = self._pos + diff
+        if not self._board.own_piece_on_square(new_pos, self._white_piece):
+            self._add_move(moves_set, new_pos)
+
+    def _moves_in_direction_available(self, diff: int) -> bool:
+        offset = self._JUMP_OFFSETS[diff]
+        return self.file + offset[0] > 7 or self.file + offset[0] < 0 or self.rank + offset[1] > 7 or \
+               self.rank + offset[1] < 0
 
 
 class Bishop(Piece):
-    _base_val: int = 330
-    _pos_val_mod: Dict[bool, Tuple[int]] = {True:  (-20,-10,-10,-10,-10,-10,-10,-20,
+    _BASE_VAL: int = 330
+    _POS_VAL_MOD: Dict[bool, Tuple[int]] = {True:  (-20,-10,-10,-10,-10,-10,-10,-20,
                                                     -10,  5,  0,  0,  0,  0,  5,-10,
                                                     -10, 10, 10, 10, 10, 10, 10,-10,
                                                     -10,  0, 10, 10, 10, 10,  0,-10,
@@ -435,31 +405,16 @@ class Bishop(Piece):
                                                     -10, 10, 10, 10, 10, 10, 10,-10,
                                                     -10,  5,  0,  0,  0,  0,  5,-10,
                                                     -20,-10,-10,-10,-10,-10,-10,-20)}
+    _POS_DIFFS: List[int] = [9, -9, 7, -7]
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♝', 'B') if white_piece else ('♗', 'b')
         super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
-    """
-    other getters
-    """
-
-    @property
-    def pos_val(self) -> int:
-        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
-
-    """
-    moves generation
-    """
-
-    @property
-    def pseudo_legal_moves(self) -> Set[MOVE]:
-        return self._generate_sliding_moves(self._all_diffs[4:], self._get_max_moves(self._pos)[4:])
-
 
 class Rook(Piece):
-    _base_val: int = 500
-    _pos_val_mod: Dict[bool, Tuple[int]] = {True:  ( 0,  0,  0,  5,  5,  0,  0,  0,
+    _BASE_VAL: int = 500
+    _POS_VAL_MOD: Dict[bool, Tuple[int]] = {True:  ( 0,  0,  0,  5,  5,  0,  0,  0,
                                                     -5,  0,  0,  0,  0,  0,  0, -5,
                                                     -5,  0,  0,  0,  0,  0,  0, -5,
                                                     -5,  0,  0,  0,  0,  0,  0, -5,
@@ -475,31 +430,16 @@ class Rook(Piece):
                                                     -5,  0,  0,  0,  0,  0,  0, -5,
                                                     -5,  0,  0,  0,  0,  0,  0, -5,
                                                      0,  0,  0,  5,  5,  0,  0,  0)}
+    _POS_DIFFS: List[int] = [1, -1, 8, -8]
 
     def __init__(self, pos: int, white_piece: bool, board: Board) -> None:
         symbol, fen_symbol = ('♜', 'R') if white_piece else ('♖', 'r')
         super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
-    """
-    other getters
-    """
-
-    @property
-    def pos_val(self) -> int:
-        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
-
-    """
-    moves generation
-    """
-
-    @property
-    def pseudo_legal_moves(self) -> Set[MOVE]:
-        return self._generate_sliding_moves(self._all_diffs[:4], self._get_max_moves(self._pos)[:4])
-
 
 class Queen(Piece):
-    _base_val: int = 900
-    _pos_val_mod: Dict[bool, Tuple[int]] = {True: (-20,-10,-10, -5, -5,-10,-10,-20,
+    _BASE_VAL: int = 900
+    _POS_VAL_MOD: Dict[bool, Tuple[int]] = {True: (-20,-10,-10, -5, -5,-10,-10,-20,
                                                    -10,  0,  5,  0,  0,  0,  0,-10,
                                                    -10,  5,  5,  5,  5,  5,  0,-10,
                                                      0,  0,  5,  5,  5,  5,  0, -5,
@@ -520,26 +460,10 @@ class Queen(Piece):
         symbol, fen_symbol = ('♛', 'Q') if white_piece else ('♕', 'q')
         super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
-    """
-    other getters
-    """
-
-    @property
-    def pos_val(self) -> int:
-        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
-
-    """
-    moves generation
-    """
-
-    @property
-    def pseudo_legal_moves(self) -> Set[MOVE]:
-        return self._generate_sliding_moves()
-
 
 class King(Piece):
-    _base_val: int = 20_000
-    _pos_val_mod: Dict[bool, Tuple[int]] = {True:  ( 20, 30, 10,  0,  0, 10, 30, 20,
+    _BASE_VAL: int = 20_000
+    _POS_VAL_MOD: Dict[bool, Tuple[int]] = {True:  ( 20, 30, 10,  0,  0, 10, 30, 20,
                                                      20, 20,  0,  0,  0,  0, 20, 20,
                                                     -10,-20,-20,-20,-20,-20,-20,-10,
                                                     -20,-30,-30,-40,-40,-30,-30,-20,
@@ -561,48 +485,56 @@ class King(Piece):
         super().__init__(pos, white_piece, board, symbol, fen_symbol)
 
     """
-    other getters
-    """
-
-    @property
-    def pos_val(self) -> int:
-        return self._base_val + self._pos_val_mod[self._white_piece][self._pos]
-
-    """
     moves generation
     """
 
     @property
     def pseudo_legal_moves(self) -> Set[MOVE]:
-        return self._generate_one_square_sliding_moves() | self._generate_castling_moves()
+        return self._get_one_square_sliding_moves() | self._get_castling_moves()
 
     @property
     def attacking_squares(self) -> Set[int]:
-        return {move[1] for move in self._generate_one_square_sliding_moves()}
+        return {move[1] for move in self._get_one_square_sliding_moves()}
 
-    def _generate_one_square_sliding_moves(self) -> Set[MOVE]:
+    def _get_one_square_sliding_moves(self) -> Set[MOVE]:
         moves = set()
-        for diff, m in zip(self._all_diffs, self._get_max_moves(self._pos)):
-            if m == 0:
-                continue
-            if self._board.own_piece_on_square(self._pos + diff, self._white_piece):
-                continue
-            moves.add((self._pos, self._pos + diff, None))
+        for diff in self._POS_DIFFS:
+            self._add_direction_moves(moves, diff)
         return moves
 
-    def _generate_castling_moves(self) -> Set[MOVE]:
-        def generate_castling_move_for_one_side(dir_: int, n: int) -> Set[MOVE]:
-            # testing castling right
-            if not self._board.castling_rights[n if self._white_piece else n + 2]:
-                return set()
-            # test if squares in between king and rook are empty
-            for pos in range(self._pos + dir_, self._pos + ((3 + n) * dir_), dir_):
-                if not self._board.is_square_empty(pos):
-                    return set()
-            # test if king in checking or squares the king moves over is threatened
-            if self._board.is_king_attacked(self._white_piece) or \
-                    self._board.is_square_attacked(self._pos + dir_, self._white_piece):
-                return set()
-            return {(self._pos, self._pos + (2 * dir_), None)}
+    def _get_castling_moves(self) -> Set[MOVE]:
+        moves = set()
+        for n_move, pos_mod in enumerate((1, -1)):
+            if self._castling_move_available(pos_mod, n_move):
+                self._add_move(moves, self._pos + (2 * pos_mod), None)
+        return moves
 
-        return generate_castling_move_for_one_side(1, 0) | generate_castling_move_for_one_side(-1, 1)
+    def _add_direction_moves(self, moves_set: Set[MOVE], diff: int) -> None:
+        if not self._moves_in_direction_available(diff):
+            return
+        new_pos = self._pos + diff
+        if not self._board.own_piece_on_square(new_pos, self._white_piece):
+            self._add_move(moves_set, new_pos)
+
+    def _castling_move_available(self, pos_mod: int, n_move: int) -> bool:
+        if not self._castling_rights_given(n_move):
+            return False
+        if not self._square_between_rook_and_king_empty(pos_mod, n_move):
+            return False
+        if self._king_threatened_one_own_square_or_square_to_move_over(pos_mod):
+            return False
+        return True
+
+    def _castling_rights_given(self, n_move) -> bool:
+        return self._board.castling_rights[n_move if self._white_piece else n_move + 2]
+
+    def _square_between_rook_and_king_empty(self, pos_mod: int, n_move: int) -> bool:
+        for square in range(self._pos + pos_mod, self._pos + ((3 + n_move) * pos_mod), pos_mod):
+            if not self._board.is_square_empty(square):
+                return False
+        return True
+
+    def _king_threatened_one_own_square_or_square_to_move_over(self, pos_mod: int):
+        return self._board.is_king_attacked(self._white_piece) or \
+                self._board.is_square_attacked(self._pos + pos_mod, self._white_piece)
+

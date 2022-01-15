@@ -14,10 +14,10 @@ class TestPiece(Piece):
     def pseudo_legal_moves(self, *args):
         pass
 
-    def _base_val(self, *args):
+    def _BASE_VAL(self, *args):
         pass
 
-    def _pos_val_mod(self, *args):
+    def _POS_VAL_MOD(self, *args):
         pass
 
     def pos_val(self, *args):
@@ -43,10 +43,10 @@ class ConstructionTestCase(unittest.TestCase):
         self.assertFalse(piece2._white_piece)
 
     def test_capture_data_is_none(self):
-        self.assertIsNone(piece1._capture_data)
+        self.assertIsNone(piece1._capture_info)
 
     def test_capture_data_is_always_none(self):
-        self.assertIsNone(piece2._capture_data)
+        self.assertIsNone(piece2._capture_info)
 
     def test_symbol_is_given_value(self):
         self.assertEqual('♟', piece1._symbol)
@@ -87,12 +87,12 @@ class AttributeGetterTestCase(unittest.TestCase):
         self.assertEqual('n', piece2.fen_symbol)
 
     def test_can_get_capture_data(self):
-        self.assertIsNone(piece1.capture_data)
+        self.assertIsNone(piece1.capture_info)
 
     def test_can_get_any_capture_data(self):
         piece = TestPiece(35, True, board, '♟', 'P')
         piece.capture(1, True)
-        self.assertEqual((1, True), piece.capture_data)
+        self.assertEqual((1, True), piece.capture_info)
 
 
 class GetterTestCase(unittest.TestCase):
@@ -125,28 +125,19 @@ class SetterTestCase(unittest.TestCase):
         piece1.move_to(63)
         self.assertEqual(63, piece1.pos)
 
-    def test_raises_value_error_if_pos_value_too_high(self):
-        self.assertRaises(ValueError, piece1.move_to, 64)
-
-    def test_raises_value_error_if_pos_value_too_low(self):
-        self.assertRaises(ValueError, piece1.move_to, -1)
-
-    def test_raises_type_error_if_pos_value_not_int(self):
-        self.assertRaises(TypeError, piece1.move_to, True)
-
     def test_can_be_captured(self):
         piece1.capture(1, False)
-        self.assertEqual((1, False), piece1._capture_data)
+        self.assertEqual((1, False), piece1._capture_info)
 
     def test_any_piece_can_be_captured(self):
         piece2.capture(2, True)
-        self.assertEqual((2, True), piece2._capture_data)
+        self.assertEqual((2, True), piece2._capture_info)
 
     def test_can_reset_capture_data(self):
         piece = TestPiece(35, True, board, '♟', 'P')
         piece.capture(1, True)
         piece.uncapture()
-        self.assertIsNone(piece.capture_data)
+        self.assertIsNone(piece.capture_info)
 
 
 def main() -> None:

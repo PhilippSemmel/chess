@@ -12,22 +12,22 @@ class ConstructionTestCase(unittest.TestCase):
         self.assertTrue(issubclass(King, Piece))
 
     def test_base_val_is_correct(self):
-        self.assertEqual(20000, king1._base_val)
+        self.assertEqual(20000, king1._BASE_VAL)
 
     def test_base_val_is_always_correct(self):
-        self.assertEqual(20000, king2._base_val)
+        self.assertEqual(20000, king2._BASE_VAL)
 
     def test_pos_val_mod_is_correct_as_white(self):
         self.assertEqual((20, 30, 10, 0, 0, 10, 30, 20, 20, 20, 0, 0, 0, 0, 20, 20, -10, -20, -20, -20, -20, -20, -20,
                           -10, -20, -30, -30, -40, -40, -30, -30, -20, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40,
                           -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50,
-                          -40, -40, -30), king1._pos_val_mod[True])
+                          -40, -40, -30), king1._POS_VAL_MOD[True])
 
     def test_pos_val_mod_is_correct_as_black(self):
         self.assertEqual((-30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40,
                           -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -20, -30, -30, -40, -40, -30,
                           -30, -20, -10, -20, -20, -20, -20, -20, -20, -10, 20, 20, 0, 0, 0, 0, 20, 20, 20, 30, 10, 0,
-                          0, 10, 30, 20), king2._pos_val_mod[False])
+                          0, 10, 30, 20), king2._POS_VAL_MOD[False])
 
     def test_pos_is_given_value(self):
         self.assertEqual(35, king1._pos)
@@ -42,10 +42,10 @@ class ConstructionTestCase(unittest.TestCase):
         self.assertFalse(king2._white_piece)
 
     def test_capture_data_is_none(self):
-        self.assertIsNone(king1._capture_data)
+        self.assertIsNone(king1._capture_info)
 
     def test_capture_data_is_always_none(self):
-        self.assertIsNone(king2._capture_data)
+        self.assertIsNone(king2._capture_info)
 
 
 class MoveGenerationTestCase(unittest.TestCase):
